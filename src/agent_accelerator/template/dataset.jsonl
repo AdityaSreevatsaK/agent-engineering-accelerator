@@ -1,0 +1,5 @@
+{"id": "exact_answer", "input": "When is the London office open?", "expected_output": "09:00-17:30", "expected_tool_calls": [{"name": "opening_hours", "arguments": {"office": "London"}}]}
+{"id": "subset_arguments", "input": "What are the Bangalore office hours?", "output_contains": ["09:30", "18:30"], "expected_tool_calls": [{"name": "opening_hours", "arguments": {}, "match": "subset"}]}
+{"id": "tool_error", "input": "When is the Paris office open?", "output_contains": ["unknown"], "expected_tool_calls": [{"name": "opening_hours", "arguments": {}, "match": "subset"}]}
+{"id": "no_tool", "input": "Write me a poem.", "output_contains": ["opening hours"], "expected_tool_calls": []}
+{"id": "json_reply", "input": "Reply as JSON with a key 'hours': when is the London office open?", "expected_json_schema": {"type": "object", "required": ["hours"], "properties": {"hours": {"type": "string"}}}, "expected_tool_calls": [{"name": "opening_hours", "arguments": {}, "match": "subset"}]}
