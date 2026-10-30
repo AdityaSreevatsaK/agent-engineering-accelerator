@@ -215,7 +215,7 @@ def _calibration(epochs: tuple[JudgedEpoch, ...]) -> tuple[list[tuple[str, str, 
     """(case id, judge verdict, human label) per judged epoch of a labelled golden case, the labelled case count, and
     how many of those cases have a verdict to compare, which is the count the kappa minimum applies to."""
     labelled = [e for e in epochs if e.mode == "golden" and e.human_label is not None]
-    pairs = [(e.case_id, e.outcome, e.human_label) for e in labelled if e.outcome in ("pass", "fail") and e.human_label in ("pass", "fail")]
+    pairs = [(e.case_id, e.outcome, e.human_label) for e in labelled if e.outcome in ("pass", "fail") and e.human_label]
     return pairs, len({e.case_id for e in labelled}), len({case_id for case_id, _, _ in pairs})
 
 
