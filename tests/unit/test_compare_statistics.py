@@ -277,7 +277,7 @@ def test_demo_statistics_match_hand_derived_values():
 
     assert "baseline 100.0% [72.2%, 100.0%] (10/10), current 80.0% [49.0%, 94.3%] (8/10)" in block
     assert "Pass rate change: -20.0 points [-51.0, +11.2] (95% Newcombe)" in block
-    assert "McNemar exact p = 0.500 over 10 paired cases (2 passed→failed, 0 failed→passed)" in block
+    assert "McNemar exact p = 0.500 over 10 paired cases (2 passed->failed, 0 failed->passed)" in block
 
 
 def test_statistics_block_is_the_last_section_before_the_glossary_and_appears_once():
@@ -355,7 +355,7 @@ def test_optional_lines_are_omitted_when_their_statistic_is_none():
     assert block[0] == HEADER
     assert [line.split(":")[0] for line in block if line.startswith("- ")] == [
         "- Pass rate over cases (95% Wilson)",
-        "- McNemar exact p = 1.000 over 4 paired cases (0 passed→failed, 1 failed→passed). The chance of a split at "
+        "- McNemar exact p = 1.000 over 4 paired cases (0 passed->failed, 1 failed->passed). The chance of a split at "
         "least this uneven if nothing changed.",
     ]
 
