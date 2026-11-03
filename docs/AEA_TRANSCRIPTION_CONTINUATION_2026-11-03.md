@@ -8,10 +8,10 @@
 ### `tests/unit/test_readings.py`
 
 - Original Notepad++ recording: 1,605 displayed lines (including the final editor line), 67,194 Windows/CRLF characters.
-- Local draft transcribed from numbered overlapping frames: **source lines 1–422** (422 LF-terminated physical lines).
-- Coverage: fixture builders, summary, failed checks, flaky cases, tool-error descriptions, slow-case summary, Wilson reliability readings, English name lists, and pass-at-k gap reporting.
-- Static validation: Python 3.11 grammar parse and compilation passed; **19 unique top-level test functions** and **11 parameterisation groups** in the partial draft.
-- Not a full reconstruction; 423 onward remains untranscribed and original test execution is not claimed.
+- Local draft transcribed from numbered overlapping frames: **source lines 1–511** (511 LF-terminated physical lines).
+- Coverage: fixture builders, summary, failed checks, flaky cases, tool-error descriptions, slow-case summary, Wilson reliability readings, English name lists, pass-at-k gap reporting, wide uncertainty intervals, tool-use interpretations, and the opening of performance tests.
+- Static validation: Python 3.11 grammar parse and compilation passed; **additional verified test functions and parameterisation groups, counted by the local static check** in the partial draft.
+- Not a full reconstruction; 512 onward remains untranscribed and original test execution is not claimed.
 
 ### `tests/unit/test_judge.py`
 
