@@ -9,7 +9,7 @@
 - The restored calibration assertion at original lines 657–661 was checked against an independently extracted source frame and replaced an inaccurate shortened assertion.
 - The resulting CRLF-equivalent character count is **35,376**, versus **35,371** displayed in the original editor, a remaining **5-character difference**. This is not byte-for-byte source-fidelity sign-off; no arbitrary padding was added.
 - 45 unique top-level test functions were recovered, with no duplicate names. The complete draft passes Python 3.11 AST parsing and compilation.
-- A static cross-file import-name audit finds the 15 inspected symbols of `report`, `compare`, `judge`, `readings`, `run_metrics`, `tool_metrics`, and `trace_summary` present. This is not evidence of runtime correctness.
+- A static cross-file import-name audit finds the inspected symbols of `report`, `compare`, `judge`, `readings`, `run_metrics`, `tool_metrics`, and `trace_summary` present. This is not evidence of runtime correctness.
 
 ## Verification limitations and other files
 
