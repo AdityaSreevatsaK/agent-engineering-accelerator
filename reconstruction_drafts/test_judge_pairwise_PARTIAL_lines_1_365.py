@@ -320,7 +320,7 @@ def test_dataset_warning_names_both_hashes_to_twelve_characters_when_they_differ
 
     text = baseline_dataset_warning(baseline_with(old), new)
 
-    assert f"{old[:12]}" in text and f"{new[:12]}" in text
+    assert f"({old[:12]})" in text and f"({new[:12]})" in text
     assert old[:13] not in text and new[:13] not in text
     assert "may not be comparable" in text
 
