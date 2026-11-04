@@ -654,11 +654,11 @@ def test_no_calibration_lines_or_kappa_glossary_without_human_labels():
     # Witness: "s32 calibration always" (has_calibration True) adds the kappa entry.
     report = render_run(judged_run(je("a"), je("b", "fail")))
 
-    assert not any("Human-labelled" in text for text in judge_bullets(report))
+    assert [
+        line for line in judge_section(report) if not line.startswith("-") and ("label" in line or "appa" in line)
+    ] == []
     assert readings.GLOSSARY["kappa"] not in report
     assert readings.GLOSSARY["judge error"] in report
-
-
 
 
 def test_labels_without_a_comparable_verdict_give_only_the_labelled_count():
