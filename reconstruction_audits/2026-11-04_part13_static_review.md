@@ -51,3 +51,7 @@ The Library indexes original `test_cli.py - video.webm` and `test_judge_pairwise
 4. Keep partial drafts outside active `tests/unit`. Keep `master` unchanged pending source fidelity checks and CI.
 
 This report records **static integrity checks only**. It is not a completed reconstruction or sign-off.
+
+## Additional cross-module static import inventory
+
+Reviewed all explicitly named `agent_accelerator.*` imports in these six saved drafts against the reconstructed branch sources in `cli.py`, `compare.py`, `dataset.py`, `judge.py`, `judge_double.py`, `report.py`, `run.py`, `scorers.py`, `run_metrics.py`, `tool_metrics.py`, `trace_summary.py` and `export.py`. **Only the two judge helper names above were unresolved** in this first-pass source-declaration comparison. `cli.EXIT_ERROR` is present in the destructuring declaration `EXIT_OK, EXIT_REGRESSION, EXIT_ERROR = 0, 1, 2` (source line 20); it is not a missing API. This is textual source inspection and does not replace importing the real modules with installed dependencies.
