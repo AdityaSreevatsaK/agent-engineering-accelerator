@@ -49,7 +49,7 @@ def build_task(
     return Task(
         name=dataset_path.stem,
         dataset=MemoryDataset(samples, name=dataset_path.stem),
-        solver=_adapter_solver(adapter, agent, input_map, output_map),
+        solver=_adapter_solver(adapter, agent, input_map=input_map, output_map=output_map),
         scorer=[case_checks(show_values=capture_content), *(extra_scorers or []), *judge_scorers],
         epochs=epochs,
         metadata={
