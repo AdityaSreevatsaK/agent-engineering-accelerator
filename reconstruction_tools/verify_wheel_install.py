@@ -106,16 +106,22 @@ def main() -> None:
         starter = root / "ready_agent"
         run(str(cli), "init", str(starter), cwd=root)
         for name in REQUIRED_TEMPLATES:
-            actual = (starter / name).read_bytes()
-            expected = (ROOT / "src" / "agent_accelerator" / "template" / name).read_bytes()
+            # _init intentionally emits LF on Windows; check semantic text fidelity.
+            # Raw byte fidelity of wheel assets was validated above separately.
+            actual = (starter / name).read_text(encoding="utf-8")
+            expected = (ROOT / "src" / "agent_accelerator" / "template" / name).read_text(
+                encoding="utf-8"
+            )
             if actual != expected:
-                raise AssertionError(f"aea init template differs from source: {name}")
+                raise AssertionError(f"aea init template differs from source text: {name}")
 
         # Overwrite behaviour must work via the installed script as well.
         (starter / "agent.py").write_text("# overwritten by force\n", encoding="utf-8")
         run(str(cli), "init", str(starter), "--force", cwd=root)
-        expected_agent = (ROOT / "src" / "agent_accelerator" / "template" / "agent.py").read_bytes()
-        if (starter / "agent.py").read_bytes() != expected_agent:
+        expected_agent = (ROOT / "src" / "agent_accelerator" / "template" / "agent.py").read_text(
+            encoding="utf-8"
+        )
+        if (starter / "agent.py").read_text(encoding="utf-8") != expected_agent:
             raise AssertionError("aea init --force did not restore the packaged template")
 
         report = root / "report.md"
