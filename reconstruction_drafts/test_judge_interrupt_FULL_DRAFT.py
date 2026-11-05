@@ -72,7 +72,7 @@ class CountingJudge:
             for block in prompt.split("<<<BEGIN ")[1:]:
                 name, rest = block.split(" ", 1)
                 if name.startswith("ANSWER"):
-                    found.append(rest.split(">>>\\n", 1)[1].split("\\n<<<END ", 1)[0])
+                    found.append(rest.split(">>>\n", 1)[1].split("\n<<<END ", 1)[0])
         return found
 
 
@@ -91,11 +91,11 @@ def evaluate(monkeypatch, tmp_path):
         monkeypatch.setattr(run_module, "_adapter_solver", lambda adapter, agent, *maps: outcomes_solver(outcomes))
         n = len(list(tmp_path.glob("run*")))
         dataset = tmp_path / f"dataset{n}.jsonl"
-        dataset.write_text("\\n".join(json.dumps({"id": i, "input": f"question {i}"}) for i in outcomes), "utf-8")
+        dataset.write_text("\n".join(json.dumps({"id": i, "input": f"question {i}"}) for i in outcomes), "utf-8")
         golden_path = None
         if golden:
             golden_path = tmp_path / f"golden{n}.jsonl"
-            golden_path.write_text("\\n".join(json.dumps({"id": i, "reference": r}) for i, r in golden.items()), "utf-8")
+            golden_path.write_text("\n".join(json.dumps({"id": i, "reference": r}) for i, r in golden.items()), "utf-8")
         config = JudgeConfig(JUDGE_DOUBLE, golden_path, None, baseline) if judge else None
         epochs = len(next(iter(outcomes.values())))
         task = build_task(dataset, "unused:agent", capture_content=capture, epochs=epochs, judge_config=config)
