@@ -442,7 +442,7 @@ def _pairwise_readings(epochs: tuple[JudgedEpoch, ...]) -> list[str]:
             f"{_names(sorted((e.case_id for e in gaps)))} (the case is missing from the baseline run, or its agent "
             f"errored or stopped at an interrupt there); the judge pass rate leaves {them} out."
         )
-    worse = sorted((e.case_id for e in epochs if e.pairwise == "worse"))
+    worse = sorted({e.case_id for e in epochs if e.pairwise == "worse"})
     judged = [e for e in epochs if e.pairwise is not None]
     if worse:
         readings.append(
@@ -458,7 +458,7 @@ def _pairwise_readings(epochs: tuple[JudgedEpoch, ...]) -> list[str]:
     if disagreed:
         readings.append(
             f"The verdict changed when the two answers were swapped on {len(disagreed)} of "
-            f"{counted(len(judged), *unit)} ({_names(sorted((e.case_id for e in disagreed)))}), so the order "
+            f"{counted(len(judged), *unit)} ({_names(sorted({e.case_id for e in disagreed}))}), so the order "
             "decided those rather than the content and they count as the same; if that is many, the judge cannot "
             "reliably tell these answers apart."
         )
