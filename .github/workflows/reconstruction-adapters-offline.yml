@@ -1,0 +1,40 @@
+name: AEA framework adapter reconstruction verification
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+  push:
+    branches:
+      - reconstruction/verify-adapters-2026-11-05
+
+permissions:
+  contents: read
+
+jobs:
+  offline-adapter-tests:
+    name: Framework adapters / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 24
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - name: Checkout reconstruction branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install framework-native adapters and local test dependencies
+        run: python -m pip install -e ".[langgraph,strands]" "pytest>=9.1.1,<10"
+      - name: Run original framework adapter tests with local model doubles
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+          PYTHONPATH: ${{ github.workspace }}/src
+        run: python -m pytest -q -m "not slow" tests/unit/test_adapters.py
+
+# Recorded source has no external API calls and uses in-process model doubles.
+# This tests actual optional Strands and LangGraph dependencies, not paid providers.
