@@ -41,11 +41,20 @@ jobs:
         run: python -m pip install --no-deps -e .
       - name: Generate temporary SYNTHETIC test-only calculator files
         run: python reconstruction_tools/make_synthetic_calculator.py
-      - name: Run recorded build_task tests against real AEA source
+      - name: Generate temporary synthetic Inspect capture fixture
         env:
           PYTHONPATH: ${{ github.workspace }}/src
           AWS_EC2_METADATA_DISABLED: "true"
-        run: python -m pytest -q -m "not slow" tests/unit/test_build_task.py
+        run: python reconstruction_tools/make_synthetic_capture.py
+      - name: Run recovered build, run and scrub tests against real AEA source
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: >-
+          python -m pytest -q -m "not slow"
+          tests/unit/test_build_task.py
+          tests/unit/test_run_task.py
+          tests/unit/test_scrub.py
 
 # The original calculator example/dataset remain unrecovered.
 # This job tests build_task contracts using CI-generated stand-ins only.
