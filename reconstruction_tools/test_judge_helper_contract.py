@@ -36,7 +36,8 @@ class JudgeHelperExportsTests(unittest.TestCase):
                 isinstance(target, ast.Name) and target.id in exports for target in node.targets
             ):
                 selected.append(node)
-        cls.assertEqual(cls, len(selected), 4, "Expected two helper definitions and two aliases")
+        if len(selected) != 4:
+            raise AssertionError("Expected two helper definitions and two aliases")
         module = ast.fix_missing_locations(ast.Module(body=selected, type_ignores=[]))
         cls.namespace = {
             "hashlib": hashlib,
