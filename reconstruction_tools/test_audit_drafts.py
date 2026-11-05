@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from reconstruction_tools.audit_drafts import module_bindings, resolve_module_path
+from reconstruction_tools.audit_drafts import editor_character_length, module_bindings, resolve_module_path
 
 
 class ModuleResolutionTests(unittest.TestCase):
@@ -60,6 +60,22 @@ class SourceBindingTests(unittest.TestCase):
             {"FilePath", "encoding", "EXIT_OK", "EXIT_ERROR",
              "CONFIG", "JudgeConfig", "check", "run"} <= bindings
         )
+
+
+
+class RecordedEditorLengthsTests(unittest.TestCase):
+    def test_lf_editor_counts_actual_source_characters(self):
+        self.assertEqual(editor_character_length("one\\ntwo\\n", "lf"), 8)
+
+    def test_crlf_editor_accounts_for_carriage_returns(self):
+        self.assertEqual(editor_character_length("one\\ntwo\\n", "crlf"), 10)
+
+    def test_double_escaped_n_does_not_reproduce_a_real_newline(self):
+        self.assertNotEqual(editor_character_length(r"one\\n", "crlf"), editor_character_length("one\\n", "crlf"))
+
+    def test_unsupported_eol_is_rejected(self):
+        with self.assertRaises(ValueError):
+            editor_character_length("data", "unknown")
 
 
 if __name__ == "__main__":
