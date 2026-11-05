@@ -14,7 +14,7 @@ import sys
 import tempfile
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 BROWSER_ENV = "AEA_BROWSER"
 BROWSER_NAMES = ("msedge", "chrome", "chromium", "google-chrome", "chromium-browser")
@@ -26,12 +26,12 @@ _BULLET = re.compile(r"^\s*[-*+]\s+(.*)$")
 _TABLE_SEPARATOR = re.compile(r"^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$")
 _CELL_SPLIT = re.compile(r"(?<!\\)\|")
 _CODE_SPAN = re.compile(r"(`+)(.+?)\1")
-_LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+_LINK = re.compile(r"\[([^\]]+)\]\(((?:[^()\s]|\([^()]*\))+)\)")
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 _ITALIC = re.compile(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])|(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)")
 _LINK_SLOT = re.compile("\\x00(\\d+)\\x00")
 # An underscore between two letters or digits is part of a word (my_agent), not an emphasis marker.
-_TITLE_MARKERS = re.compile(r"[*`]|(?<![^\W_])_(?![^\W_])")
+_TITLE_MARKERS = re.compile(r"[*`]|(?<![^\W_])_|_(?![^\W_])")
 _SAFE_URL = re.compile(r"^(https?:|mailto:|#|/|\.{0,2}/|[\w.-]+(/|$))", re.IGNORECASE)
 # A status cell: the word alone or followed by a tally/reason, e.g. "FAIL (3/5)", "error: timeout"; not "Pass rate".
 _STATUS = re.compile(r"^(pass|passed|ok|fail|failed|error|regression)\b(?!\s+[a-z])", re.IGNORECASE)
@@ -239,7 +239,7 @@ def _install_paths(env: Mapping[str, str]) -> list[Path]:
             r"Google\Chrome\Application\chrome.exe",
             r"Chromium\Application\chrome.exe",
         )
-        return [Path(root) / rel for rel in relative for root in roots if root]
+        return [Path(str(PureWindowsPath(root) / rel)) for rel in relative for root in roots if root]
     if sys.platform == "darwin":
         apps = ("Microsoft Edge", "Google Chrome", "Chromium")
         return [Path(f"/Applications/{app}.app/Contents/MacOS/{app}") for app in apps]
