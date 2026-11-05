@@ -65,13 +65,20 @@ class SourceBindingTests(unittest.TestCase):
 
 class RecordedEditorLengthsTests(unittest.TestCase):
     def test_lf_editor_counts_actual_source_characters(self):
-        self.assertEqual(editor_character_length("one\\ntwo\\n", "lf"), 8)
+        sample = "one" + chr(10) + "two" + chr(10)
+        self.assertEqual(editor_character_length(sample, "lf"), 8)
 
     def test_crlf_editor_accounts_for_carriage_returns(self):
-        self.assertEqual(editor_character_length("one\\ntwo\\n", "crlf"), 10)
+        sample = "one" + chr(10) + "two" + chr(10)
+        self.assertEqual(editor_character_length(sample, "crlf"), 10)
 
-    def test_double_escaped_n_does_not_reproduce_a_real_newline(self):
-        self.assertNotEqual(editor_character_length(r"one\\n", "crlf"), editor_character_length("one\\n", "crlf"))
+    def test_double_escaped_n_in_source_changes_editor_count(self):
+        single_escape = "source = " + chr(92) + "n" + chr(10)
+        double_escape = "source = " + chr(92) * 2 + "n" + chr(10)
+        self.assertEqual(
+            editor_character_length(double_escape, "crlf"),
+            editor_character_length(single_escape, "crlf") + 1,
+        )
 
     def test_unsupported_eol_is_rejected(self):
         with self.assertRaises(ValueError):
