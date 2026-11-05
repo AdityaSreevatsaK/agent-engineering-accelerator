@@ -44,6 +44,8 @@ DEFERRED: dict[str, tuple[str, ...]] = {
         "test_cli_compare_exit_code_ignores_capture_warning",
         "test_failing_score_without_explanation_is_reported_as_scorer_name_failed",
         "test_failing_score_with_explanation_keeps_the_explanation",
+        "test_case_tool_calls_are_the_mean_over_epochs_that_recorded_a_count",
+        "test_case_tool_calls_are_none_when_no_epoch_recorded_a_case_checks_count",
         "test_case_tool_use_aggregates_every_epoch_not_only_the_first",
         "test_logs_from_before_tool_call_counts_load_with_none",
         "test_cli_compare_max_p_value_turns_the_significance_warning_into_a_regression",
@@ -54,10 +56,30 @@ DEFERRED: dict[str, tuple[str, ...]] = {
     ),
 }
 
-DEPENDENCY_SYMBOLS = {
-    "tests/unit/test_compare.py": {"FIXTURES", "write_epoch_log", "write_capture_metadata_log"},
-    "tests/unit/test_compare_statistics.py": {"demo_comparison"},
-}
+def fixture_dependent_tests(module: ast.Module) -> set[str]:
+    """Compute transitive dependencies on the historical fixture path symbol.
+
+    This includes tests that call a helper which in turn calls another helper
+    that loads FIXTURES. New helper layers must not silently bypass omissions.
+    """
+    definitions = {
+        n.name: n
+        for n in module.body
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    references = {
+        name: {n.id for n in ast.walk(fn) if isinstance(n, ast.Name)}
+        for name, fn in definitions.items()
+    }
+    dependent = {name for name, uses in references.items() if "FIXTURES" in uses}
+    while True:
+        expanded = dependent | {
+            name for name, uses in references.items()
+            if not uses.isdisjoint(dependent)
+        }
+        if expanded == dependent:
+            return {name for name in dependent if name.startswith("test_")}
+        dependent = expanded
 
 
 def preflight() -> None:
@@ -80,12 +102,7 @@ def preflight() -> None:
         missing = set(names) - test_defs.keys()
         if missing:
             raise RuntimeError(f"Outdated deferrals in {relative_path}: {sorted(missing)}")
-        dependency_symbols = DEPENDENCY_SYMBOLS[relative_path]
-        fixture_dependent = {
-            name
-            for name, fn in test_defs.items()
-            if any(isinstance(n, ast.Name) and n.id in dependency_symbols for n in ast.walk(fn))
-        }
+        fixture_dependent = fixture_dependent_tests(module)
         unexpected = fixture_dependent - set(names)
         stale = set(names) - fixture_dependent
         if unexpected or stale:
