@@ -1,0 +1,39 @@
+name: AEA packaged wheel and installed CLI verification
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+  push:
+    branches:
+      - reconstruction/verify-wheel-cli-2026-11-05
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-wheel:
+    name: Wheel/CLI / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install isolated PEP 517 builder
+        run: python -m pip install "build>=1.2,<2"
+      - name: Build wheel with declared uv_build backend
+        run: python -m build --wheel --outdir dist
+      - name: Validate wheel data and fresh installed CLI offline
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: python reconstruction_tools/verify_wheel_install.py
+
+# Test-only wheel installation and local HTML export; no real agent runs,
+# external model providers or historical fixtures.
