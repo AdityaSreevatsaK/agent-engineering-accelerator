@@ -1,0 +1,42 @@
+name: AEA offline unit verification
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-unit-tests:
+    name: Offline unit tests / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install offline test runner
+        run: python -m pip install "pytest>=9.1.1,<10"
+
+      - name: Run statistics and CLI initialisation tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: python -m pytest -q -m "not slow" tests/unit/test_stats_compare.py tests/unit/test_init.py
+
+# Does not install agent frameworks, access credentials, or call paid model APIs.
