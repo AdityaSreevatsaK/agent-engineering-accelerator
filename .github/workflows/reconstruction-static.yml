@@ -1,0 +1,41 @@
+name: AEA draft reconstruction integrity (review branch)
+
+on:
+  push:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-integrity:
+    name: Static integrity / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - name: Checkout review branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Verify reconstruction audit unit tests
+        run: python -m unittest discover -s reconstruction_tools -p "test_*.py" -v
+
+      - name: Verify provisional drafts, prefixes and module declarations
+        run: python reconstruction_tools/audit_drafts.py
+
+      - name: Confirm draft tests stay outside normal pytest collection
+        run: python -m compileall -q reconstruction_drafts reconstruction_tools
+
+# No model SDK installation, no secrets, no paid API calls, no code deployment.
+# This is a source-integrity check, NOT native AEA runtime CI or source-video fidelity certification.
