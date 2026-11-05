@@ -305,6 +305,15 @@ def _tool_results_text(messages: list[ChatMessage]) -> str:
     return f"{text[:TOOL_RESULTS_MAX_CHARS]}\n[truncated: {len(text) - TOOL_RESULTS_MAX_CHARS} characters omitted]"
 
 
+# PROVISIONAL RECONSTRUCTION COMPATIBILITY CORRECTION:
+# The original recorded test_judge.py and test_judge_pairwise.py import these
+# public names. Keep the reconstructed internal helpers unchanged; restore the
+# public spelling without altering hashing, prompting, or tool-result logic.
+# The exact original source spelling still requires video-fidelity review.
+data_marker = _data_marker
+tool_results_text = _tool_results_text
+
+
 def _tool_block(marker: str, tool_results: str) -> list[str]:
     return [_fence("TOOL_RESULTS", marker, tool_results)] if tool_results else []
 
