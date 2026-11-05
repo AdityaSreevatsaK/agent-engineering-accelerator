@@ -61,6 +61,15 @@ def module_bindings(tree: ast.Module) -> set[str]:
     return result
 
 
+def resolve_module_path(root: Path, module: str) -> Path | None:
+    """Locate either a regular source module or a Python package initialiser."""
+    base = root / "src" / Path(*module.split("."))
+    for candidate in (base.with_suffix(".py"), base / "__init__.py"):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
@@ -128,10 +137,10 @@ def main() -> int:
                 if node.level or not node.module.startswith("agent_accelerator."):
                     continue
                 module = node.module
-                module_path = root / "src" / Path(*module.split(".")).with_suffix(".py")
+                module_path = resolve_module_path(root, module)
                 if module not in modules:
-                    if not module_path.is_file():
-                        errors.append(f"Source module unavailable: {module_path.relative_to(root)}")
+                    if module_path is None:
+                        errors.append(f"Source module unavailable: {module}")
                         modules[module] = set()
                         continue
                     try:
@@ -157,7 +166,7 @@ def main() -> int:
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         return 1
-    print("STATIC AUDIT PASSED; source-video fidelity and pytest runtime unverified")
+    print("DRAFT STATIC CHECKS PASSED; known judge imports, source-video fidelity and runtime remain unverified")
     return 0
 
 
