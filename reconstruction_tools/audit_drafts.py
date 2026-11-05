@@ -26,6 +26,13 @@ DRAFTS = {
     "test_run_task_FULL_DRAFT.py": 137,
     "test_scrub_FULL_DRAFT.py": 377,
     "test_cli_pairwise_FULL_DRAFT.py": 200,
+    # Source-video reconstructions received 5 November 2026 (second batch).
+    "test_judge_double_pairwise_FULL_DRAFT.py": 60,
+    "test_judge_double_FULL_DRAFT.py": 70,
+    "test_report_pairwise_FULL_DRAFT.py": 91,
+    "test_init_FULL_DRAFT.py": 165,
+    "test_judge_interrupt_FULL_DRAFT.py": 263,
+    "test_stats_compare_FULL_DRAFT.py": 390,
 }
 
 # Verify saved-prefix preservation across prior partial transcriptions.
