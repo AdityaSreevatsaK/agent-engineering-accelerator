@@ -399,7 +399,7 @@ def judge_readings(
                 f"{names[0]} failed most often ({counted(top, 'try', 'tries')}, {cases} case(s)); start there."
             )
     if pairs:
-        disagreed = sorted((case_id for case_id, verdict, label in pairs if verdict != label))
+        disagreed = sorted({case_id for case_id, verdict, label in pairs if verdict != label})
         if disagreed:
             readings.append(
                 f"The judge disagreed with the human label on {_names(disagreed)}; read those answers to see which "
