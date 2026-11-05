@@ -15,7 +15,7 @@ def verdict_for_a(answer_a: str, answer_b: str) -> str:
     ("answer_a", "answer_b"),
     [
         ('{"b": [1, 2], "a": {"y": 1, "x": 2}}', '{"a": {"x": 2, "y": 1}, "b": [1, 2]}'),
-        ("  The claim is  APPROVED.\\n", "the claim is approved"),
+        ("  The claim is  APPROVED.\n", "the claim is approved"),
         ("the claim is approved", "The claim is approved."),
         ("", "  "),
     ],
@@ -28,7 +28,7 @@ def test_equivalent_answers_are_the_same_in_both_orders(answer_a, answer_b):
 
 @pytest.mark.parametrize(
     ("answer_a", "answer_b", "expected"),
-    [("approved", " \\n ", "better"), (" \\n ", "approved", "worse")],
+    [("approved", " \n ", "better"), (" \n ", "approved", "worse")],
     ids=["b-blank", "a-blank"],
 )
 def test_exactly_one_blank_answer_loses_in_either_position(answer_a, answer_b, expected):
