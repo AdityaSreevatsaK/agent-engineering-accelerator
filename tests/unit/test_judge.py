@@ -44,7 +44,7 @@ from agent_accelerator.run import _scrub_score, build_task, run_task
 from agent_accelerator.scorers import CASE_CHECKS
 
 DEFAULT_NAMES = ["answers_question", "no_unsupported_claims", "follows_format", "safe_and_on_topic"]
-FENCE_LINE = re.compile(r"<<<(BEGIN|END)-([A-Z]+) ([^>]*)>>>")
+FENCE_LINE = re.compile(r"<<<(BEGIN|END) ([A-Z_]+) ([^>]*)>>>")
 
 
 def write(path: Path, text: str, newline: str = "\n") -> Path:
@@ -277,7 +277,7 @@ def test_an_answer_with_braces_or_a_forged_fence_stays_whole_inside_its_block(mo
     # Witnesses: "s28 user message formatted" (user.format(marker=marker)) raises on braces; the forged end is checked
     # by reading the block back with the genuine marker.
     system, user = prompts(answer)[mode]
-    marker = re.search(r"<<<BEGIN NAME. ([0-9a-f]{16})>>>", system).group(1)
+    marker = re.search(r"<<<BEGIN NAME ([0-9a-f]{16})>>>", system).group(1)
 
     inner = re.search(rf"<<<BEGIN ANSWER {marker}>>>\n(.*)\n<<<END ANSWER {marker}>>>", user, flags=re.DOTALL)
     assert inner.group(1) == answer
@@ -390,7 +390,7 @@ def test_a_forged_end_line_in_a_tool_result_cannot_close_its_block(mode, texts):
 
     system, user = tool_prompts(forged)[mode]
 
-    marker = re.search(r"<<<BEGIN NAME. ([0-9a-f]{16})>>>", system).group(1)
+    marker = re.search(r"<<<BEGIN NAME ([0-9a-f]{16})>>>", system).group(1)
     inner = re.search(rf"<<<BEGIN TOOL_RESULTS {marker}>>>\n(.*)\n<<<END TOOL_RESULTS {marker}>>>", user, re.DOTALL)
     assert inner.group(1) == forged
     assert user.count(f"<<<END TOOL_RESULTS {marker}>>>") == 1
@@ -1109,7 +1109,7 @@ def aea(monkeypatch):
     monkeypatch.setattr(tracing, "configure_tracing", lambda path, capture: FakeProvider())
 
     def run(command: list[str], runs: Path, answers: dict[str, str] | None = None) -> int:
-        monkeypatch.setattr(run_module, "_adapter_solver", lambda adapter, agent, *maps: fixed_answers(answers or {}, 0, {}))
+        monkeypatch.setattr(run_module, "_adapter_solver", lambda adapter, agent, *maps: fixed_answers(answers or {}, (), {}))
         return main([*command, "--agent", "unused:agent", "--runs-dir", str(runs)])
 
     return run
