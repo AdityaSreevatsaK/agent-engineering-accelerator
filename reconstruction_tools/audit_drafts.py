@@ -35,6 +35,25 @@ DRAFTS = {
     "test_stats_compare_FULL_DRAFT.py": 390,
 }
 
+# Editor counter checks are supplementary to AST validation, not proof of byte
+# fidelity. Only recorded lengths reconciled to exact saved text are listed.
+# CRLF emulates Notepad++ Windows line-ending character-count accounting.
+RECORDED_EDITOR_LENGTHS = {
+    "test_judge_double_FULL_DRAFT.py": (3380, "crlf"),
+    "test_judge_double_pairwise_FULL_DRAFT.py": (2858, "crlf"),
+    "test_judge_interrupt_FULL_DRAFT.py": (11645, "crlf"),
+    "test_run_task_FULL_DRAFT.py": (4476, "lf"),
+    "test_scrub_FULL_DRAFT.py": (13764, "crlf"),
+    "test_cli_pairwise_FULL_DRAFT.py": (8620, "crlf"),
+}
+
+
+def editor_character_length(source: str, eol: str) -> int:
+    if eol not in ("lf", "crlf"):
+        raise ValueError(f"unsupported editor EOL: {eol}")
+    return len(source) + (source.count("\\n") if eol == "crlf" else 0)
+
+
 # Verify saved-prefix preservation across prior partial transcriptions.
 PREFIX_HISTORY = (
     ("test_judge_pairwise_PARTIAL_lines_1_365.py", "test_judge_pairwise_PARTIAL_lines_1_488.py"),
@@ -97,6 +116,13 @@ def main() -> int:
             continue
         source = path.read_text(encoding="utf-8")
         actual_lines = len(source.splitlines())
+        if filename in RECORDED_EDITOR_LENGTHS:
+            expected_chars, editor_eol = RECORDED_EDITOR_LENGTHS[filename]
+            actual_chars = editor_character_length(source, editor_eol)
+            if actual_chars != expected_chars:
+                errors.append(
+                    f"{filename}: recorded editor characters {expected_chars}, reconstructed {actual_chars}"
+                )
         if actual_lines != expected_lines:
             errors.append(f"{filename}: expected {expected_lines} physical lines, got {actual_lines}")
         try:
