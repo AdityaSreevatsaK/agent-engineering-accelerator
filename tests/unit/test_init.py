@@ -63,8 +63,8 @@ def test_init_non_empty_dir_without_force_exits_two_and_touches_nothing(tmp_path
     monkeypatch.chdir(tmp_path)
     folder = tmp_path / "bot"
     folder.mkdir()
-    (folder / "agent.py").write_text("mine\\n", encoding="utf-8")
-    (folder / "notes.txt").write_text("keep\\n", encoding="utf-8")
+    (folder / "agent.py").write_text("mine\n", encoding="utf-8")
+    (folder / "notes.txt").write_text("keep\n", encoding="utf-8")
 
     assert main(["init", "bot"]) == 2
 
@@ -72,8 +72,8 @@ def test_init_non_empty_dir_without_force_exits_two_and_touches_nothing(tmp_path
     assert err.startswith("error:")
     assert "--force" in err
     assert sorted(p.name for p in folder.iterdir()) == ["agent.py", "notes.txt"]
-    assert (folder / "agent.py").read_text(encoding="utf-8") == "mine\\n"
-    assert (folder / "notes.txt").read_text(encoding="utf-8") == "keep\\n"
+    assert (folder / "agent.py").read_text(encoding="utf-8") == "mine\n"
+    assert (folder / "notes.txt").read_text(encoding="utf-8") == "keep\n"
 
 
 def test_init_force_overwrites_template_files_and_leaves_others_alone(tmp_path, monkeypatch, capsys):
@@ -81,25 +81,25 @@ def test_init_force_overwrites_template_files_and_leaves_others_alone(tmp_path, 
     folder = tmp_path / "bot"
     folder.mkdir()
     for name in TEMPLATE_NAMES:
-        (folder / name).write_text("old\\n", encoding="utf-8")
-    (folder / "notes.txt").write_text("keep\\n", encoding="utf-8")
+        (folder / name).write_text("old\n", encoding="utf-8")
+    (folder / "notes.txt").write_text("keep\n", encoding="utf-8")
 
     assert main(["init", "bot", "--force"]) == 0
 
     assert_matches_template(folder)
     assert sorted(p.name for p in folder.iterdir()) == sorted([*TEMPLATE_NAMES, "notes.txt"])
-    assert (folder / "notes.txt").read_text(encoding="utf-8") == "keep\\n"
+    assert (folder / "notes.txt").read_text(encoding="utf-8") == "keep\n"
 
 
 @pytest.mark.parametrize("force", [False, True])
 def test_init_dir_that_is_an_existing_file_exits_two(tmp_path, monkeypatch, capsys, force):
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "bot").write_text("a file\\n", encoding="utf-8")
+    (tmp_path / "bot").write_text("a file\n", encoding="utf-8")
 
     assert main(["init", "bot", * (["--force"] if force else [])]) == 2
 
     assert capsys.readouterr().err.startswith("error:")
-    assert (tmp_path / "bot").read_text(encoding="utf-8") == "a file\\n"
+    assert (tmp_path / "bot").read_text(encoding="utf-8") == "a file\n"
 
 
 # printed run command
