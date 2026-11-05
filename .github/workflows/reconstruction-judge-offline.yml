@@ -55,6 +55,10 @@ jobs:
           tests/unit/test_readings.py
           tests/unit/test_report.py
           tests/unit/test_judge.py
+          tests/unit/test_config.py
+          tests/unit/test_dataset.py
+          tests/unit/test_scorers.py
+          tests/unit/test_tool_metrics.py
 
 # No AWS login, credentials, paid model API calls or deployment.
 # These tests exercise recovered AEA source and deterministic judge_double only.
