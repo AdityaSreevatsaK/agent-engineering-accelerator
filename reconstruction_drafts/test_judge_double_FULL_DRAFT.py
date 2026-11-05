@@ -29,7 +29,7 @@ def test_golden_json_answers_are_compared_as_json(answer, reference, verdict):
 @pytest.mark.parametrize(
     ("answer", "reference", "verdict"),
     [
-        ("  The claim is  APPROVED.\\n", "the claim is approved", "pass"),
+        ("  The claim is  APPROVED.\n", "the claim is approved", "pass"),
         ("the claim is approved", "The claim is approved.", "pass"),
         ("the claim is rejected", "the claim is approved", "fail"),
         ("the claim is approved!", "the claim is approved", "fail"),
@@ -46,7 +46,7 @@ def test_reference_free_fails_every_criterion_of_a_blank_answer_and_passes_a_pre
     # replies with no criteria, which parse_judgement rejects. The reply is read back through the real parser.
     rubric = [Criterion(name="tone", description="Polite."), *load_rubric(None)]
 
-    blank = parse_judgement(judge_reply(*reference_free_prompt(QUESTION, " \\n ", rubric)), "reference_free", rubric)
+    blank = parse_judgement(judge_reply(*reference_free_prompt(QUESTION, " \n ", rubric)), "reference_free", rubric)
     present = parse_judgement(judge_reply(*reference_free_prompt(QUESTION, "no", rubric)), "reference_free", rubric)
 
     assert list(blank.criteria) == [c.name for c in rubric]
@@ -64,7 +64,7 @@ def test_a_prompt_without_the_marker_in_the_system_message_is_not_understood():
 def test_a_prompt_without_an_answer_block_is_not_understood():
     # Witness: "s28 double missing answer guessed" (a missing ANSWER block read as "") replies JSON.
     system, user = golden_prompt(QUESTION, "approve", "approve")
-    without_answer = user[: user.index("\\n\\n<<<BEGIN ANSWER")]
+    without_answer = user[: user.index("\n\n<<<BEGIN ANSWER")]
 
     assert judge_reply(system, user) != NOT_UNDERSTOOD
     assert judge_reply(system, without_answer) == NOT_UNDERSTOOD
