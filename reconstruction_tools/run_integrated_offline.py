@@ -45,6 +45,7 @@ REQUIRED_TEST_MODULES = (
     "test_judge_double.py",
     "test_judge_double_pairwise.py",
     "test_judge_interrupt.py",
+    "test_judge_pairwise_recovered_prefix.py",
     "test_readings.py",
     "test_readings_pairwise.py",
     "test_report.py",
