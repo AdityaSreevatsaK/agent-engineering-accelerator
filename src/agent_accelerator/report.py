@@ -91,8 +91,11 @@ def render_run(
     for case in _ordered(run):
         tokens = _tokens(case.input_tokens, case.output_tokens)
         calls = _tool_call_count(case.tool_calls)
+        failure = _reason(case)
+        # An empty Markdown table cell is "| |", not "|  |"; keep existing failure text unchanged.
+        failure_cell = f" {failure}" if failure else ""
         lines.append(
-            f"| {case.id} | {_result(case)} | {_latency(case.latency_s)} | {tokens} | {calls} | {_reason(case)} |"
+            f"| {case.id} | {_result(case)} | {_latency(case.latency_s)} | {tokens} | {calls} |{failure_cell} |"
         )
     reliability = _reliability_lines(run)
     lines += reliability
