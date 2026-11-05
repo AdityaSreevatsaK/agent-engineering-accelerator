@@ -20,6 +20,12 @@ DRAFTS = {
     "test_report_FULL_DRAFT.py": 815,
     "test_judge_pairwise_PARTIAL_lines_1_509.py": 509,
     "test_cli_PARTIAL_lines_1_364.py": 364,
+    # New screen-recording transcriptions, 5 November 2026. The build-task
+    # editor's CRLF character count differs by five; syntax/lines still match.
+    "test_build_task_FULL_DRAFT.py": 166,
+    "test_run_task_FULL_DRAFT.py": 137,
+    "test_scrub_FULL_DRAFT.py": 377,
+    "test_cli_pairwise_FULL_DRAFT.py": 200,
 }
 
 # Verify saved-prefix preservation across prior partial transcriptions.
