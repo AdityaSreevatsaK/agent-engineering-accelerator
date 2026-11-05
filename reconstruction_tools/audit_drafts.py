@@ -30,12 +30,6 @@ PREFIX_HISTORY = (
     ("test_cli_PARTIAL_lines_1_325.py", "test_cli_PARTIAL_lines_1_364.py"),
 )
 
-KNOWN_MISSING_EXPORTS = {
-    ("agent_accelerator.judge", "data_marker"),
-    ("agent_accelerator.judge", "tool_results_text"),
-}
-
-
 def assigned_names(target: ast.expr) -> set[str]:
     if isinstance(target, ast.Name):
         return {target.id}
@@ -154,19 +148,14 @@ def main() -> int:
                     if imported.name != "*" and imported.name not in modules[module]:
                         missing.add((module, imported.name))
         for module, name in sorted(missing):
-            if (module, name) in KNOWN_MISSING_EXPORTS:
-                print(f"KNOWN UNRESOLVED: {module}.{name}")
-            else:
-                errors.append(f"Unexpected unresolved import: {module}.{name}")
-        for module, name in sorted(KNOWN_MISSING_EXPORTS - missing):
-            print(f"RESOLVED OR UNUSED: {module}.{name} (re-evaluate audit allowlist)")
+            errors.append(f"Unresolved reconstructed source import: {module}.{name}")
 
     if errors:
         print("AUDIT FAILED:", file=sys.stderr)
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         return 1
-    print("DRAFT STATIC CHECKS PASSED; known judge imports, source-video fidelity and runtime remain unverified")
+    print("DRAFT STATIC CHECKS PASSED; source-video fidelity and native runtime remain unverified")
     return 0
 
 
