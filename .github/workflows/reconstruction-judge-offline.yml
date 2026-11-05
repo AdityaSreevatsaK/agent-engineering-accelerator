@@ -50,6 +50,7 @@ jobs:
           tests/unit/test_report_pairwise.py
           tests/unit/test_judge_interrupt.py
           tests/unit/test_readings_pairwise.py
+          tests/unit/test_cli_pairwise.py
 
 # No AWS login, credentials, paid model API calls or deployment.
 # These tests exercise recovered AEA source and deterministic judge_double only.
