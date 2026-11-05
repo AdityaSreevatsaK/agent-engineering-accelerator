@@ -755,7 +755,7 @@ RICH_TRACES = [
     ("heading", "key"),
     [
         ("## Reliability", "reliability"),
-        ("## Tool use", "tool use"),
+        ("## Tool use", "tool_use"),
         ("## Performance and cost", "performance"),
         ("## Failures", "failures"),
         ("## Consistency", "consistency"),
@@ -1279,7 +1279,7 @@ def test_fisher_reading_asks_for_a_rerun_only_below_five_epochs(epochs, tail):
     assert [readings.warning_reading(t, epochs) for t in texts] == [FISHER_READING + tail] * 2
 
 
-@pytest.mark.parametrize("epochs", [(1, "1 epoch"), (2, "2 epochs")], ids=["one-epoch", "two-epochs"])
+@pytest.mark.parametrize(("epochs", "count"), [(1, "1 epoch"), (2, "2 epochs")], ids=["one-epoch", "two-epochs"])
 def test_fisher_reading_counts_the_epochs_in_the_right_number(epochs, count):
     # A Fisher fall is not significant at one or two epochs per side, so the text is the fixed warning below.
     # Witnesses: s30 fisher rerun epochs swapped (both cases fail); s30 counted singular from one up (two-epochs fails).
