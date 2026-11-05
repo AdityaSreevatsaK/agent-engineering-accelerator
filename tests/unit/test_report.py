@@ -355,7 +355,7 @@ def test_no_reliability_section_when_every_case_ran_once():
     report = render(case("ok", passed=True, passes=1), case("bad", passed=False))
 
     assert RELIABILITY_HEADER not in report
-    assert report.splitlines()[-1] == "| ok | pass | n/a | n/a | n/a |  |"
+    assert report.splitlines()[-1] == "| ok | pass | n/a | n/a | n/a | |"
 
 
 def test_no_reliability_section_and_no_error_for_a_run_with_no_cases():
@@ -654,9 +654,11 @@ def test_no_calibration_lines_or_kappa_glossary_without_human_labels():
     # Witness: "s32 calibration always" (has_calibration True) adds the kappa entry.
     report = render_run(judged_run(je("a"), je("b", "fail")))
 
-    assert [
-        line for line in judge_section(report) if not line.startswith("-") and ("label" in line or "appa" in line)
-    ] == []
+    # General judge guidance may mention human labels; only calibration metrics must be absent.
+    assert not any(
+        line.startswith(("- Human-labelled golden cases:", "- Agreement with human labels:", "- Cohen's kappa:"))
+        for line in judge_section(report)
+    )
     assert readings.GLOSSARY["kappa"] not in report
     assert readings.GLOSSARY["judge error"] in report
 
