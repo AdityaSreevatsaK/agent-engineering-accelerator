@@ -126,7 +126,9 @@ def evaluate(monkeypatch, tmp_path):
     def run(cases, baseline=None, capture=False, agent_errors=(), judge=JUDGE_DOUBLE, rubric=None, raw=False):
         answers = {case_id: answer for case_id, (_, answer) in cases.items()}
         monkeypatch.setattr(
-            run_module, "_adapter_solver", lambda adapter, agent, **maps: fixed_answers(answers, tuple(agent_errors))
+            run_module, "_adapter_solver",
+            # Runtime-only fixture adaptation: run.py passes mapping args positionally.
+            lambda adapter, agent, input_map=None, output_map=None: fixed_answers(answers, tuple(agent_errors))
         )
         dataset = write(
             tmp_path / "dataset.jsonl", "\n".join(json.dumps({"id": i, "input": q}) for i, (q, _) in cases.items())
