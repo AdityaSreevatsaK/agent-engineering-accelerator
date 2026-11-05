@@ -51,7 +51,7 @@ RECORDED_EDITOR_LENGTHS = {
 def editor_character_length(source: str, eol: str) -> int:
     if eol not in ("lf", "crlf"):
         raise ValueError(f"unsupported editor EOL: {eol}")
-    return len(source) + (source.count("\\n") if eol == "crlf" else 0)
+    return len(source) + (source.count("\n") if eol == "crlf" else 0)
 
 
 # Verify saved-prefix preservation across prior partial transcriptions.
