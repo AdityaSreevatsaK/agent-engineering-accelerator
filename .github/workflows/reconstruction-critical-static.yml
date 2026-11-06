@@ -30,6 +30,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install pinned-major Ruff checker
         run: python -m pip install "ruff>=0.17,<0.19"
+      - name: Audit reconstructed full-video drafts and their recovered prefixes
+        run: python reconstruction_tools/audit_drafts.py
       - name: Compile active source, tests and reconstruction tools
         run: python -m compileall -q src/agent_accelerator tests/unit reconstruction_tools
       - name: Check severe syntax, unresolved names and invalid binding patterns
