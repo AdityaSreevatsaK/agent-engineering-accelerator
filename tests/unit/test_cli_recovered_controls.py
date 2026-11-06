@@ -1,0 +1,177 @@
+"""Offline replay of source-recorded CLI argument and configuration contracts.
+
+These tests exercise the real recovered CLI without the original calculator
+fixtures or cloud credentials. Original historical test_cli.py remains preserved
+separately as a reconstruction candidate rather than being rewritten here.
+"""
+
+import sys
+from pathlib import Path
+
+import pytest
+
+from agent_accelerator import cli
+
+
+class StopBeforeRun(Exception):
+    """Stop immediately after the real CLI has merged and validated flags."""
+
+
+@pytest.fixture
+def seen(monkeypatch):
+    captured = []
+
+    def stop(args):
+        captured.append(vars(args).copy())
+        raise StopBeforeRun
+
+    monkeypatch.setattr(cli, "_execute_run", stop)
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    return captured
+
+
+def command_args(command, tmp_path, *settings):
+    common = [command, "unused.jsonl", "--runs-dir", str(tmp_path / "runs")]
+    if command == "check":
+        common += ["--baseline", str(tmp_path / "baseline"), "--update-baseline"]
+    return [*common, *settings]
+
+
+def write_config(tmp_path, **values):
+    path = tmp_path / "aea.toml"
+    path.write_text("".join(f'{key} = "{value}"\n' for key, value in values.items()), encoding="utf-8")
+    return path
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+def test_default_adapter_is_strands_in_both_run_commands(seen, tmp_path, command):
+    with pytest.raises(StopBeforeRun):
+        cli.main(command_args(command, tmp_path, "--agent", "test:factory"))
+    assert len(seen) == 1
+    assert seen[0]["adapter"] == "strands"
+    assert seen[0]["epochs"] == 1
+    assert seen[0]["capture_content"] is False
+    assert seen[0]["max_samples"] is None
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+def test_config_fills_unspecified_adapter_agent_and_maps(seen, tmp_path, command):
+    config = write_config(
+        tmp_path,
+        adapter="langgraph",
+        agent="cfg:factory",
+        input_map="cfg:to_input",
+        output_map="cfg:from_output",
+    )
+    with pytest.raises(StopBeforeRun):
+        cli.main(command_args(command, tmp_path, "--config", str(config)))
+    assert len(seen) == 1
+    for name, value in {
+        "adapter": "langgraph",
+        "agent": "cfg:factory",
+        "input_map": "cfg:to_input",
+        "output_map": "cfg:from_output",
+    }.items():
+        assert seen[0][name] == value
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+def test_explicit_flags_override_conflicting_config_values(seen, tmp_path, command):
+    config = write_config(
+        tmp_path,
+        adapter="langgraph",
+        agent="cfg:factory",
+        input_map="cfg:to_input",
+        output_map="cfg:from_output",
+    )
+    with pytest.raises(StopBeforeRun):
+        cli.main(command_args(
+            command,
+            tmp_path,
+            "--config", str(config),
+            "--agent", "flag:factory",
+            "--input-map", "flag:to_input",
+            "--output-map", "flag:from_output",
+        ))
+    assert seen[0]["agent"] == "flag:factory"
+    assert seen[0]["input_map"] == "flag:to_input"
+    assert seen[0]["output_map"] == "flag:from_output"
+    assert seen[0]["adapter"] == "langgraph"
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+@pytest.mark.parametrize("with_config", [False, True])
+def test_missing_agent_is_usage_error_before_launch(seen, tmp_path, capsys, command, with_config):
+    args = command_args(command, tmp_path)
+    if with_config:
+        config = write_config(tmp_path, adapter="langgraph")
+        args.extend(["--config", str(config)])
+    with pytest.raises(SystemExit) as exc:
+        cli.main(args)
+    assert exc.value.code == 2
+    assert "--agent is required" in capsys.readouterr().err
+    assert seen == []
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+@pytest.mark.parametrize("adapter", ["Strands", "openai"])
+def test_non_supported_adapter_choice_is_parser_error(command, adapter, tmp_path, capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args(command_args(command, tmp_path, "--agent", "x:y", "--adapter", adapter))
+    assert exc.value.code == 2
+    assert "invalid choice" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["compare", "check"])
+@pytest.mark.parametrize("value", ["0.05", "1e-3", "0.999"])
+def test_significance_threshold_accepts_open_unit_interval(command, value, tmp_path):
+    args = ["compare", "baseline", "current"] if command == "compare" else command_args(command, tmp_path, "--agent", "x:y")
+    parsed = cli.build_parser().parse_args([*args, "--max-p-value", value])
+    assert parsed.max_p_value == float(value)
+
+
+@pytest.mark.parametrize("command", ["compare", "check"])
+@pytest.mark.parametrize("value", ["abc", "0", "1"])
+def test_invalid_significance_threshold_is_usage_error(command, value, tmp_path, capsys):
+    args = ["compare", "baseline", "current"] if command == "compare" else command_args(command, tmp_path, "--agent", "x:y")
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args([*args, "--max-p-value", value])
+    assert exc.value.code == 2
+    assert "--max-p-value" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+@pytest.mark.parametrize("config_maps", [False, True])
+def test_maps_require_langgraph_even_when_config_supplies_them(seen, tmp_path, capsys, command, config_maps):
+    if config_maps:
+        config = write_config(tmp_path, agent="cfg:factory", input_map="cfg:to_input")
+        args = ["--config", str(config)]
+    else:
+        args = ["--agent", "flag:factory", "--input-map", "flag:to_input"]
+    with pytest.raises(SystemExit) as exc:
+        cli.main(command_args(command, tmp_path, *args))
+    assert exc.value.code == 2
+    assert "need --adapter langgraph" in capsys.readouterr().err
+    assert seen == []
+
+
+@pytest.mark.parametrize("command,extra", [
+    ("compare", ["b", "c"]), ("report", ["r"]),
+    ("init", ["a"]), ("export", ["a.md"]),
+])
+def test_non_run_commands_do_not_accept_config(command, extra, capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args([command, *extra, "--config", "aea.toml"])
+    assert exc.value.code == 2
+    assert "unrecognized arguments: --config" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+def test_nearby_config_is_not_implicitly_loaded(seen, tmp_path, monkeypatch, command):
+    monkeypatch.chdir(tmp_path)
+    write_config(tmp_path, adapter="langgraph", agent="cfg:factory")
+    with pytest.raises(StopBeforeRun):
+        cli.main(command_args(command, tmp_path, "--agent", "flag:factory"))
+    assert seen[0]["adapter"] == "strands"
+    assert seen[0]["agent"] == "flag:factory"
+    assert seen[0]["config"] is None
