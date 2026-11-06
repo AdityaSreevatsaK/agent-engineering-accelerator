@@ -356,7 +356,11 @@ def pairwise_prompt(question: str, answer_a: str, answer_b: str, rubric: list[Cr
     listed = "".join(f"- {c.name}: {c.description}\n" for c in rubric)
     criteria = f"Judge which is better by these criteria:\n{listed}" if rubric else ""
     user = "\n\n".join(
-        [_fence("QUESTION", marker, question), _fence("ANSWER_A", marker, answer_a), _fence("ANSWER_B", marker, answer_b)]
+        [
+            _fence("QUESTION", marker, question),
+            _fence("ANSWER_A", marker, answer_a),
+            _fence("ANSWER_B", marker, answer_b),
+        ]
     )
     return _PAIRWISE_SYSTEM.format(marker=marker, criteria=criteria), user
 
