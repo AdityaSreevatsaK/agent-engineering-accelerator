@@ -34,6 +34,10 @@ jobs:
         env:
           AWS_EC2_METADATA_DISABLED: "true"
         run: python reconstruction_tools/verify_offline_template_e2e.py
+      - name: Exercise video-recovered original calculator normal, broken and flaky agents
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: python reconstruction_tools/verify_original_calculator_e2e.py
 
-# Deliberately validates reconstructed CLI behaviour, NOT unrecovered historical
-# calculator fixtures, reference baseline files or live provider integration.
+# Validates reconstructed CLI and video-recovered original calculator engine.
+# Historical captured JSON fixtures and any live-provider integration remain unverified.
