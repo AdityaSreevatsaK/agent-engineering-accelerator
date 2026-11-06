@@ -35,6 +35,7 @@ CONFIG_DEFERRED = (
 REQUIRED_TEST_MODULES = (
     "test_adapters.py",
     "test_build_task.py",
+    "test_calculator_recovered_dataset.py",
     "test_cli_pairwise.py",
     "test_cli_recovered_controls.py",
     "test_compare.py",
