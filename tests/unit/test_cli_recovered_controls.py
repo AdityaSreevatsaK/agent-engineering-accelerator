@@ -193,9 +193,7 @@ def test_config_errors_are_reported_before_any_run(seen, tmp_path, capsys, comma
     config.write_bytes(content)
     args = command_args(command, tmp_path, "--config", str(config), "--agent", "flag:factory")
 
-    with pytest.raises(SystemExit) as exc:
-        cli.main(args)
-    assert exc.value.code == 2
+    assert cli.main(args) == cli.EXIT_ERROR
     err = capsys.readouterr().err
     assert config.as_posix() in err
     assert error_text in err.lower()
@@ -258,3 +256,33 @@ def test_threshold_flags_default_to_historical_values(command, tmp_path):
         "max_p_value": None,
     }
     assert {key: getattr(parsed, key) for key in expected} == expected
+
+
+@pytest.mark.parametrize(
+    "check_flags",
+    [
+        ("--baseline", "absent"),
+        ("--baseline", "absent", "--update-baseline", "--capture-content"),
+    ],
+    ids=["missing_baseline", "unsafe_captured_baseline"],
+)
+def test_bad_config_is_rejected_before_check_baseline_validation(
+    seen, tmp_path, capsys, check_flags
+):
+    """Recorded CLI contract: config errors take priority over baseline errors."""
+    config = tmp_path / "aea.toml"
+    config.write_text('model = "gpt"\n', encoding="utf-8")
+    args = [
+        "check", "unused.jsonl", "--agent", "flag:factory",
+        "--runs-dir", str(tmp_path / "runs"),
+        "--config", str(config), *check_flags,
+    ]
+
+    assert cli.main(args) == cli.EXIT_ERROR
+    err = capsys.readouterr().err
+    assert f"{config.as_posix()}: unknown key 'model'" in err
+    assert "--update-baseline cannot be combined" not in err
+    assert "no baseline at" not in err
+    assert seen == []
+    assert not (tmp_path / "runs").exists()
+

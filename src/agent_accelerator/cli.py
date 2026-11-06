@@ -380,10 +380,7 @@ def build_parser() -> argparse.ArgumentParser:
 def _apply_config(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
     """Fills run settings left unset on the command line from --config, then the built-in defaults."""
     if args.config is not None:
-        try:
-            config = load_config(args.config)
-        except ConfigError as exc:
-            parser.error(str(exc))  # exits with code 2
+        config = load_config(args.config)
         for key, value in config.items():
             if getattr(args, key) is None:
                 setattr(args, key, value)
@@ -397,7 +394,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if hasattr(args, "config"):
-        _apply_config(parser, args)
+        try:
+            _apply_config(parser, args)
+        except ConfigError as exc:
+            # A malformed or unreadable config is a run error (return code 2),
+            # not an argparse usage exception. Reject it before any run exists.
+            print(f"error: {exc}", file=sys.stderr)
+            return EXIT_ERROR
     if (getattr(args, "input_map", None) or getattr(args, "output_map", None)) and args.adapter != "langgraph":
         parser.error("--input-map and --output-map need --adapter langgraph")  # exits with code 2
     sys.path.insert(0, str(Path.cwd()))  # agent factories are resolved relative to the working directory
