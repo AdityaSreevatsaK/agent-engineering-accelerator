@@ -42,8 +42,6 @@ jobs:
         run: python -m pip install --no-deps -e .
       - name: Verify source-recorded calculator agent and ten-case dataset
         run: python reconstruction_tools/verify_calculator_video_sources.py
-      - name: Provide temporary non-executable CI rules import shim (not original source)
-        run: python reconstruction_tools/make_ci_rules_stub.py
       - name: Generate temporary synthetic Inspect capture fixture
         env:
           PYTHONPATH: ${{ github.workspace }}/src
@@ -59,8 +57,7 @@ jobs:
           tests/unit/test_run_task.py
           tests/unit/test_scrub.py
 
-# The original calculator agent and dataset are restored from supplied footage.
-# A non-executable rules.py shim is generated only inside CI until original rules.py is provided.
+# The original calculator agent, dataset and shared rules are restored from supplied footage.
 # The captured Inspect log is still a CI-only synthetic stand-in until the
 # original historical fixture files are recovered.
 # No model calls, cloud credentials or repository upload of generated fixtures.
