@@ -1,9 +1,10 @@
 """Create CI-ONLY synthetic calculator inputs for metadata-contract tests.
 
-The ORIGINAL AEA examples/calculator files have not been recovered.
-These stand-ins are deliberately minimal, never call cloud services, and
-must NEVER be presented as the restored original calculator example.
-Do not commit the generated files to the repository.
+The calculator agent and dataset were restored from the uploaded recording and
+screenshot on 6 November. CI now verifies those reconstructions directly and
+does NOT invoke this legacy stand-in generator. The existing hard refusal to
+overwrite real source files is retained for safety. Synthetic stand-ins must
+never be presented as originals or committed to the repository.
 """
 
 from __future__ import annotations
