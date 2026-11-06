@@ -998,3 +998,136 @@ NOT_UTF8 = b'agent = "caf\xff:build_agent"\n'
 def decoder_message(content):
     with pytest.raises(UnicodeDecodeError) as exc:
         content.decode("utf-8")
+    return str(exc.value)
+
+
+@pytest.mark.parametrize(
+    ("command", "extra", "content", "reason"),
+    [
+        pytest.param("run", [], UNKNOWN_KEY, "unknown key 'model'", id="run"),
+        pytest.param(
+            "check",
+            ["--update-baseline", "--capture-content"],
+            UNKNOWN_KEY,
+            "unknown key 'model'",
+            id="check_refused_freeze",
+        ),
+        pytest.param("check", ["--baseline", "absent"], UNKNOWN_KEY, "unknown key 'model'", id="check_missing_baseline"),
+        pytest.param("run", [], NOT_UTF8, decoder_message(NOT_UTF8), id="run_not_utf8"),
+    ],
+)
+def test_config_error_exits_two_before_the_runs_dir_exists_and_before_baseline_validation(
+    task_args, tmp_path, capsys, command, extra, content, reason
+):
+    # The check ids would otherwise fail baseline validation (exit 2 with "error:", not a usage error naming the file).
+    # The non-UTF-8 reason is read from the decoder, not written down.
+    # Witnesses: s47 config applied inside the run (the _apply_config call moved from main to after new_run_dir in
+    # _execute_run, a two-site edit applied by hand) fails every id; s48 config UnicodeDecodeError not caught
+    # (`except (tomllib.TOMLDecodeError, UnicodeDecodeError)` -> `except tomllib.TOMLDecodeError`) fails run_not_utf8.
+    config = tmp_path / "aea.toml"
+    config.write_bytes(content)
+    argv = run_argv(command, tmp_path, "--agent", AGENT, "--config", str(config), *extra)
+
+    assert main(argv) == 2
+    err = capsys.readouterr().err
+    assert f"{config.as_posix()}: {reason}" in err
+    assert "Traceback" not in err
+    assert not (tmp_path / "runs").exists()
+    assert task_args == []
+
+
+
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+def test_an_aea_toml_in_the_working_directory_is_ignored_without_config(task_args, tmp_path, monkeypatch, command):
+    # Witness: s47 aea.toml auto-discovered (`args.config = Path("aea.toml")` when absent and present) fails both ids.
+    monkeypatch.chdir(tmp_path)
+    write_toml(tmp_path / "aea.toml", {"adapter": "langgraph", **REFS})
+
+    with pytest.raises(StopBeforeRun):
+        main(run_argv(command, tmp_path, "--agent", FLAG_REFS["agent"]))
+
+    assert task_args == [recorded("strands", FLAG_REFS["agent"])]
+
+
+def test_config_directory_is_not_added_to_the_import_path(task_args, tmp_path, monkeypatch):
+    # Refs resolve from the working directory only, which main does put on the path (the reachability control).
+    # Witness: s47 config dir on sys.path (`sys.path.insert(0, str(args.config.parent))` after load_config).
+    work, settings = tmp_path / "work", tmp_path / "settings"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    config = write_toml(settings / "aea.toml", {"agent": REFS["agent"]})
+
+    with pytest.raises(StopBeforeRun):
+        main(run_argv("run", tmp_path, "--config", str(config)))
+
+    on_path = {Path(p).resolve() for p in sys.path if p}
+    assert work.resolve() in on_path
+    assert settings.resolve() not in on_path
+
+
+def test_config_path_reaches_build_task_as_given_in_posix_form_not_resolved(task_args, tmp_path, monkeypatch):
+    # Witnesses: s47 cli config not passed (`config=None`); s47 cli config resolved
+    # (`args.config.resolve().as_posix()`); s47 cli config not posix (`str(args.config)`, Windows only).
+    monkeypatch.chdir(tmp_path)
+    write_toml(tmp_path / "conf" / "aea.toml", {"agent": REFS["agent"]})
+
+    with pytest.raises(StopBeforeRun):
+        main(run_argv("run", tmp_path, "--config", os.path.join("conf", "aea.toml")))
+
+    assert task_args == [recorded("strands", REFS["agent"], config="conf/aea.toml")]
+
+
+@pytest.mark.parametrize("example", ["triage", "expense"])
+def test_example_config_alone_supplies_a_runnable_setting_set(task_args, tmp_path, example):
+    # Every ref is resolved with load_factory, as the real run would, after main has merged the file.
+    # Witnesses: s47 triage config adapter dropped (maps then need langgraph, exit 2); s47 triage config input_map ref
+    # broken and s47 expense config agent ref broken fail load_factory.
+    from agent_accelerator.adapters import load_factory
+
+    config = REPO / "examples" / example / "aea.toml"
+
+    with pytest.raises(StopBeforeRun):
+        main(run_argv("run", tmp_path, "--config", str(config)))
+
+    [settings] = task_args
+    refs = [settings[key] for key in ("agent", "input_map", "output_map") if settings[key] is not None]
+    assert settings["adapter"] == "langgraph"
+    assert refs
+    for ref in refs:
+        assert callable(load_factory(ref))
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        pytest.param(["compare", "a", "b"], id="compare"),
+        pytest.param(["report", "a"], id="report"),
+        pytest.param(["init", "a"], id="init"),
+        pytest.param(["export", "a.md"], id="export"),
+    ],
+)
+def test_commands_that_do_not_run_an_agent_have_no_config_flag(capsys, argv):
+    # Witnesses: s47 compare gains --config, s47 report gains --config, s47 init gains --config, s47 export gains
+    # --config each fail their id.
+    with pytest.raises(SystemExit) as exc:
+        build_parser().parse_args([*argv, "--config", "aea.toml"])
+
+    assert exc.value.code == 2
+    assert "unrecognized arguments: --config" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+@pytest.mark.parametrize("adapter", ["Strands", "openai"])
+def test_adapter_flag_outside_strands_and_langgraph_is_still_rejected_by_the_parser(capsys, command, adapter):
+    # Witness: s47 cli adapter choices dropped (`choices=ADAPTERS` removed from --adapter) fails every id.
+    check = ["--baseline", "b"] if command == "check" else []
+    argv = [command, "d.jsonl", "--agent", AGENT, "--adapter", adapter, *check]
+
+    with pytest.raises(SystemExit) as exc:
+        build_parser().parse_args(argv)
+
+    assert exc.value.code == 2
+    assert "invalid choice" in capsys.readouterr().err
+
