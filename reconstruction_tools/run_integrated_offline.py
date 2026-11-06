@@ -35,6 +35,7 @@ REQUIRED_TEST_MODULES = (
     "test_adapters.py",
     "test_build_task.py",
     "test_cli_pairwise.py",
+    "test_cli_recovered_controls.py",
     "test_compare.py",
     "test_compare_statistics.py",
     "test_config.py",

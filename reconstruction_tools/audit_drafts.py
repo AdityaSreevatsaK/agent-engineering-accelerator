@@ -20,6 +20,10 @@ DRAFTS = {
     "test_report_FULL_DRAFT.py": 815,
     "test_judge_pairwise_PARTIAL_lines_1_509.py": 509,
     "test_cli_PARTIAL_lines_1_364.py": 364,
+    # 6 November recordings: video-derived complete candidates, not yet
+    # byte-for-byte certified against source footage.
+    "test_judge_pairwise_FULL_VIDEO_CANDIDATE.py": 724,
+    "test_cli_FULL_VIDEO_CANDIDATE.py": 1133,
     # New screen-recording transcriptions, 5 November 2026. The build-task
     # editor's CRLF character count differs by five; syntax/lines still match.
     "test_build_task_FULL_DRAFT.py": 166,
@@ -60,6 +64,8 @@ PREFIX_HISTORY = (
     ("test_judge_pairwise_PARTIAL_lines_1_488.py", "test_judge_pairwise_PARTIAL_lines_1_509.py"),
     ("test_cli_PARTIAL_lines_1_241.py", "test_cli_PARTIAL_lines_1_325.py"),
     ("test_cli_PARTIAL_lines_1_325.py", "test_cli_PARTIAL_lines_1_364.py"),
+    ("test_judge_pairwise_PARTIAL_lines_1_509.py", "test_judge_pairwise_FULL_VIDEO_CANDIDATE.py"),
+    ("test_cli_PARTIAL_lines_1_364.py", "test_cli_FULL_VIDEO_CANDIDATE.py"),
 )
 
 def assigned_names(target: ast.expr) -> set[str]:

@@ -509,3 +509,217 @@ def test_judge_rejects_a_golden_file_with_a_baseline():
     with pytest.raises(ValueError, match="takes no golden file"):
         judge(JUDGE_DOUBLE, golden_path="golden.jsonl", baseline_path="missing-baseline")
 
+def test_agent_error_is_incorrect_and_not_judged_without_calling_the_judge(pairwise, scripted):
+    # Witness: "s33 scorer agent error judged" calls the judge and scores the case.
+    judge_model = scripted(PairJudge(pair_reply("A")))
+
+    score = pairwise({"a": "new"}, {"a": "old"}, agent_errors=["a"])["a"]
+
+    assert (score.value, score.metadata["not_judged"], score.metadata["mode"]) == ("I", "agent_error", "pairwise")
+    assert judge_model.calls == []
+
+
+def test_a_case_with_no_baseline_answer_passes_not_judged_with_its_reason_without_calling_the_judge(pairwise, scripted):
+    # b errored in the baseline, c is not in it; e's baseline answer is the empty string, which is an answer.
+    # Witnesses: "s33 scorer gap reason fixed" (always not_in_baseline) fails b; "s33 scorer gap incorrect" fails b
+    # and c; "s33 scorer empty baseline is a gap" (`if not old`) fails e.
+    judge_model = scripted(PairJudge(prefer("new")))
+
+    scores = pairwise({"b": "new", "c": "new", "e": "new"}, {"b": "old", "e": ""}, baseline_errors=["b"])
+
+    assert {i: (s.value, s.metadata.get("not_judged")) for i, s in scores.items()} == {
+        "b": ("C", BASELINE_AGENT_ERROR),
+        "c": ("C", NOT_IN_BASELINE),
+        "e": ("C", None),
+    }
+    assert scores["e"].metadata["pairwise"] == "better"
+    assert judge_model.pairs == [("new", ""), ("", "new")]
+
+
+@pytest.mark.parametrize(
+    ("reply", "value", "verdict", "disagreed"),
+    [
+        (prefer("new"), "C", "better", False),
+        (prefer("old"), "I", "worse", False),
+        (lambda a, b: pair_reply("same"), "C", "same", False),
+        (lambda a, b: pair_reply("A"), "C", "same", True),
+        (lambda a, b: pair_reply("B" if a == "new" else "same"), "C", "same", True),
+    ],
+    ids=["better", "worse", "same", "position-bias", "worse-then-same"],
+)
+def test_worse_fails_better_and_same_pass_and_an_order_disagreement_is_recorded(
+    pairwise, scripted, reply, value, verdict, disagreed
+):
+    # Witnesses: "s33 scorer worse passes" scores worse C; "s33 scorer same fails" (I unless better) fails same and
+    # both disagreements; "s33 scorer disagreement unrecorded" records False.
+    scripted(PairJudge(reply))
+
+    score = pairwise({"a": "new"}, {"a": "old"})["a"]
+
+    assert (score.value, score.metadata["pairwise"], score.metadata["order_disagreed"]) == (value, verdict, disagreed)
+    assert "error" not in score.metadata
+
+
+def test_each_case_is_judged_twice_new_answer_first_then_second_with_the_prompt_for_each_order(pairwise, scripted):
+    # Witnesses: "s33 scorer swapped first" asks the swapped order first; "s33 scorer one order" shows the new answer
+    # first both times; "s33 scorer default rubric" (load_rubric(None) without a file) lists the built-in criteria.
+    judge_model = scripted(PairJudge(prefer("new")))
+
+    pairwise({"a": "new"}, {"a": "old"})
+
+    assert judge_model.calls == [
+        list(pairwise_prompt(QUESTION, "new", "old", [])),
+        list(pairwise_prompt(QUESTION, "old", "new", [])),
+    ]
+
+
+def test_a_rubric_file_reaches_both_pairwise_prompts(pairwise, scripted, tmp_path):
+    rubric = write(tmp_path / "r.json", json.dumps([c.model_dump() for c in RUBRIC]))
+    judge_model = scripted(PairJudge(prefer("new")))
+
+    pairwise({"a": "new"}, {"a": "old"}, rubric=rubric)
+
+    assert judge_model.calls == [
+        list(pairwise_prompt(QUESTION, "new", "old", RUBRIC)),
+        list(pairwise_prompt(QUESTION, "old", "new", RUBRIC)),
+    ]
+
+
+@pytest.mark.parametrize("call", [1, 2], ids=["first-order", "swapped-order"])
+def test_a_failed_judge_call_in_either_order_is_a_judge_error_with_the_exception_type_only(pairwise, scripted, call):
+    # Witnesses: "s33 scorer model error message kept" adds the message; "s33 scorer model error not caught" fails
+    # the sample; "s33 scorer model error scored" scores it C.
+    scripted(PairJudge(prefer("new"), error=TimeoutError("SECRET-PROMPT-61"), error_on=call))
+
+    score = pairwise({"a": "new"}, {"a": "old"}, capture=True)["a"]
+
+    assert (score.value, score.metadata["error"], score.explanation) == (
+        "N",
+        "TimeoutError",
+        "judge error: TimeoutError",
+    )
+    assert "pairwise" not in score.metadata
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [lambda a, b: "not json", lambda a, b: pair_reply("A") if a == "new" else "not json"],
+    ids=["both-orders", "swapped-order-only"],
+)
+def test_an_unparseable_reply_in_either_order_is_a_judge_error(pairwise, scripted, reply):
+    # Witness: "s33 scorer unparseable scored" scores it C.
+    scripted(PairJudge(reply))
+
+    score = pairwise({"a": "new"}, {"a": "old"})["a"]
+
+    assert (score.value, score.metadata["error"], score.explanation) == ("N", "unparseable", "judge error: unparseable")
+
+
+def two_reasons(new: str):
+    """Prefers the new answer, with a different reason for each order and two extra keys, zz first."""
+
+    def reply(a, b):
+        first = a == new
+        return pair_reply("A" if first else "B", "REASON-FIRST-62" if first else "REASON-SWAPPED-63", zz=1, aa=2)
+
+    return reply
+
+
+def test_without_capture_the_pairwise_scorer_records_no_reasons_answer_or_extra_values(pairwise, scripted):
+    # Read before the scrub, so this is the scorer's own choice.
+    # Witnesses: "s33 scorer reasons always" records the reasons and puts them in the explanation; "s33 scorer
+    # answer always" keeps the answer; "s33 scorer extra values always" records the values.
+    scripted(PairJudge(two_reasons("new")))
+
+    score = pairwise({"a": "new"}, {"a": "old"}, raw=True)["a"]
+
+    assert score.answer is None
+    assert score.explanation == "pairwise verdict better"
+    assert "reasons" not in score.metadata and "extra_values" not in score.metadata
+    assert score.metadata["extra_keys"] == ["first.aa", "first.zz", "swapped.aa", "swapped.zz"]
+    assert set(score.metadata) <= set(SAFE_JUDGE_METADATA)
+
+
+def test_with_capture_the_reasons_of_both_orders_and_the_new_answer_reach_the_score(pairwise, scripted):
+    # Witnesses: "s33 scorer reasons swapped" stores each reason under the other order; "s33 scorer answer is
+    # baseline" records the baseline's answer; "s33 scorer swapped extras as first" names both orders' extras first.
+    scripted(PairJudge(two_reasons("NEW-ANSWER-64")))
+
+    score = pairwise({"a": "NEW-ANSWER-64"}, {"a": "OLD-ANSWER-65"}, capture=True)["a"]
+
+    assert score.answer == "NEW-ANSWER-64"
+    assert score.metadata["reasons"] == {"first": "REASON-FIRST-62", "swapped": "REASON-SWAPPED-63"}
+    assert score.metadata["extra_values"] == {"first.aa": 2, "first.zz": 1, "swapped.aa": 2, "swapped.zz": 1}
+    assert "REASON-FIRST-62" in score.explanation and "REASON-SWAPPED-63" in score.explanation
+    stored = json.dumps([score.answer, score.explanation, score.metadata])
+    assert "OLD-ANSWER-65" not in stored
+
+
+def test_scrubbed_pairwise_log_keeps_the_verdict_structure_and_holds_neither_answer_nor_reasons(
+    evaluate, baseline_run, scripted, tmp_path
+):
+    # Witnesses: "s33 safe list drops pairwise" and "s33 safe list drops order_disagreed" lose them in the serialised
+    # log; "s28 scrub keeps events" keeps the judge prompts, and with them both answers.
+    scripted(PairJudge(lambda a, b: pair_reply("A", "REASON-66")))
+    base = baseline_run({"a": "OLD-ANSWER-67"})
+
+    log, run_dir = evaluate({"a": (QUESTION, "NEW-ANSWER-68")}, baseline=base)
+
+    text = next(run_dir.glob("*.json")).read_text(encoding="utf-8")
+    assert [s for s in ["OLD-ANSWER-67", "NEW-ANSWER-68", "REASON-66"] if s in text] == []
+    score = log.samples[0].scores[JUDGE]
+    assert set(score.metadata) <= set(SAFE_JUDGE_METADATA)
+    assert (score.metadata["pairwise"], score.metadata["order_disagreed"]) == ("same", True)
+
+
+def test_the_judge_double_judges_equal_answers_same_and_differing_ones_same_with_a_disagreement(pairwise):
+    # End to end with the real offline double: its first-shown preference must surface as a disagreement, and a
+    # blank answer on one side decides the verdict in both orders.
+    scores = pairwise(
+        {"eq": "Approved.", "diff": "approved", "blank": " ", "fills": "approved"},
+        {"eq": "approved", "diff": "rejected", "blank": "approved", "fills": ""},
+    )
+
+    assert {i: (s.value, s.metadata["pairwise"], s.metadata["order_disagreed"]) for i, s in scores.items()} == {
+        "eq": ("C", "same", False),
+        "diff": ("C", "same", True),
+        "blank": ("I", "worse", False),
+        "fills": ("C", "better", False),
+    }
+
+
+# judged_epochs
+
+
+def judged_sample(case_id: str, epoch: int, **metadata) -> EvalSample:
+    value = metadata.pop("value", "C")
+    return EvalSample(
+        id=case_id, epoch=epoch, input="q", target="", scores={JUDGE: Score(value=value, metadata=metadata)}
+    )
+
+
+def test_judged_epochs_reads_pairwise_verdicts_disagreements_and_not_judged_reasons():
+    # Witnesses: "s33 epoch pairwise any value" keeps "maybe"; "s33 epoch disagreement truthy" (bool) makes "true"
+    # and 1 a disagreement; "s33 epoch not_judged dropped" loses the reason.
+    samples = [
+        judged_sample("a", 1, mode="pairwise", pairwise="better", order_disagreed=False),
+        judged_sample("b", 1, mode="pairwise", pairwise="same", order_disagreed=True),
+        judged_sample("c", 1, value="I", mode="pairwise", pairwise="worse", order_disagreed="true"),
+        judged_sample("d", 1, mode="pairwise", pairwise="maybe", order_disagreed=1),
+        judged_sample("e", 1, mode="pairwise", not_judged=NOT_IN_BASELINE),
+        judged_sample("f", 1, mode="pairwise", not_judged=BASELINE_AGENT_ERROR),
+        judged_sample("g", 1, mode="golden"),
+    ]
+
+    epochs = judged_epochs(samples)
+
+    assert [(e.case_id, e.outcome, e.pairwise, e.order_disagreed, e.not_judged) for e in epochs] == [
+        ("a", "pass", "better", False, None),
+        ("b", "pass", "same", True, None),
+        ("c", "fail", "worse", False, None),
+        ("d", "pass", None, False, None),
+        ("e", "not_judged", None, False, NOT_IN_BASELINE),
+        ("f", "not_judged", None, False, BASELINE_AGENT_ERROR),
+        ("g", "pass", None, False, None),
+    ]
+
