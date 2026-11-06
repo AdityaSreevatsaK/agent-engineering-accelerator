@@ -1,0 +1,10 @@
+{"id": "add", "input": "What is 2 plus 3?", "expected_output": "5", "expected_tool_calls": [{"name": "calculator", "arguments": {"a": 2, "b": 3, "op": "add"}}]}
+{"id": "subtract", "input": "What is 9 minus 4?", "expected_output": "5", "expected_tool_calls": [{"name": "calculator", "arguments": {"a": 9, "b": 4, "op": "sub"}}]}
+{"id": "multiply", "input": "What is 6 times 7?", "expected_output": "42", "expected_tool_calls": [{"name": "calculator", "arguments": {"a": 6, "b": 7, "op": "mul"}}]}
+{"id": "divide", "input": "What is 10 divided by 4?", "expected_output": "2.5", "expected_tool_calls": [{"name": "calculator", "arguments": {"a": 10, "b": 4, "op": "div"}}]}
+{"id": "negative_operand", "input": "What is -3 plus 8?", "expected_output": "5", "expected_tool_calls": [{"name": "calculator", "arguments": {"a": -3, "b": 8, "op": "add"}}]}
+{"id": "decimal_operand", "input": "What is 1.5 times 4?", "expected_output": "6", "expected_tool_calls": [{"name": "calculator", "arguments": {"a": 1.5, "b": 4, "op": "mul"}}]}
+{"id": "divide_by_zero", "input": "What is 5 divided by 0?", "output_contains": ["divide by zero"], "expected_tool_calls": [{"name": "calculator", "arguments": {"a": 5, "b": 0, "op": "div"}}]}
+{"id": "no_tool_for_chat", "input": "Tell me a joke.", "output_contains": ["arithmetic"], "expected_tool_calls": []}
+{"id": "json_output", "input": "json: What is 3 times 4?", "expected_json_schema": {"type": "object", "required": ["result", "operation"], "properties": {"result": {"type": "number"}, "operation": {"enum": ["add", "sub", "mul", "div"]}}}, "expected_tool_calls": [{"name": "calculator", "arguments": {"op": "mul"}, "match": "subset"}]}
+{"id": "subtract_large", "input": "What is 100 minus 1?", "expected_output": "99", "expected_tool_calls": [{"name": "calculator", "arguments": {"op": "sub"}, "match": "subset"}]}
