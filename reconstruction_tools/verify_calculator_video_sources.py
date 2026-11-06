@@ -1,8 +1,8 @@
-"""Audit the two source files recovered from the 6 November calculator footage.
+"""Audit the calculator agent, ten-case dataset and rules file recovered from original footage.
 
 Offline, dependency-free integrity check. This validates the reconstructed
-source and dataset, not original byte-for-byte provenance or the absent rules
-and historical captured-log fixtures. It does not import or run the agent.
+source and dataset plus rules, not byte-for-byte historical provenance or
+historical captured-log fixtures. It does not import or run the agent.
 """
 from __future__ import annotations
 
@@ -95,8 +95,19 @@ def verify(root: Path = ROOT) -> None:
     print("PASSED: 10 screenshot-matched calculator evaluation cases and original expectations")
     print(f"Candidate agent SHA256: {hashlib.sha256(agent.read_bytes()).hexdigest()}")
     print(f"Candidate dataset SHA256: {hashlib.sha256(dataset.read_bytes()).hexdigest()}")
-    if not (base / "rules.py").is_file():
-        print("PENDING: original rules.py is still missing; runtime execution is not verified")
+    rules = base / "rules.py"
+    if not rules.is_file():
+        raise AssertionError("The recovered original calculator rules.py is required")
+    rules_source = rules.read_text(encoding="utf-8")
+    rules_tree = ast.parse(rules_source, filename=str(rules), feature_version=(3, 11))
+    if len(rules_source) != 2030 or len(rules_source.splitlines()) != 56:
+        raise AssertionError("Recorded rules.py status reads 2,030 characters and 57 displayed lines")
+    rule_functions = {node.name for node in rules_tree.body if isinstance(node, ast.FunctionDef)}
+    rule_classes = {node.name for node in rules_tree.body if isinstance(node, ast.ClassDef)}
+    if not {"calculate", "_number", "decide", "answer"} <= rule_functions or "ToolRequest" not in rule_classes:
+        raise AssertionError("Recovered original calculator rules signatures changed")
+    print("PASSED: recovered rules.py 2,030 LF characters and 57 Notepad++ display lines")
+    print(f"Candidate rules SHA256: {hashlib.sha256(rules.read_bytes()).hexdigest()}")
 
 
 if __name__ == "__main__":
