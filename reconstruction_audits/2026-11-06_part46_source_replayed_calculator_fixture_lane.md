@@ -6,7 +6,7 @@
 
 ## Rationale
 
-The original calculator agent, shared rules and ten-case dataset are now recovered from user footage. Real Strands/AEA end-to-end verification already confirms a normal 10/10 run, an 8/10 broken-subtraction run and the expected flaky behaviours. The historical October 12 JSON logs themselves are still unavailable as byte-exact files; 58 original parameter-expanded comparison/statistics tests have been explicitly deferred until their original fixtures can be supplied.
+The original calculator agent, shared rules and ten-case dataset are now recovered from user footage. Real Strands/AEA end-to-end verification already confirms a normal 10/10 run, an 8/10 broken-subtraction run and the expected flaky behaviours. The historical October 12 JSON logs themselves are still unavailable as byte-exact files; 51 original parameter-expanded comparison/statistics cases are fixture-dependent. A separate seven-case fixture-independent lane was previously misclassified as slow; together with two missing-example-config cases, these account for the 60 historically deferred/filtered cases seen in the regular integrated suite.
 
 The new **source-replay lane** generates temporary Inspect v2 logs using the real restored calculator agent instead of guessing original timestamps or pasting synthetic JSON stubs.
 
@@ -19,6 +19,7 @@ A new script `reconstruction_tools/verify_original_calculator_fixture_replay.py`
 3. Runs `build_broken_agent` with the ordinary redacted default. Checks 8/10 successes and recorded capture mode.
 4. Temporarily stages the generated logs under the two original filenames **only inside the isolated GitHub Actions checkout**, not in the repository or a GitHub artifact.
 5. Runs the explicit original fixture-dependent pytest node names, including their parameter expansions. Uses `-o addopts=` to avoid silent skips caused by the historical false slow marker.
+   For faithful test compatibility, the **temporary captured replay** removes the modern `case_checks.metadata.tool_call_count` convenience field, because the October 12 original capture (as seen in the video) predates it and the original `test_logs_from_before_tool_call_counts_load_with_none` explicitly asserts this older schema. The current production scorer remains unchanged and is still validated separately.
 6. Removes both staged log files **in a finally clause even if pytest fails**. The temporary evaluation directories are destroyed when their context manager exits.
 
 This lane runs after the original calculator E2E in the four-platform starter workflow (Windows/Linux, Python 3.11/3.12). No cloud model API, AWS credentials or personal data are required.
