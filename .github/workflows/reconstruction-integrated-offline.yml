@@ -31,8 +31,10 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install actual AEA and native agent framework dependencies
         run: python -m pip install -e ".[langgraph,strands]" "pytest>=9.1.1,<10"
-      - name: Generate temporary CI-only SYNTHETIC calculator source and dataset
-        run: python reconstruction_tools/make_synthetic_calculator.py
+      - name: Verify source-recorded calculator agent and dataset; never overwrite originals
+        run: python reconstruction_tools/verify_calculator_video_sources.py
+      - name: Provide temporary non-executable CI rules import shim (not original source)
+        run: python reconstruction_tools/make_ci_rules_stub.py
       - name: Generate temporary CI-only SYNTHETIC Inspect log
         env:
           AWS_EC2_METADATA_DISABLED: "true"
@@ -44,7 +46,9 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/src
         run: python -m reconstruction_tools.run_integrated_offline
 
-# Historical JSON logs and triage/expense source configs are still missing.
-# Generated synthetic inputs are CI-only and NEVER original recovered files.
+# Original calculator agent and dataset have been restored from video/screenshot.
+# Historical JSON logs, calculator rules, and triage/expense configs remain missing.
+# The missing rules are substituted with a non-executable CI-only IMPORT shim.
+# Generated synthetic captured logs are CI-only and NEVER original recovered files.
 # Runner checks the transitive fixture-exclusion manifest before pytest.
 # All existing active unit suites are invoked together, without external models.

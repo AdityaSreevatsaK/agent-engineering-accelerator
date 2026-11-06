@@ -1,11 +1,12 @@
 """Integrated OFFLINE regression gate for the partial AEA reconstruction.
 
 Executes all active tests/unit/ suites together with the original framework
-packages. Historical example fixtures are not available. Explicit, reviewed
+packages. Historical captured-log fixtures remain unavailable. Explicit, reviewed
 deferrals remain enforced by the AST preflight in run_compare_without_original_fixtures.
 
-Temporary calculator inputs are generated separately at CI runtime and MUST
-NOT be mistaken for original AEA example or log assets.
+The calculator agent and dataset are recovered from user-supplied footage.
+Temporary Inspect capture logs are separately generated at CI runtime and MUST
+NOT be mistaken for original historical captured-log files.
 """
 from __future__ import annotations
 
@@ -34,6 +35,7 @@ CONFIG_DEFERRED = (
 REQUIRED_TEST_MODULES = (
     "test_adapters.py",
     "test_build_task.py",
+    "test_calculator_recovered_dataset.py",
     "test_cli_pairwise.py",
     "test_cli_recovered_controls.py",
     "test_compare.py",
@@ -95,8 +97,8 @@ def main() -> int:
         flush=True,
     )
     print(
-        "Fixture generators use SYNTHETIC data; no historical calculator "
-        "example or baseline was restored.",
+        "The calculator agent and dataset are source-recorded reconstructions; "
+        "CI uses SYNTHETIC captured logs only. Original log fixtures remain missing.",
         flush=True,
     )
     return subprocess.call(argv, cwd=ROOT)
