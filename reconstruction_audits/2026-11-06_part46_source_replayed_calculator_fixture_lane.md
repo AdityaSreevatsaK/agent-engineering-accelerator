@@ -24,17 +24,16 @@ A new script `reconstruction_tools/verify_original_calculator_fixture_replay.py`
 
 This lane runs after the original calculator E2E in the four-platform starter workflow (Windows/Linux, Python 3.11/3.12). No cloud model API, AWS credentials or personal data are required.
 
-## Crucial fidelity warning: original dataset SHA differs
+## Dataset checksum verification and platform line endings
 
-The October 12 original capture-video screenshot displays a dataset checksum:
+The October 12 original capture-video screenshot displays the dataset SHA-256:
+`9e2fee82d278bdf408cc890b644a2712752ca639f8c8e85a327d19e53ed5ca0c`.
 
-`9e2fee82d278bdf408cc890b644a2712752ca639f8c8e85a327d19e53ed5ca0c`
+The repository's visually recovered ten-case dataset matches this checksum **exactly after line-ending normalisation**, just as `agent_accelerator.dataset.dataset_sha256()` does. Independent re-hashing of the ten saved LF JSONL records reproduced the recorded value.
 
-The repository's visually transcribed ten-case dataset currently hashes to:
+An earlier Windows CI printout showed a different SHA-256 (`b58b684b2a6a702c941278f32d0917a5e7fe4b29af21a144768761e40573cb9a`), because the audit helper had incorrectly hashed raw CRLF checkout bytes. Git for Windows normalises the checked-out line endings to CRLF; that printout was **not evidence of original dataset content divergence**. The helper now hashes `Path.read_text(...).encode("utf-8")` so both OSes report the **same LF-normalised source SHA**.
 
-`b58b684b2a6a702c941278f32d0917a5e7fe4b29af21a144768761e40573cb9a`
-
-Although all ten **behaviours** are reproduced and matched by runtime tests, these SHA-256 values **are not equal**. The dataset's exact historical byte content is therefore **not verified**; differences could be formatting, final newline or content changes. Do not claim that byte-for-byte October 12 original dataset or captured logs have been restored. The source-generated new logs necessarily carry the candidate dataset hash, not the historic one.
+This strongly corroborates the restored dataset's original 12 October file bytes after normalised line endings. It does **not** establish byte-for-byte identity of the separate 57,844-character captured Inspect JSON log, which remains unavailable as raw bytes. Regenerated logs use new timestamps and trace IDs, so they are correctly labelled **source replay** rather than original historical fixtures.
 
 ## Interpretation of results
 
