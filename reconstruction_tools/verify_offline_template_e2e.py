@@ -71,7 +71,7 @@ def main() -> None:
             raise AssertionError("Original offline starter no-tool case is unavailable")
         private_cases[0]["input"] += " " + PRIVATE_SENTINEL
         dataset_file.write_text(
-            "".join(json.dumps(case) + "\\n" for case in cases), encoding="utf-8"
+            "".join(json.dumps(case) + "\n" for case in cases), encoding="utf-8"
         )
         dataset = "demo_agent/dataset.jsonl"
         common = (
