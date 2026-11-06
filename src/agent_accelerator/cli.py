@@ -214,10 +214,14 @@ def _check(args: argparse.Namespace) -> int:
 
 def _validate_baseline_target(baseline: Path, runs_dir: Path, capture_content: bool) -> None:
     """Refuses a baseline that would hold unredacted content, or a path that is unsafe to replace."""
+    from inspect_ai.log import read_eval_log
+
     from agent_accelerator.compare import resolve_log
 
     if capture_content:
         raise ValueError("--update-baseline cannot be combined with --capture-content: a baseline must be redacted")
+    if any(part.is_symlink() for part in (baseline, *baseline.parents)):
+        raise ValueError(f"--baseline {baseline.as_posix()} traverses a symlink; refusing to replace it")
     if runs_dir.resolve().is_relative_to(baseline.resolve()):
         raise ValueError(f"--baseline {baseline.as_posix()} contains --runs-dir {runs_dir.as_posix()}")
     if not baseline.exists() or (baseline.is_dir() and not any(baseline.iterdir())):
@@ -225,9 +229,30 @@ def _validate_baseline_target(baseline: Path, runs_dir: Path, capture_content: b
     if not baseline.is_dir():
         raise ValueError(f"--baseline {baseline.as_posix()} exists and is not a run directory")
     try:
-        resolve_log(baseline)
+        log_path = resolve_log(baseline)
     except FileNotFoundError:
         raise ValueError(f"--baseline {baseline.as_posix()} is not a run directory; refusing to replace it") from None
+
+    # A directory with one arbitrary .json file must not qualify for recursive
+    # deletion. Only a parsed Inspect log and standard run artefacts may be
+    # replaced. Reject linked files, subdirectories and user-added documents.
+    allowed = {log_path.name, "report.md", "comparison.md", "traces.jsonl"}
+    unexpected = sorted(
+        entry.name
+        for entry in baseline.iterdir()
+        if entry.name not in allowed or entry.is_symlink() or not entry.is_file()
+    )
+    if unexpected:
+        raise ValueError(
+            f"--baseline {baseline.as_posix()} has unrelated or linked files "
+            f"({', '.join(unexpected)}); refusing to replace it"
+        )
+    try:
+        read_eval_log(log_path)
+    except Exception:
+        raise ValueError(
+            f"--baseline {baseline.as_posix()} has no valid Inspect eval log; refusing to replace it"
+        ) from None
 
 
 def _report(args: argparse.Namespace) -> int:
