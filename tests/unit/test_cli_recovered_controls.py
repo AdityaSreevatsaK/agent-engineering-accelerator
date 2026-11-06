@@ -175,3 +175,84 @@ def test_nearby_config_is_not_implicitly_loaded(seen, tmp_path, monkeypatch, com
     assert seen[0]["adapter"] == "strands"
     assert seen[0]["agent"] == "flag:factory"
     assert seen[0]["config"] is None
+
+
+
+@pytest.mark.parametrize("command", ["run", "check"])
+@pytest.mark.parametrize(
+    ("content", "error_text"),
+    [
+        (b'model = "gpt"\n', "unknown key 'model'"),
+        (b'agent = "caf\xff:build_agent"\n', "utf-8"),
+    ],
+    ids=["unknown_key", "invalid_utf8"],
+)
+def test_config_errors_are_reported_before_any_run(seen, tmp_path, capsys, command, content, error_text):
+    """Replay the historical CLI early-config failure boundary offline."""
+    config = tmp_path / "aea.toml"
+    config.write_bytes(content)
+    args = command_args(command, tmp_path, "--config", str(config), "--agent", "flag:factory")
+
+    assert cli.main(args) == cli.EXIT_ERROR
+    err = capsys.readouterr().err
+    assert config.as_posix() in err
+    assert error_text in err.lower()
+    assert "Traceback" not in err
+    assert seen == []
+    assert not (tmp_path / "runs").exists()
+
+
+def test_check_missing_baseline_does_not_launch_agent(seen, tmp_path, capsys):
+    """Missing baseline is an early error unless the user requests a freeze."""
+    missing = tmp_path / "missing"
+    args = [
+        "check", "unused.jsonl", "--agent", "flag:factory",
+        "--runs-dir", str(tmp_path / "runs"), "--baseline", str(missing),
+    ]
+    assert cli.main(args) == cli.EXIT_ERROR
+    err = capsys.readouterr().err
+    assert "no baseline at" in err and "--update-baseline" in err
+    assert seen == []
+    assert not (tmp_path / "runs").exists()
+
+
+@pytest.mark.parametrize(
+    ("extra", "reason"),
+    [
+        (["--capture-content"], "--capture-content"),
+        (["--runs-dir", "BASELINE"], "contains --runs-dir"),
+    ],
+    ids=["captured_content", "runs_inside_baseline"],
+)
+def test_freeze_refuses_unsafe_target_before_agent_start(seen, tmp_path, capsys, extra, reason):
+    """No captured content or recursive run paths may enter baseline snapshots."""
+    baseline = tmp_path / "baseline"
+    expanded_extra = [str(baseline) if x == "BASELINE" else x for x in extra]
+    args = [
+        "check", "unused.jsonl", "--agent", "flag:factory",
+        "--runs-dir", str(tmp_path / "runs"), "--baseline", str(baseline),
+        "--update-baseline", *expanded_extra,
+    ]
+    assert cli.main(args) == cli.EXIT_ERROR
+    assert reason in capsys.readouterr().err
+    assert seen == []
+    assert not baseline.exists()
+
+
+@pytest.mark.parametrize("command", ["compare", "check"])
+def test_threshold_flags_default_to_historical_values(command, tmp_path):
+    """Parser defaults are a self-contained original CLI contract."""
+    args = (
+        ["compare", "baseline", "current"]
+        if command == "compare"
+        else command_args(command, tmp_path, "--agent", "flag:factory")
+    )
+    parsed = cli.build_parser().parse_args(args)
+    expected = {
+        "max_new_failures": 0,
+        "max_pass_rate_drop": 0.0,
+        "max_error_rate_increase": 0.0,
+        "min_case_pass_rate": 1.0,
+        "max_p_value": None,
+    }
+    assert {key: getattr(parsed, key) for key in expected} == expected
