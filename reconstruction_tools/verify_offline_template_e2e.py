@@ -139,7 +139,7 @@ def main() -> None:
         if "**REGRESSION**" not in standalone.stdout:
             raise AssertionError("Standalone compare failed to return a regression verdict")
         saved = root / "detected-regression.md"
-        if not saved.is_file() or saved.read_text(encoding="utf-8") != standalone.stdout.strip():
+        if not saved.is_file() or saved.read_text(encoding="utf-8").strip() != standalone.stdout.strip():
             raise AssertionError("Standalone nonzero compare did not write the report")
 
         # Explicitly relax *both* applicable thresholds. No new evaluation
