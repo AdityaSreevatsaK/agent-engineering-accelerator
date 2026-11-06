@@ -439,7 +439,7 @@ def _pairwise_readings(epochs: tuple[JudgedEpoch, ...]) -> list[str]:
         were, them = ("was", "it") if len(gaps) == 1 else ("were", "them")
         readings.append(
             f"{counted(len(gaps), 'try', 'tries')} {were} not judged because the baseline has no answer for "
-            f"{_names(sorted((e.case_id for e in gaps)))} (the case is missing from the baseline run, or its agent "
+            f"{_names(sorted(e.case_id for e in gaps))} (the case is missing from the baseline run, or its agent "
             f"errored or stopped at an interrupt there); the judge pass rate leaves {them} out."
         )
     worse = sorted({e.case_id for e in epochs if e.pairwise == "worse"})
