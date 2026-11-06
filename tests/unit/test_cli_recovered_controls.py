@@ -193,7 +193,9 @@ def test_config_errors_are_reported_before_any_run(seen, tmp_path, capsys, comma
     config.write_bytes(content)
     args = command_args(command, tmp_path, "--config", str(config), "--agent", "flag:factory")
 
-    assert cli.main(args) == cli.EXIT_ERROR
+    with pytest.raises(SystemExit) as exc:
+        cli.main(args)
+    assert exc.value.code == 2
     err = capsys.readouterr().err
     assert config.as_posix() in err
     assert error_text in err.lower()
