@@ -37,6 +37,7 @@ REQUIRED_TEST_MODULES = (
     "test_build_task.py",
     "test_calculator_recovered_dataset.py",
     "test_calculator_broken_redacted_screenshot.py",
+    "test_slow_parameter_collision_audit.py",
     "test_cli_pairwise.py",
     "test_cli_recovered_controls.py",
     "test_compare.py",
