@@ -25,11 +25,13 @@ RULES = ROOT / "examples" / "calculator" / "rules.py"
 
 def test_video_recovered_rules_match_original_notepad_length_and_line_count():
     """The recorded status bar says 2030 characters and 57 displayed lines."""
-    data = RULES.read_bytes()
-    assert b"\r\n" not in data
-    assert len(data.decode("utf-8")) == 2030
-    assert data.count(b"\n") == 56  # 57 displayed lines including blank last line
-    assert '"minus": "add"' in data.decode("utf-8")
+    # Git for Windows may check out LF source with native CRLF line endings.
+    # Path.read_text normalises platform newlines, preserving the original
+    # Notepad++ logical character/line count without assuming checkout bytes.
+    source = RULES.read_text(encoding="utf-8")
+    assert len(source) == 2030
+    assert source.count("\n") == 56  # 57 displayed lines including blank last line
+    assert '"minus": "add"' in source
 
 
 @pytest.mark.parametrize(
