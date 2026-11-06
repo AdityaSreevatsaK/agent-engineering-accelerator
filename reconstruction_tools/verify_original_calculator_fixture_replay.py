@@ -14,6 +14,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from inspect_ai.log import read_eval_log, write_eval_log
+
 from agent_accelerator.compare import load_results
 from reconstruction_tools.run_compare_without_original_fixtures import DEFERRED, preflight
 
@@ -87,6 +89,23 @@ def main() -> None:
                     raise AssertionError(f"Source replay produced unexpected {name} outcome: {result.stdout[-2500:]}")
                 source_log = one_log(run_dir)
                 shutil.copyfile(source_log, target)
+                if captured:
+                    # The ORIGINAL October 12 capture predates the newer
+                    # case_checks.tool_call_count summary field (confirmed
+                    # by the video and recorded historical test contract).
+                    # Reproduce that historical *log schema only* in this
+                    # temporary source replay; do not alter the production
+                    # scorer or pretend these are original fixture bytes.
+                    log = read_eval_log(target)
+                    for sample in log.samples or []:
+                        for score in (sample.scores or {}).values():
+                            if score.metadata:
+                                score.metadata.pop("tool_call_count", None)
+                    for reduction in log.reductions or []:
+                        for score in reduction.samples:
+                            if score.metadata:
+                                score.metadata.pop("tool_call_count", None)
+                    write_eval_log(log, location=target)
                 parsed = load_results(target)
                 if parsed.status != "success" or parsed.capture_content is not captured:
                     raise AssertionError(f"Invalid or mislabelled {name} replay log")
