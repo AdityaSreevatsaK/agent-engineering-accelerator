@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install the real AEA package and offline Strands adapter
-        run: python -m pip install -e ".[strands]"
+        run: python -m pip install -e ".[strands]" "pytest>=9.1.1,<10"
       - name: Exercise real offline AEA CLI commands in a disposable directory
         env:
           AWS_EC2_METADATA_DISABLED: "true"
@@ -38,6 +38,11 @@ jobs:
         env:
           AWS_EC2_METADATA_DISABLED: "true"
         run: python reconstruction_tools/verify_original_calculator_e2e.py
+      - name: Replay fixture-dependent historical tests against temporary REAL source-generated logs
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: python -m reconstruction_tools.verify_original_calculator_fixture_replay
 
 # Validates reconstructed CLI and video-recovered original calculator engine.
-# Historical captured JSON fixtures and any live-provider integration remain unverified.
+# Source-replayed logs are freshly generated and destroyed on the runner.
+# Historical captured JSON fixture byte fidelity and live-provider integration remain unverified.
