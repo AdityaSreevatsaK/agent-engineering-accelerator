@@ -36,6 +36,7 @@ REQUIRED_TEST_MODULES = (
     "test_adapters.py",
     "test_build_task.py",
     "test_calculator_recovered_dataset.py",
+    "test_calculator_capture_video_evidence.py",
     "test_calculator_broken_redacted_screenshot.py",
     "test_slow_parameter_collision_audit.py",
     "test_cli_pairwise.py",
