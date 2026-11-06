@@ -27,6 +27,7 @@ The historical `tests/conftest.py` marks cases using any fixture *name* from `{r
 Instead of editing or overwriting the historical original conftest/tests, we added:
 - `reconstruction_tools/verify_slow_parameter_collision.py`: AST fail-closed audit of the original seven direct numeric parameters and the source marking policy. Then it invokes exactly the corresponding original pytest node with `-m slow`, confirming **7 passed**.
 - `tests/unit/test_slow_parameter_collision_audit.py`: self-test for the historical fixture collision audit, included in the normal integrated offline suite.
+- `tests/unit/test_calculator_capture_video_evidence.py`: separately uses a **labelled synthetic RunResults evidence summary**, whose 10/10 pass rate is directly supported by the recording, and the screenshot-derived 8/10 broken candidate to verify two newly failing calculator cases through the actual AEA comparison engine. It is **not** a substitute for an original Inspect log or a reason to remove any deferred tests.
 - An additional step in the four-platform `reconstruction-integrated-offline.yml` CI that executes the seven original cases independently from the existing `not slow` suite on Windows/Linux Python 3.11/3.12, without external model or original capture fixtures.
 
 The original source remains intact; the seven-case lane is clearly labelled so users don't count them as subprocess integration tests. This restores meaningful coverage while maintaining transcription fidelity.
