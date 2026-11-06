@@ -93,8 +93,8 @@ def verify(root: Path = ROOT) -> None:
 
     print("PASSED: restored 101-line calculator agent with video-matched 4,070 CRLF chars")
     print("PASSED: 10 screenshot-matched calculator evaluation cases and original expectations")
-    print(f"Candidate agent SHA256: {hashlib.sha256(agent.read_bytes()).hexdigest()}")
-    print(f"Candidate dataset SHA256: {hashlib.sha256(dataset.read_bytes()).hexdigest()}")
+    print(f"Candidate agent SHA256 (LF-normalised): {hashlib.sha256(source.encode("utf-8")).hexdigest()}")
+    print(f"Candidate dataset SHA256 (LF-normalised): {hashlib.sha256(dataset.read_text(encoding="utf-8").encode("utf-8")).hexdigest()}")
     rules = base / "rules.py"
     if not rules.is_file():
         raise AssertionError("The recovered original calculator rules.py is required")
@@ -107,7 +107,7 @@ def verify(root: Path = ROOT) -> None:
     if not {"calculate", "_number", "decide", "answer"} <= rule_functions or "ToolRequest" not in rule_classes:
         raise AssertionError("Recovered original calculator rules signatures changed")
     print("PASSED: recovered rules.py 2,030 LF characters and 57 Notepad++ display lines")
-    print(f"Candidate rules SHA256: {hashlib.sha256(rules.read_bytes()).hexdigest()}")
+    print(f"Candidate rules SHA256 (LF-normalised): {hashlib.sha256(rules_source.encode("utf-8")).hexdigest()}")
 
 
 if __name__ == "__main__":
