@@ -47,6 +47,7 @@ REQUIRED_TEST_MODULES = (
     "test_dataset.py",
     "test_export.py",
     "test_init.py",
+    "test_init_symlink_safety.py",
     "test_judge.py",
     "test_judge_double.py",
     "test_judge_double_pairwise.py",

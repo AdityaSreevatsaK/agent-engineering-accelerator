@@ -23,6 +23,18 @@ TEMPLATE_FILES = ("agent.py", "dataset.jsonl")
 
 def _init(args: argparse.Namespace) -> int:
     target: Path = args.dir
+    # Do not write through linked directories or templates. In particular,
+    # --force must never truncate files outside the requested target directory.
+    # Preflight *both* template names before writing either, to avoid partial edits.
+    if any(path.is_symlink() for path in (target, *target.parents)):
+        raise ValueError(f"{target.as_posix()} traverses a symlink; refusing to initialise")
+    if target.is_dir():
+        linked = [name for name in TEMPLATE_FILES if (target / name).is_symlink()]
+        if linked:
+            raise ValueError(
+                f"{target.as_posix()} contains linked template file(s): "
+                f"{', '.join(linked)}; refusing to overwrite"
+            )
     if target.exists() and not target.is_dir():
         raise ValueError(f"{target.as_posix()} exists and is not a directory")
     if target.is_dir() and any(target.iterdir()) and not args.force:
