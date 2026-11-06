@@ -4,7 +4,7 @@ Executes all active tests/unit/ suites together with the original framework
 packages. Historical captured-log fixtures remain unavailable. Explicit, reviewed
 deferrals remain enforced by the AST preflight in run_compare_without_original_fixtures.
 
-The calculator agent and dataset are recovered from user-supplied footage.
+The calculator agent, dataset and shared rules are recovered from user footage.
 Temporary Inspect capture logs are separately generated at CI runtime and MUST
 NOT be mistaken for original historical captured-log files.
 """
@@ -37,6 +37,7 @@ REQUIRED_TEST_MODULES = (
     "test_build_task.py",
     "test_baseline_replacement_safety.py",
     "test_calculator_recovered_dataset.py",
+    "test_calculator_rules_video.py",
     "test_calculator_capture_video_evidence.py",
     "test_calculator_broken_redacted_screenshot.py",
     "test_slow_parameter_collision_audit.py",
@@ -102,7 +103,7 @@ def main() -> int:
         flush=True,
     )
     print(
-        "The calculator agent and dataset are source-recorded reconstructions; "
+        "The calculator agent, dataset and rules are source-recorded reconstructions; "
         "CI uses SYNTHETIC captured logs only. Original log fixtures remain missing.",
         flush=True,
     )
