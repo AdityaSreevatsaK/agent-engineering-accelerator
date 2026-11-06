@@ -7,6 +7,7 @@ needed. The temporary demo is not a substitute for original AEA v2.2.0 files.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -15,6 +16,7 @@ from pathlib import Path
 
 
 AGENT = "demo_agent.agent:build_offline_agent"
+PRIVATE_SENTINEL = "AEA_E2E_PRIVATE_PROMPT_SENTINEL_734881"
 
 
 def aea(workdir: Path, *args: str, expected_code: int = 0) -> subprocess.CompletedProcess[str]:
@@ -60,6 +62,17 @@ def main() -> None:
         init = aea(root, "init", starter.name)
         if not (starter / "agent.py").is_file() or not (starter / "dataset.jsonl").is_file():
             raise AssertionError(f"Starter missing after init: {init.stdout}")
+        # This deliberately unique prompt exists only in this temporary dataset.
+        # Its presence in saved logs without --capture-content is a privacy bug.
+        dataset_file = starter / "dataset.jsonl"
+        cases = [json.loads(line) for line in dataset_file.read_text(encoding="utf-8").splitlines()]
+        private_cases = [case for case in cases if case["id"] == "no_tool"]
+        if len(private_cases) != 1:
+            raise AssertionError("Original offline starter no-tool case is unavailable")
+        private_cases[0]["input"] += " " + PRIVATE_SENTINEL
+        dataset_file.write_text(
+            "".join(json.dumps(case) + "\n" for case in cases), encoding="utf-8"
+        )
         dataset = "demo_agent/dataset.jsonl"
         common = (
             dataset, "--agent", AGENT, "--runs-dir", "runs", "--epochs", "1"
@@ -82,6 +95,16 @@ def main() -> None:
         comparison = current / "comparison.md"
         if not comparison.is_file() or not comparison.read_text(encoding="utf-8").strip():
             raise AssertionError("Offline check did not create comparison.md")
+
+        # Verify the actual saved default-mode logs, traces and reports do not
+        # persist user prompt material. Do not examine the source dataset here:
+        # it is explicitly an input file and intentionally contains the sentinel.
+        for saved_directory in (baseline, *runs):
+            for saved_file in saved_directory.rglob("*"):
+                if saved_file.is_file() and PRIVATE_SENTINEL.encode() in saved_file.read_bytes():
+                    raise AssertionError(
+                        f"Default redacted run persisted private prompt in {saved_file}"
+                    )
 
         aea(root, "compare", str(baseline), str(current), "--output", "comparison-copy.md")
         if not (root / "comparison-copy.md").is_file():
@@ -158,6 +181,32 @@ def main() -> None:
         if before_hashes != after_hashes:
             raise AssertionError("Regression check unexpectedly modified frozen baseline files")
 
+        # The newly regressed *default* check must also have scrubbed inputs.
+        for saved_file in regressed.rglob("*"):
+            if saved_file.is_file() and PRIVATE_SENTINEL.encode() in saved_file.read_bytes():
+                raise AssertionError(f"Regressed redacted run leaked private prompt: {saved_file}")
+
+        # Explicit --capture-content is a different, intentionally sensitive
+        # mode: the user-provided prompt must be present in its Inspect log.
+        # This run lives exclusively under TemporaryDirectory and is never
+        # copied to the frozen, redacted baseline.
+        captured = aea(root, "run", *common, "--capture-content")
+        if "passed=4/5" not in captured.stdout:
+            raise AssertionError("Unexpected captured test outcome; original regression drifted")
+        captured_dirs = sorted(p for p in (root / "runs").iterdir() if p.is_dir())
+        if len(captured_dirs) != 4:
+            raise AssertionError("Expected three redacted runs and one explicitly captured run")
+        sensitive_log_files = list(captured_dirs[-1].glob("*.json"))
+        if len(sensitive_log_files) != 1:
+            raise AssertionError("Expected exactly one Inspect log in capture-content run")
+        if PRIVATE_SENTINEL.encode() not in sensitive_log_files[0].read_bytes():
+            raise AssertionError("Explicit --capture-content did not persist the input")
+        if any(
+            PRIVATE_SENTINEL.encode() in saved_file.read_bytes()
+            for saved_file in baseline.rglob("*") if saved_file.is_file()
+        ):
+            raise AssertionError("Explicit capture contaminated the frozen redacted baseline")
+
         print(
             "PASSED: offline Strands starter (5/5 twice), baseline freeze, "
             "check/compare/report/HTML export, and a detected 4/5 regression."
@@ -166,6 +215,7 @@ def main() -> None:
             "PASSED: regression CLI exit code 1, persisted comparison, "
             "allowed threshold exit code 0, immutable baseline."
         )
+        print("PASSED: default logs/traces/reports redact private input; explicit capture retains it.")
         print("No cloud/model calls or historical fixtures; this is an offline integration smoke.")
 
 
