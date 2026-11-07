@@ -51,4 +51,5 @@ jobs:
 # Stored video drafts are source evidence, not byte-verified original code.
 # Both original video-test candidates retain their import statements unchanged.
 # Expense scorer is now restored from video at the original source path.
-# Historical golden files and separate slow CLI runs remain deferred.
+# Original golden and full-CLI tests now replay in dedicated workflows;
+# this lane deliberately remains the fast policy-unit subset.
