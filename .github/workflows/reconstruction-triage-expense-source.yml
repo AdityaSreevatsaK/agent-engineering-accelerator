@@ -6,6 +6,8 @@ on:
       - reconstruction/wip-checkpoint-2026-10-30
     paths:
       - examples/triage/agent.py
+      - examples/triage/rules.py
+      - examples/expense/rules.py
       - examples/triage/aea.toml
       - examples/expense/agent.py
       - examples/expense/aea.toml
@@ -35,7 +37,9 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Check Python AST, TOML, export contracts, editor lengths and fidelity caveat
         run: python reconstruction_tools/verify_triage_expense_video_candidates.py
+      - name: Verify both video-derived rules sources against editor evidence and offline rules
+        run: python reconstruction_tools/verify_triage_expense_rules_video.py
 
-# Do NOT import agent.py: original triage/expense rules.py files are still absent.
+# Video-derived rules are now present; execute their stdlib deterministic logic only.
 # Do NOT run build_live_agent: real AWS credentials/provider would be required.
 # Source evidence check only; not historical byte-level certification.
