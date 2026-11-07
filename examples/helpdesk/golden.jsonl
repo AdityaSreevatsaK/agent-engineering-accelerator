@@ -1,0 +1,6 @@
+{"id": "device_status_low_disk", "reference": "LT-1042 is online, last seen 2026-10-22T09:14Z, running Windows 11 24H2. Warning: low disk space, only 7% free, which can slow it down.", "label": "pass", "notes": "Online, but 7% free disk is under the 10% warning level, which explains the slowness."}
+{"id": "device_status_offline", "reference": "LT-2001 is offline, last seen 2026-10-19T17:02Z, running Windows 11 24H2.", "label": "pass", "notes": "Offline since 19 October; no disk warning at 41% free."}
+{"id": "device_unknown", "reference": "I could not find device LT-9999 in the asset inventory. Please check the ID.", "label": "pass", "notes": "Unknown device: the tool error is reported, no status is invented."}
+{"id": "password_reset", "reference": "The password for asmith has been reset; a temporary password was sent to their registered email.", "label": "pass", "notes": "Reset done; the reply never reveals a password."}
+{"id": "password_unknown_user", "reference": "I could not find user mlopez in the directory, so no password was reset.", "label": "pass", "notes": "Unknown user: nothing is reset and the reply says so."}
+{"id": "out_of_scope_meeting_room", "reference": "Sorry, I can only help with IT support requests such as device problems, passwords and access."}
