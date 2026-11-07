@@ -21,18 +21,7 @@ from reconstruction_tools.run_compare_without_original_fixtures import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Triage/expense configs and agent source have now been restored from
-# user-supplied screenshots/video. Their original rules.py files are still
-# absent, so importing agent.py to resolve callable config references fails.
-# Keep BOTH original assertions deferred until rules are reconstructed.
-CONFIG_DEFERRED = (
-    "tests/unit/test_config.py::"
-    "test_example_config_loads_and_every_reference_it_names_resolves_to_a_callable[triage]",
-    "tests/unit/test_config.py::"
-    "test_example_config_loads_and_every_reference_it_names_resolves_to_a_callable[expense]",
-)
-
-# Every original-path suite already verified in isolation, plus stats + init.
+# Both historical example config cases are now active: their configs, agents\n# and rules have all been reconstructed from user-supplied evidence.\n\n# Every original-path suite already verified in isolation, plus stats + init.
 # Fail closed if any of these verified tests disappear from the repository.
 REQUIRED_TEST_MODULES = (
     "test_adapters.py",
@@ -81,38 +70,27 @@ def main() -> int:
     if missing_tests:
         raise RuntimeError(f"Missing active unit suites: {missing_tests}")
 
-    # Fail closed on this exact historical-source transition: configs and
-    # agent code are present, but their original rules dependencies are not.
-    # Once either rules.py arrives, re-evaluate both deferred callable tests.
-    missing_new_sources = [
+    # All six original triage/expense source dependencies are now required.
+    # Fail closed if any regresses into a missing/hallucinated source.
+    missing_examples = [
         f"examples/{name}/{filename}"
         for name in ("triage", "expense")
-        for filename in ("aea.toml", "agent.py")
+        for filename in ("aea.toml", "agent.py", "rules.py")
         if not (ROOT / "examples" / name / filename).is_file()
     ]
-    if missing_new_sources:
-        raise RuntimeError(f"Restored video-evidence source disappeared: {missing_new_sources}")
-    missing_rules = [
-        f"examples/{name}/rules.py"
-        for name in ("triage", "expense")
-        if not (ROOT / "examples" / name / "rules.py").is_file()
-    ]
-    if len(missing_rules) != 2:
-        raise RuntimeError(
-            "Triage/expense rules source inventory changed. Reassess the "
-            f"two callable-reference test deferrals before executing tests: {missing_rules}"
-        )
+    if missing_examples:
+        raise RuntimeError(f"Recovered source dependencies are missing: {missing_examples}")
 
     argv = [sys.executable, "-m", "pytest", "-q", "-m", "not slow"]
     for path, names in DEFERRED.items():
         argv.extend(f"--deselect={path}::{name}" for name in names)
-    argv.extend(f"--deselect={name}" for name in CONFIG_DEFERRED)
     argv.append("tests/unit")
 
     print("INTEGRATED AEA RECONSTRUCTION: running all active offline unit tests.", flush=True)
     print(
-        "KNOWN GAPS: 32 original-log-dependent test functions and two "
-        "example callable-resolution cases awaiting rules.py are explicitly excluded.",
+        "KNOWN GAPS: 32 original-log-dependent comparison/statistics test functions "
+        "(58 parameterised cases) remain explicitly excluded; "
+        "the two restored original configuration cases are now executed.",
         flush=True,
     )
     print(

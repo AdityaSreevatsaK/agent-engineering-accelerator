@@ -9,6 +9,8 @@ on:
       - reconstruction_tools/run_original_cli_fast_replay.py
       - .github/workflows/reconstruction-original-cli-fast-replay.yml
       - src/**
+      - examples/triage/**
+      - examples/expense/**
       - pyproject.toml
   workflow_dispatch:
 
