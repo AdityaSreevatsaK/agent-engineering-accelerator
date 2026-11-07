@@ -1,0 +1,50 @@
+name: AEA original expense scorer source and test replay
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - examples/expense/**
+      - reconstruction_tools/verify_expense_scorers_video.py
+      - reconstruction_tools/replay_original_expense_scorers.py
+      - reconstruction_drafts/test_expense_FULL_VIDEO_CANDIDATE.py
+      - .github/workflows/reconstruction-expense-scorer-video.yml
+      - src/**
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-scorer-replay:
+    name: Expense scorer video / OS-Python matrix
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install reconstructed AEA with real Inspect AI and LangGraph
+        run: python -m pip install -e ".[langgraph]" "pytest>=9.1.1,<10"
+      - name: Verify original scorer source transcription and pinned historical test draft
+        run: |
+          python -m reconstruction_tools.verify_expense_scorers_video
+          python -m reconstruction_tools.verify_original_video_test_candidates
+      - name: Replay original grounding and native Inspect AI assertions
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+          AWS_SESSION_TOKEN: ""
+        run: python -m reconstruction_tools.replay_original_expense_scorers
+
+# One source-versus-test contradiction (referral_approves_something) is
+# excluded and documented, NOT disguised as a passing original assertion.
