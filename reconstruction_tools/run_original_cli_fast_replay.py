@@ -53,7 +53,10 @@ REPLAY_TESTS = (
 
 
 def validate_source() -> bytes:
-    data = SOURCE.read_bytes()
+    # Git for Windows may check out CRLF. The original draft checksum is
+    # based on Git's LF-normalised source text, not platform checkout bytes.
+    source = SOURCE.read_text(encoding="utf-8")
+    data = source.encode("utf-8")
     digest = hashlib.sha256(data).hexdigest()
     if digest != EXPECTED_SHA256:
         raise RuntimeError(
@@ -61,7 +64,6 @@ def validate_source() -> bytes:
             f"expected SHA256 {EXPECTED_SHA256}, observed {digest}. "
             "Reconcile source evidence before updating the replay."
         )
-    source = data.decode("utf-8")
     if len(source.splitlines()) != EXPECTED_LINES:
         raise RuntimeError("Original-video CLI source line count changed")
 
