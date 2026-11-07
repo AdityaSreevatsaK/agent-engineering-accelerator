@@ -2,13 +2,13 @@
 
 The recovered sources are staged as temporary test-only copies under tests/unit
 so the original REPO calculation remains valid. Original video candidates are
-NEVER modified. The expense source originally imports a still-missing
-examples.expense.scorers module; a single marked import suppression is applied
-ONLY to a temporary replay copy. The selected tests do not reference that
-missing module. Original golden.jsonl and scorer-specific tests are excluded.
+NEVER modified. The expense scorer has now been recovered at its original path;
+both video test sources are staged unmodified, including the original import.
+Only tests needing absent original golden.jsonl or separate slow runs remain
+excluded. Scorer-specific original assertions run in a separate replay job.
 
 This proves behaviour of recorded tests with reconstructed code, NOT full
-original-source fidelity or the absent scorer/golden fixtures.
+original-source fidelity or missing historical golden fixtures.
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ EXPENSE_TESTS = (
     "test_agent_reply_is_the_review_of_the_claim_and_a_tool_error_becomes_a_currency_referral",
     "test_factories_differ_only_in_prompt_and_both_build_a_graph",
 )
-BLOCKED_IMPORT = "from examples.expense.scorers import amounts_grounded, ungrounded  # noqa: E402"
+SCORER_IMPORT = "from examples.expense.scorers import amounts_grounded, ungrounded  # noqa: E402"
 
 
 def run_suite(name: str) -> int:
@@ -84,12 +84,10 @@ def run_suite(name: str) -> int:
         if "check_runs" in params or "runs" in params or "price_runs" in params:
             raise RuntimeError(f"{name}: selected original test unexpectedly requires CLI fixtures: {func_name}")
     if name == "expense":
-        if source.count(BLOCKED_IMPORT) != 1:
-            raise RuntimeError("Expense source missing the original scorer import; investigate evidence")
-        source = source.replace(
-            BLOCKED_IMPORT,
-            "# REPLAY-ONLY: original scorer import suppressed while historical scorers.py is unavailable",
-        )
+        if source.count(SCORER_IMPORT) != 1:
+            raise RuntimeError("Historical expense source scorer import missing or altered")
+        if not (ROOT / "examples" / "expense" / "scorers.py").is_file():
+            raise RuntimeError("Recovered original expense scorer source unavailable")
     staged = STAGED / f"test_{name}_video_source_REPLAY_TEMP.py"
     ast.parse(source, filename=str(staged), feature_version=(3, 11))
     if staged.exists() or staged.is_symlink():
@@ -106,7 +104,7 @@ def run_suite(name: str) -> int:
         }
         print(
             f"Executing {len(names)} original-video {name} test functions with "
-            "original parameterisations; no missing golden/scorer dependency or cloud calls.",
+            "original parameterisations, original imports, and no paid cloud calls.",
             flush=True,
         )
         return subprocess.call(args, cwd=ROOT, env=env)
