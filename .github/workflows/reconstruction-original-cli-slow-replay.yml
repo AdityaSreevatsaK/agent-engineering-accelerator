@@ -1,0 +1,48 @@
+name: AEA original CLI subprocess replay (focused offline)
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_drafts/test_cli_FULL_VIDEO_CANDIDATE.py
+      - reconstruction_tools/run_original_cli_slow_replay.py
+      - .github/workflows/reconstruction-original-cli-slow-replay.yml
+      - src/**
+      - examples/calculator/**
+      - tests/conftest.py
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-cli-slow:
+    name: Original CLI subprocess / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - name: Checkout reconstruction candidate
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install AEA with actual native Strands and Inspect AI dependencies
+        run: python -m pip install -e ".[strands]" "pytest>=9.1.1,<10"
+      - name: Verify source-recorded calculator prerequisites
+        run: python reconstruction_tools/verify_calculator_video_sources.py
+      - name: Replay selected historical CLI slow tests with four offline agents
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: python reconstruction_tools/run_original_cli_slow_replay.py
+
+# The staged original-video test source is temporary and automatically removed.
+# No paid providers, credentials, historical fixture substitutes, or cloud calls.
