@@ -1,0 +1,41 @@
+name: AEA original statistical validation source video
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - tests/unit/test_stats.py
+      - src/agent_accelerator/stats.py
+      - reconstruction_tools/verify_stats_original_video.py
+      - .github/workflows/reconstruction-original-stats-video.yml
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-statistics:
+    name: Original stats video / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install real AEA and pytest
+        run: python -m pip install -e "." "pytest>=9.1.1,<10"
+      - name: Validate source against complete recording
+        run: python -m reconstruction_tools.verify_stats_original_video
+      - name: Run all original Wilson, pass at k, pass hat k and Fisher tests
+        run: python -m pytest -q tests/unit/test_stats.py -m "not slow" --maxfail=1
+
+# Video/editor line and CRLF-character dimensions match; the lost historical
+# original source bytes cannot be independently verified.
