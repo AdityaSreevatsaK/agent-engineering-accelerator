@@ -1,0 +1,41 @@
+name: AEA original run metrics unit test recording
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - tests/unit/test_run_metrics.py
+      - src/agent_accelerator/run_metrics.py
+      - reconstruction_tools/verify_run_metrics_original_video.py
+      - .github/workflows/reconstruction-original-run-metrics-video.yml
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-run-metrics:
+    name: Original metrics video / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install actual AEA, Inspect AI and pytest
+        run: python -m pip install -e "." "pytest>=9.1.1,<10"
+      - name: Check all recorded video source metrics and known discrepancy
+        run: python -m reconstruction_tools.verify_run_metrics_original_video
+      - name: Run all original metric aggregation and reporting assertions
+        run: python -m pytest -q tests/unit/test_run_metrics.py -m "not slow" --maxfail=1
+
+# Original test source lines restored; its six-character fidelity gap is
+# explicitly pinned. No original byte-identity assertion or cloud calls.
