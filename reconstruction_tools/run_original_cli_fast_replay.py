@@ -5,8 +5,9 @@ historical REPO = Path(__file__).parents[2] calculation remains valid.
 It is NEVER promoted as a source-fidelity-certified original file.
 
 Only explicitly selected, non-subprocess tests run. The incomplete calculator
-capture fixtures and triage/expense configurations are neither fabricated nor
-referenced. Neither cloud models nor credentials are needed.
+capture fixtures remain missing and are never replaced. The original
+triage/expense config parameterisations now use the genuine video-derived
+settings, agent and rules code. No cloud model calls are made.
 """
 
 from __future__ import annotations
@@ -47,6 +48,7 @@ REPLAY_TESTS = (
     "test_an_aea_toml_in_the_working_directory_is_ignored_without_config",
     "test_config_directory_is_not_added_to_the_import_path",
     "test_config_path_reaches_build_task_as_given_in_posix_form_not_resolved",
+    "test_example_config_alone_supplies_a_runnable_setting_set",
     "test_commands_that_do_not_run_an_agent_have_no_config_flag",
     "test_adapter_flag_outside_strands_and_langgraph_is_still_rejected_by_the_parser",
 )
