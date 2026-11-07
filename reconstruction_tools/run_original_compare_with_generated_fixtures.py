@@ -45,7 +45,7 @@ EXPECTED_DEFERRED = {"tests/unit/test_compare.py": 30, "tests/unit/test_compare_
 
 def source_blob_sha(text: str) -> str:
     data = text.encode("utf-8")  # normalised LF on Windows and Linux
-    return hashlib.sha1(f"blob {len(data)}\\0".encode().replace(b"\\0", b"\\x00") + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}".encode() + bytes([0]) + data).hexdigest()
 
 
 def cli_run(runs_dir: Path, builder: str, capture: bool) -> Path:
@@ -69,8 +69,8 @@ def cli_run(runs_dir: Path, builder: str, capture: bool) -> Path:
     if proc.returncode != 0 or tally not in proc.stdout:
         raise RuntimeError(
             f"Offline calculator {builder} did not produce {tally}: "
-            f"exit {proc.returncode}\\nstdout:\\n{proc.stdout[-3500:]}\\n"
-            f"stderr:\\n{proc.stderr[-3500:]}"
+            f"exit {proc.returncode}\nstdout:\n{proc.stdout[-3500:]}\n"
+            f"stderr:\n{proc.stderr[-3500:]}"
         )
     directories = [p for p in runs_dir.iterdir() if p.is_dir()]
     if len(directories) != 1:
@@ -125,42 +125,48 @@ def stage_recorded_tests() -> dict[str, Path]:
         raise RuntimeError("Historical fixture-dependent deferral inventory changed")
     preflight()
     staged: dict[str, Path] = {}
-    for path, (temporary_path, expected_sha) in FILES.items():
-        full_path = ROOT / path
-        source = full_path.read_text(encoding="utf-8")
-        if source_blob_sha(source) != expected_sha:
-            raise RuntimeError(f"Recovered test source drifted: {path}; review fidelity")
-        if source.count(FIXTURE_ANCHOR) != 1:
-            raise RuntimeError(f"Recorded fixture declaration changed: {path}")
-        tree = ast.parse(source, filename=str(full_path), feature_version=(3, 11))
-        test_definitions = {
-            node.name: node for node in tree.body
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and node.name.startswith("test_")
-        }
-        if not set(DEFERRED[path]) <= test_definitions.keys():
-            raise RuntimeError(f"Historical deferred test names changed: {path}")
-        for name in DEFERRED[path]:
-            fn = test_definitions[name]
-            fixture_names = {arg.arg for arg in [
-                *fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs
-            ]}
-            if fixture_names & {"runs", "check_runs", "price_runs"}:
-                raise RuntimeError(f"Cannot run subprocess-fixture dependent test: {path}::{name}")
+    try:
+        for path, (temporary_path, expected_sha) in FILES.items():
+            full_path = ROOT / path
+            source = full_path.read_text(encoding="utf-8")
+            if source_blob_sha(source) != expected_sha:
+                raise RuntimeError(f"Recovered test source drifted: {path}; review fidelity")
+            if source.count(FIXTURE_ANCHOR) != 1:
+                raise RuntimeError(f"Recorded fixture declaration changed: {path}")
+            tree = ast.parse(source, filename=str(full_path), feature_version=(3, 11))
+            test_definitions = {
+                node.name: node for node in tree.body
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name.startswith("test_")
+            }
+            if not set(DEFERRED[path]) <= test_definitions.keys():
+                raise RuntimeError(f"Historical deferred test names changed: {path}")
+            for name in DEFERRED[path]:
+                fn = test_definitions[name]
+                fixture_names = {arg.arg for arg in [
+                    *fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs
+                ]}
+                if fixture_names & {"runs", "check_runs", "price_runs"}:
+                    raise RuntimeError(f"Cannot run subprocess-fixture dependent test: {path}::{name}")
 
-        temp_path = ROOT / temporary_path
-        if temp_path.exists() or temp_path.is_symlink():
-            raise RuntimeError(f"Will not overwrite existing test file: {temp_path}")
-        patched = source.replace(
-            FIXTURE_ANCHOR,
-            FIXTURE_ANCHOR
-            + "\\n# REPLAY-ONLY: source assertions unchanged, use temporary actual runtime logs\\n"
-            + f'FIXTURES = Path(__import__("os").environ["{REPLAY_VAR}"])',
-            1,
-        )
-        ast.parse(patched, filename=str(temp_path), feature_version=(3, 11))
-        temp_path.write_text(patched, encoding="utf-8", newline="\\n")
-        staged[path] = temp_path
+            temp_path = ROOT / temporary_path
+            if temp_path.exists() or temp_path.is_symlink():
+                raise RuntimeError(f"Will not overwrite existing test file: {temp_path}")
+            patched = source.replace(
+                FIXTURE_ANCHOR,
+                FIXTURE_ANCHOR
+                + "\n# REPLAY-ONLY: source assertions unchanged, use temporary actual runtime logs\n"
+                + f'FIXTURES = Path(__import__("os").environ["{REPLAY_VAR}"])',
+                1,
+            )
+            ast.parse(patched, filename=str(temp_path), feature_version=(3, 11))
+            temp_path.write_text(patched, encoding="utf-8", newline="\n")
+            staged[path] = temp_path
+
+    except BaseException:
+        for created in staged.values():
+            created.unlink(missing_ok=True)
+        raise
     return staged
 
 
@@ -191,12 +197,6 @@ def main() -> int:
         finally:
             for path in staged.values():
                 path.unlink(missing_ok=True)
-            # If staging failed after writing one file, remove ONLY the
-            # explicitly named temporary files created by this script.
-            for temporary_path, _ in FILES.values():
-                staged_path = ROOT / temporary_path
-                if staged_path.is_file() and staged_path not in staged.values():
-                    staged_path.unlink()
 
 
 if __name__ == "__main__":
