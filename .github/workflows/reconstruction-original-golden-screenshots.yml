@@ -1,0 +1,50 @@
+name: AEA original triage and expense golden screenshot replay
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - examples/triage/golden.jsonl
+      - examples/expense/golden.jsonl
+      - reconstruction_tools/verify_triage_expense_golden_screenshots.py
+      - reconstruction_tools/replay_original_golden_screenshot_tests.py
+      - .github/workflows/reconstruction-original-golden-screenshots.yml
+      - reconstruction_drafts/test_triage_FULL_VIDEO_CANDIDATE.py
+      - reconstruction_drafts/test_expense_FULL_VIDEO_CANDIDATE.py
+      - src/**
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-golden-replay:
+    name: Original golden tests / OS-Python matrix
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install native AEA/Inspect AI/LangGraph dependencies
+        run: python -m pip install -e ".[langgraph]" "pytest>=9.1.1,<10"
+      - name: Check original screenshot transcripts and golden data models
+        run: python -m reconstruction_tools.verify_triage_expense_golden_screenshots
+      - name: Replay original triage and expense golden tests unchanged
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+          AWS_SESSION_TOKEN: ""
+        run: python -m reconstruction_tools.replay_original_golden_screenshot_tests
+
+# Files are screenshot-derived candidates. No original bytes are claimed.
+# Golden tests are from original recorded videos, staged unchanged.
