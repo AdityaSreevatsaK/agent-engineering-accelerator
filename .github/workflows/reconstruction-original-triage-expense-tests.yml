@@ -1,0 +1,54 @@
+name: AEA original triage and expense test-video replay
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_drafts/test_triage_FULL_VIDEO_CANDIDATE.py
+      - reconstruction_drafts/test_expense_FULL_VIDEO_CANDIDATE.py
+      - reconstruction_tools/verify_original_video_test_candidates.py
+      - reconstruction_tools/replay_original_video_test_candidates.py
+      - .github/workflows/reconstruction-original-triage-expense-tests.yml
+      - examples/triage/**
+      - examples/expense/**
+      - src/**
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recorded-original-tests:
+    name: Original example tests / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - name: Checkout reconstructed original test candidates
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install real AEA and native LangGraph/Strands dependencies
+        run: python -m pip install -e ".[langgraph,strands]" "pytest>=9.1.1,<10"
+      - name: Audit source-video candidate checksums and unresolved editor discrepancies
+        run: python -m reconstruction_tools.verify_original_video_test_candidates
+      - name: Replay original test function bodies that do not require missing scorer or golden sources
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+          AWS_SESSION_TOKEN: ""
+        run: python -m reconstruction_tools.replay_original_video_test_candidates
+
+# Stored video drafts are source evidence, not byte-verified original code.
+# Only TEMP test copies suppress the still-missing expense scorer import.
+# Excluded original tests depend on absent scorer/golden files or separate
+# slow CLI runs, so no substitute original file is fabricated.
