@@ -35,6 +35,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install real AEA dependencies without any provider credentials
         run: python -m pip install -e ".[langgraph,strands]" "pytest>=9.1.1,<10"
+      - name: Check active pairwise test provenance against the video draft
+        run: python reconstruction_tools/verify_pairwise_active_fidelity.py
       - name: Replay captured historical CLI test functions using actual AEA code
         env:
           PYTHONPATH: ${{ github.workspace }}/src
