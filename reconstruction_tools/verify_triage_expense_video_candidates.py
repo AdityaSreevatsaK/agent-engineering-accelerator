@@ -1,7 +1,7 @@
 """Source-evidence audit for four recovered triage/expense files (7 November).
 
-No provider/model invocation. Python AST + stdlib TOML parse only; both
-historical rules modules are missing, so callable import and E2E are deferred.
+No provider/model invocation. Python AST + stdlib TOML parse only; original
+rules modules have now been recovered and checked by a separate rules audit.
 This is candidate source integrity, NOT original-byte certification.
 """
 from __future__ import annotations
@@ -126,8 +126,8 @@ def main() -> None:
     for name, spec in EXPECTATIONS.items():
         verify_example(name, spec)
     print(
-        "Neither rules.py original is present. No agent import/E2E or "
-        "source-video byte fidelity certification has been claimed.",
+        "The rules.py candidates are now available and validated in a separate "
+        "source/behaviour audit. Source-video byte fidelity is NOT certified.",
         flush=True,
     )
 
