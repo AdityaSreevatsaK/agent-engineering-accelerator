@@ -33,8 +33,9 @@ ACTIVE_SEPARATOR = HISTORICAL_SEPARATOR.replace("\n\n\ndef", "\n\ndef")
 
 
 def main() -> int:
-    original_bytes = CANDIDATE.read_bytes()
-    original = original_bytes.decode("utf-8")
+    # Compare the Git-normalised text, independent of Windows CRLF checkout.
+    original = CANDIDATE.read_text(encoding="utf-8")
+    original_bytes = original.encode("utf-8")
     active = ACTIVE.read_text(encoding="utf-8")
     if hashlib.sha256(original_bytes).hexdigest() != VIDEO_DRAFT_SHA256:
         raise RuntimeError("Pairwise video candidate changed: investigate source evidence")
