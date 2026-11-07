@@ -2,6 +2,10 @@
 
 **Input evidence:** Two user-supplied Notepad++ TOML screenshots and two user-uploaded WebM videos of the original full agent files. All four sources were inspected in the current reconstruction session. These are original-path candidates; only bytes extracted reliably from screenshots may be called screenshot-matched.
 
+## Updated original-path presence
+
+The last independently audited original inventory reported 53 of 117 paths present. These four previously missing original paths increase presence to **57 of 117** (60 still missing) in this PR candidate. This is a file-path count, **not historical byte fidelity certification**.
+
 ## Restored candidates
 
 | File | Source evidence | Status | Validation |
