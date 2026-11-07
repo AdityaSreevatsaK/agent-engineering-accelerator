@@ -21,8 +21,10 @@ from reconstruction_tools.run_compare_without_original_fixtures import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Only the original triage and expense config files are absent. These two
-# recorded assertions must be restored as soon as their files are recovered.
+# Triage/expense configs and agent source have now been restored from
+# user-supplied screenshots/video. Their original rules.py files are still
+# absent, so importing agent.py to resolve callable config references fails.
+# Keep BOTH original assertions deferred until rules are reconstructed.
 CONFIG_DEFERRED = (
     "tests/unit/test_config.py::"
     "test_example_config_loads_and_every_reference_it_names_resolves_to_a_callable[triage]",
@@ -79,15 +81,26 @@ def main() -> int:
     if missing_tests:
         raise RuntimeError(f"Missing active unit suites: {missing_tests}")
 
-    missing_configs = [
-        f"examples/{name}/aea.toml"
+    # Fail closed on this exact historical-source transition: configs and
+    # agent code are present, but their original rules dependencies are not.
+    # Once either rules.py arrives, re-evaluate both deferred callable tests.
+    missing_new_sources = [
+        f"examples/{name}/{filename}"
         for name in ("triage", "expense")
-        if not (ROOT / "examples" / name / "aea.toml").exists()
+        for filename in ("aea.toml", "agent.py")
+        if not (ROOT / "examples" / name / filename).is_file()
     ]
-    if len(missing_configs) != 2:
+    if missing_new_sources:
+        raise RuntimeError(f"Restored video-evidence source disappeared: {missing_new_sources}")
+    missing_rules = [
+        f"examples/{name}/rules.py"
+        for name in ("triage", "expense")
+        if not (ROOT / "examples" / name / "rules.py").is_file()
+    ]
+    if len(missing_rules) != 2:
         raise RuntimeError(
-            "Example fixture inventory changed. Reassess the two explicit config "
-            f"deferrals before executing tests. Missing: {missing_configs}"
+            "Triage/expense rules source inventory changed. Reassess the "
+            f"two callable-reference test deferrals before executing tests: {missing_rules}"
         )
 
     argv = [sys.executable, "-m", "pytest", "-q", "-m", "not slow"]
@@ -99,7 +112,7 @@ def main() -> int:
     print("INTEGRATED AEA RECONSTRUCTION: running all active offline unit tests.", flush=True)
     print(
         "KNOWN GAPS: 32 original-log-dependent test functions and two "
-        "missing-example-config cases are explicitly excluded.",
+        "example callable-resolution cases awaiting rules.py are explicitly excluded.",
         flush=True,
     )
     print(
