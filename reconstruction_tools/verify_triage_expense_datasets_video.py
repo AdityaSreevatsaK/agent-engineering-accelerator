@@ -2,7 +2,7 @@
 
 These original-path files were transcribed from the user's 7 November 2026
 Notepad++ recordings. A matching editor length is corroborating evidence,
-NOT original byte-level proof; the expense source differs by four CRLF chars.
+NOT original byte-level proof; both reconstructed line and character counts match the editor views.
 No synthetic file is substituted for the original calculator Inspect fixtures.
 """
 from __future__ import annotations
@@ -29,8 +29,8 @@ EXPECTED = {
         ),
     },
     "expense": {
-        "sha256": "f1708c2da12764521fc4fcba9d248a8fd68601d8fa443b2ada58a611e3e870e1",
-        "lf_characters": 10958,
+        "sha256": "7298ffec709a55018e2f3ea7879cb65992bea5c5fcb90c3deb4ac9aa6599e97b",
+        "lf_characters": 10962,
         "editor_windows_characters": 10974,
         "ids": (
             "approve_clean", "reject_alcohol_only",
@@ -89,7 +89,7 @@ def verify_one(name: str, contract: dict) -> None:
                     )
     editor_chars_if_crlf = len(source) + source.count("\n")
     mismatch = editor_chars_if_crlf - contract["editor_windows_characters"]
-    if mismatch != (0 if name == "triage" else -4):
+    if mismatch != 0:
         raise AssertionError(
             f"{name}: screenshot editor character discrepancy changed ({mismatch})"
         )
@@ -106,9 +106,8 @@ def main() -> None:
     for name, contract in EXPECTED.items():
         verify_one(name, contract)
     print(
-        "Original video-byte fidelity NOT certified. Expense remains a provisional "
-        "four-character-short source candidate; no invented filler or original "
-        "Inspect JSON capture fixture was used.",
+        "Original video-byte fidelity NOT certified despite matched display "
+        "counts. Neither dataset was replaced by a synthetic capture fixture.",
         flush=True,
     )
 
