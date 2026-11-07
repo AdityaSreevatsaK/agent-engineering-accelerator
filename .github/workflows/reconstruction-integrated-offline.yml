@@ -51,7 +51,7 @@ jobs:
         run: python reconstruction_tools/verify_slow_parameter_collision.py
 
 # Original calculator agent, dataset and rules are restored from user footage.
-# Historical JSON logs and triage/expense configs remain missing.
+# Historical JSON logs and triage/expense rules.py remain missing; configs/agents have source candidates.
 # Generated synthetic captured logs are CI-only and NEVER original recovered files.
 # Runner checks the transitive fixture-exclusion manifest before pytest.
 # All existing active unit suites are invoked together, without external models.
