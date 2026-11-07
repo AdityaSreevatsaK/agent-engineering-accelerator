@@ -1,0 +1,11 @@
+{"id": "hotel_cap_tier1_city", "input": "What is the nightly hotel cap in London?", "output_contains": ["USD 250", "TRV-4.2"], "output_not_contains": ["USD 300"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "hotel_cap_other_city", "input": "How much can I spend on a hotel in Leeds?", "output_contains": ["USD 180", "TRV-4.2"], "output_not_contains": ["USD 300"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "booking_advance", "input": "How far in advance must travel be booked?", "output_contains": ["14 days", "TRV-1.1"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "flight_class_long_haul", "input": "Can I fly business class on a 7 hour flight?", "output_contains": ["6 hours or more", "TRV-2.3"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "meal_per_diem_international", "input": "What is the meal per diem for international travel?", "output_contains": ["USD 95", "EXP-2.1"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "alcohol_not_reimbursable", "input": "Can I claim alcohol on my expenses?", "output_contains": ["not reimbursable", "EXP-3.4"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "receipt_threshold", "input": "When are itemised receipts required?", "output_contains": ["USD 25", "EXP-4.1"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "submission_deadline", "input": "What is the deadline to submit an expense report?", "output_contains": ["30 days", "EXP-6.2"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "mileage_rate", "input": "What mileage rate applies when I drive my own car?", "output_contains": ["USD 0.67", "EXP-7.1"], "expected_tools": ["search_policy"], "max_tool_calls": 1}
+{"id": "taxi_query_rewritten", "input": "Can I expense a cab from the airport?", "output_contains": ["USD 60", "TRV-5.1"], "expected_tools": ["search_policy"], "expected_tool_args": [{"tool": "search_policy", "args": {"query": "expense taxi airport"}}], "max_tool_calls": 2}
+{"id": "out_of_corpus_pet_boarding", "input": "Is pet boarding reimbursed while I travel?", "output_contains": ["not covered by policy"], "output_not_contains": ["TRV-", "EXP-"], "expected_tools": ["search_policy"], "max_tool_calls": 3}
