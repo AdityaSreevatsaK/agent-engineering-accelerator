@@ -4,11 +4,11 @@ The recovered sources are staged as temporary test-only copies under tests/unit
 so the original REPO calculation remains valid. Original video candidates are
 NEVER modified. The expense scorer has now been recovered at its original path;
 both video test sources are staged unmodified, including the original import.
-Only tests needing absent original golden.jsonl or separate slow runs remain
-excluded. Scorer-specific original assertions run in a separate replay job.
+Golden-reference cases, scorer-specific assertions and slow CLI cases are
+covered in separate, independently isolated test replay lanes.
 
 This proves behaviour of recorded tests with reconstructed code, NOT full
-original-source fidelity or missing historical golden fixtures.
+original-source fidelity or unrelated missing historical fixtures.
 """
 from __future__ import annotations
 
