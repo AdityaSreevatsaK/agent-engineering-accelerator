@@ -1,0 +1,5 @@
+# Run settings for `aea run` and `aea check --config examples/triage/aea.toml`; flags on the command line win.
+adapter = "langgraph"
+agent = "examples.triage.agent:build_agent"
+input_map = "examples.triage.agent:to_input"
+output_map = "examples.triage.agent:from_output"

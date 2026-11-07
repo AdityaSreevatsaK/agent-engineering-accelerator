@@ -1,0 +1,3 @@
+# Run settings for `aea run` and `aea check --config examples/expense/aea.toml`; flags on the command line win.
+adapter = "langgraph"
+agent = "examples.expense.agent:build_agent"
