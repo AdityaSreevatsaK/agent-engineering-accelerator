@@ -23,6 +23,7 @@ import subprocess
 import sys
 import tempfile
 
+from inspect_ai.log import read_eval_log, write_eval_log
 from agent_accelerator.compare import load_results
 from reconstruction_tools.run_compare_without_original_fixtures import DEFERRED, preflight
 
@@ -41,6 +42,7 @@ FILES = {
     ),
 }
 EXPECTED_DEFERRED = {"tests/unit/test_compare.py": 30, "tests/unit/test_compare_statistics.py": 2}
+LEGACY_CASE = "test_logs_from_before_tool_call_counts_load_with_none"
 
 
 def source_blob_sha(text: str) -> str:
@@ -118,6 +120,44 @@ def make_generated_fixture_directory(folder: Path) -> Path:
     return fixtures
 
 
+
+def make_derived_legacy_log(fixtures: Path, folder: Path) -> Path:
+    """Create an EXPLICITLY DERIVED pre-tool-call-count schema variant.
+
+    This emulates absence of metadata added in later Inspect logs; it does
+    not recover the original historical fixture bytes.
+    """
+    log = read_eval_log(fixtures / "calculator_capture_content.json")
+    if not log.samples or len(log.samples) != 10:
+        raise RuntimeError("Generated capture log lacks its ten cases")
+    count_metadata_seen = 0
+    for sample in log.samples:
+        score = (sample.scores or {}).get("case_checks")
+        if score is None:
+            raise RuntimeError("Generated calculator case_checks missing")
+        metadata = dict(score.metadata or {})
+        if "tool_call_count" in metadata:
+            count_metadata_seen += 1
+        metadata.pop("tool_call_count", None)
+        score.metadata = metadata
+    if count_metadata_seen != 10:
+        raise RuntimeError(
+            "Modern captured log changed: expected ten recorded tool-call counts"
+        )
+    legacy = folder / "REPLAY_DERIVED_LEGACY_NOT_HISTORICAL_FIXTURES"
+    legacy.mkdir()
+    write_eval_log(log, location=legacy / "calculator_capture_content.json")
+    cases = load_results(legacy / "calculator_capture_content.json").cases
+    if len(cases) != 10 or {case.tool_calls for case in cases.values()} != {None}:
+        raise RuntimeError("Derived legacy fixture did not remove tool-count metadata")
+    print(
+        "Created separate DERIVED legacy-format log with tool-call counts absent; "
+        "NOT the historical fixture.",
+        flush=True,
+    )
+    return legacy
+
+
 def stage_recorded_tests() -> dict[str, Path]:
     if set(FILES) != set(DEFERRED):
         raise RuntimeError("Recorded comparison manifest or staging map changed")
@@ -172,28 +212,53 @@ def stage_recorded_tests() -> dict[str, Path]:
 
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="aea-compare-REPLAY-GENERATED-") as td:
-        fixtures = make_generated_fixture_directory(Path(td))
+        folder = Path(td)
+        fixtures = make_generated_fixture_directory(folder)
         staged: dict[str, Path] = {}
         try:
             staged = stage_recorded_tests()
-            args = [
+            if LEGACY_CASE not in DEFERRED["tests/unit/test_compare.py"]:
+                raise RuntimeError("Historical backward-compatibility test missing from deferrals")
+            test_prefix = [
                 sys.executable, "-m", "pytest", "-q", "-o", "addopts=",
                 "--color=no", "--maxfail=1",
             ]
-            for path, temporary in staged.items():
-                args.extend(
-                    f"{temporary.relative_to(ROOT).as_posix()}::{name}"
-                    for name in DEFERRED[path]
-                )
-            env = {**os.environ, REPLAY_VAR: str(fixtures), "AWS_EC2_METADATA_DISABLED": "true"}
+            source_ids = [
+                f"{temporary.relative_to(ROOT).as_posix()}::{name}"
+                for path, temporary in staged.items()
+                for name in DEFERRED[path]
+                if name != LEGACY_CASE
+            ]
+            if len(source_ids) != 31:
+                raise RuntimeError(f"Expected exactly 31 modern-log source functions: {len(source_ids)}")
+            environment = {
+                **os.environ,
+                REPLAY_VAR: str(fixtures),
+                "AWS_EC2_METADATA_DISABLED": "true",
+            }
             for key in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN"):
-                env[key] = ""
+                environment[key] = ""
             print(
-                "Replaying 32 originally deferred test functions with genuine "
-                "temporary offline runs, not recovered original fixtures.",
+                "Replaying 31 originally deferred test functions using actual "
+                "generated offline captured/broken calculator logs.",
                 flush=True,
             )
-            return subprocess.call(args, cwd=ROOT, env=env)
+            code = subprocess.call([*test_prefix, *source_ids], cwd=ROOT, env=environment)
+            if code != 0:
+                return code
+
+            legacy = make_derived_legacy_log(fixtures, folder)
+            legacy_id = (
+                f"{staged['tests/unit/test_compare.py'].relative_to(ROOT).as_posix()}"
+                f"::{LEGACY_CASE}"
+            )
+            environment[REPLAY_VAR] = str(legacy)
+            print(
+                "Replaying the one original legacy log assertion against "
+                "a clearly marked DERIVED old-format runtime log.",
+                flush=True,
+            )
+            return subprocess.call([*test_prefix, legacy_id], cwd=ROOT, env=environment)
         finally:
             for path in staged.values():
                 path.unlink(missing_ok=True)
