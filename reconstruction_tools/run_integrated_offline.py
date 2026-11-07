@@ -21,7 +21,7 @@ from reconstruction_tools.run_compare_without_original_fixtures import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Triage/expense original config references can now be executed after\n# restoring their screenshot/video-sourced configs, agents and rules.\n\n# Every original-path suite already verified in isolation, plus stats + init.
+# Both historical example config cases are now active: their configs, agents\n# and rules have all been reconstructed from user-supplied evidence.\n\n# Every original-path suite already verified in isolation, plus stats + init.
 # Fail closed if any of these verified tests disappear from the repository.
 REQUIRED_TEST_MODULES = (
     "test_adapters.py",
