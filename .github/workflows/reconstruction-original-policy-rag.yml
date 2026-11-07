@@ -1,0 +1,47 @@
+name: AEA original policy RAG video and screenshots
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - examples/policy_rag/**
+      - reconstruction_tools/verify_policy_rag_video_sources.py
+      - reconstruction_tools/check_policy_rag_end_to_end.py
+      - .github/workflows/reconstruction-original-policy-rag.yml
+      - src/**
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-rag-original-evidence:
+    name: Policy RAG original / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install real AEA, Inspect AI and native LangGraph
+        run: python -m pip install -e ".[langgraph]" "pytest>=9.1.1,<10"
+      - name: Verify video/screenshot candidates, AST and real AEA data models
+        run: python -m reconstruction_tools.verify_policy_rag_video_sources
+      - name: Run good/confident RAG through actual AEA CLI with offline LLM double
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+          AWS_SESSION_TOKEN: ""
+        run: python -m reconstruction_tools.check_policy_rag_end_to_end
+
+# Source fidelity checks measure visible editor counts; original bytes are
+# not available. The recorded original test_policy_rag.py is handled separately.
