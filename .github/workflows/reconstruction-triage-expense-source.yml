@@ -1,0 +1,41 @@
+name: AEA triage and expense video-recovered source verification
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - examples/triage/agent.py
+      - examples/triage/aea.toml
+      - examples/expense/agent.py
+      - examples/expense/aea.toml
+      - reconstruction_tools/verify_triage_expense_video_candidates.py
+      - .github/workflows/reconstruction-triage-expense-source.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence:
+    name: Triage/expense source audit / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - name: Checkout video-derived candidate
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Check Python AST, TOML, export contracts, editor lengths and fidelity caveat
+        run: python reconstruction_tools/verify_triage_expense_video_candidates.py
+
+# Do NOT import agent.py: original triage/expense rules.py files are still absent.
+# Do NOT run build_live_agent: real AWS credentials/provider would be required.
+# Source evidence check only; not historical byte-level certification.
