@@ -1,0 +1,44 @@
+name: AEA reconstruction historical-path inventory
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_manifest/**
+      - reconstruction_tools/audit_original_paths.py
+      - reconstruction_tools/test_original_path_inventory.py
+      - .github/workflows/reconstruction-original-path-inventory.yml
+      - examples/**
+      - tests/**
+      - src/**
+      - baselines/**
+      - docs/**
+      - scripts/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-inventory:
+    name: Original-path audit on OS/Python matrix
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Check inventory parser and presence invariants
+        run: python -m unittest reconstruction_tools.test_original_path_inventory -v
+      - name: Ensure historical source-path presence does not regress
+        run: python -m reconstruction_tools.audit_original_paths --minimum-present 61 --show-missing
+
+# Historical file presence never implies original-byte fidelity or release approval.
+# No paid model calls, data generation, or interaction with sensitive baselines.
