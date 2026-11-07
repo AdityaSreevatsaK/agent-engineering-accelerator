@@ -1,0 +1,38 @@
+name: AEA recovered test provenance integrity
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_tools/verify_recovered_test_drift.py
+      - reconstruction_drafts/**
+      - tests/unit/**
+      - .github/workflows/reconstruction-test-provenance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-provenance:
+    name: Recorded-test provenance / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - name: Checkout provisional reconstruction
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Enforce exact original draft versus executable test differences
+        run: python reconstruction_tools/verify_recovered_test_drift.py
+
+# No dependency installation, external network or model calls.
+# Historical drafts are preserved, not overwritten.
