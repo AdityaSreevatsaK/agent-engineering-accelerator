@@ -63,10 +63,21 @@ def run(factory: str, root: Path) -> tuple[set[str], dict[str, str]]:
         raise AssertionError(f"{factory}: missing/extra cases: {set(results.cases) ^ expected}")
     failures = {case_id for case_id, case in results.cases.items() if not case.passed}
     log = read_eval_log(results.log_path)
-    completions = {str(sample.id): sample.output.completion for sample in log.samples or []}
+    samples = {str(sample.id): sample for sample in log.samples or []}
+    completions = {case_id: sample.output.completion for case_id, sample in samples.items()}
     if set(completions) != expected:
         raise AssertionError(f"{factory}: Inspect completions differ from screenshot case IDs")
     if completions[ORIGINAL_SOURCE_CONFLICT] != ACTUAL_SOURCE_REPLY:
+        case = samples[ORIGINAL_SOURCE_CONFLICT]
+        print(
+            f"ORDERS DIAGNOSTIC {factory}: "
+            f"completion={completions[ORIGINAL_SOURCE_CONFLICT]!r}, "
+            f"agent_error={case.metadata.get('agent_error')!r}, "
+            f"tool_calls={case.metadata.get('tool_calls')!r}, "
+            f"tool_errors={case.metadata.get('tool_errors')!r}, "
+            f"scores={[(k, v.value, v.explanation) for k, v in case.scores.items()]!r}",
+            flush=True,
+        )
         raise AssertionError(
             f"{factory}: source-defined original reply unexpectedly changed: "
             f"{completions[ORIGINAL_SOURCE_CONFLICT]!r}"
