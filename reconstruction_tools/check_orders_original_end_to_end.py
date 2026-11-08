@@ -37,7 +37,7 @@ def run(factory: str, root: Path) -> tuple[set[str], dict[str, str]]:
     command = [
         sys.executable, "-m", "agent_accelerator.cli", "run", str(DATASET),
         "--adapter", "strands", "--agent", f"examples.orders.agent:{factory}",
-        "--runs-dir", str(runs_dir), "--max-samples", "2",
+        "--runs-dir", str(runs_dir), "--max-samples", "2", "--capture-content",
     ]
     env = {
         **os.environ,
