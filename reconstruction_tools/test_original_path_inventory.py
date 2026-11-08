@@ -37,7 +37,7 @@ class OriginalPathInventoryTests(unittest.TestCase):
 
     def test_repository_checkout_meets_checkpoint_floor(self):
         report = summarise(load_inventory(), tracked_files())
-        self.assertGreaterEqual(report["present_original_paths"], 61)
+        self.assertGreaterEqual(report["present_original_paths"], 83)
         self.assertEqual(
             report["present_original_paths"] + report["missing_original_paths"], 117
         )
