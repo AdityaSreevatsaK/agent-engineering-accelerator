@@ -507,6 +507,7 @@ def test_judge_rejects_a_golden_file_with_a_baseline():
     with pytest.raises(ValueError, match="takes no golden file"):
         judge(JUDGE_DOUBLE, golden_path="golden.jsonl", baseline_path="missing-baseline")
 
+
 def test_agent_error_is_incorrect_and_not_judged_without_calling_the_judge(pairwise, scripted):
     # Witness: "s33 scorer agent error judged" calls the judge and scores the case.
     judge_model = scripted(PairJudge(pair_reply("A")))
