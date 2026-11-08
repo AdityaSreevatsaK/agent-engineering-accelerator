@@ -1,0 +1,105 @@
+def test_an_input_map_that_returns_no_dict_fails_the_case_naming_the_type(doubles):
+    # Witness: "s38 lg input map type unchecked" passes the str on, and LangGraph fails with its own error.
+    state = run("custom_state", input_map="to_text", output_map="answer_of")
+
+    assert state.metadata["agent_error"] == "TypeError: --input-map must return a dict, got str"
+
+
+@pytest.mark.parametrize(
+    ("input_map", "output_map", "error"),
+    [("aea_no_such_module_xyz:to_input", None, ImportError), (None, "no_colon", ValueError)],
+    ids=["input-map-module-missing", "output-map-malformed"],
+)
+def test_a_map_reference_that_cannot_be_loaded_fails_when_the_solver_is_built(doubles, input_map, output_map, error):
+    # Witnesses: "s38 lg input map not loaded" (to_input = None) and "s38 lg output map not loaded" (to_answer = None)
+    # build the solver without loading the map.
+    with pytest.raises(error):
+        langgraph_agent(ref("echo"), input_map=input_map, output_map=output_map)
+
+
+# Answer
+
+
+def test_an_output_map_wins_over_structured_response(doubles):
+    # Witness: "s38 lg output map ignored" (as above) answers with the structured_response JSON.
+    assert run("structured_dict", output_map="last_message_text").output.completion == "message text"
+
+
+def test_an_output_map_that_returns_no_str_fails_the_case_naming_the_type(doubles):
+    # Witness: "s38 lg output map type unchecked" calls .strip() on the int, an AttributeError.
+    state = run("custom_state", input_map="to_question", output_map="int_answer")
+
+    assert state.metadata["agent_error"] == "TypeError: --output-map must return a str, got int"
+    assert state.output.completion == ""
+
+
+@pytest.mark.parametrize(
+    ("factory", "answer"),
+    [
+        ("structured_str", "approved"),
+        ("structured_dict", {"decision": "approve", "amount": 1.5}),
+        ("structured_model", {"decision": "approve", "amount": 1.5}),
+    ],
+    ids=["str", "dict", "pydantic"],
+)
+def test_structured_response_is_the_answer_over_the_last_ai_message(doubles, factory, answer):
+    # A str is the answer as it is (stripped), anything else is its JSON.
+    # Witnesses: "s38 lg structured_response ignored" (structured = None) answers "message text"; "s38 lg structured str
+    # json quoted" (if False) gives '"approved"'; "s38 lg structured pydantic not dumped" (if False) raises TypeError;
+    # "s38 lg structured dict as repr" (str(value)) is not JSON.
+    completion = run(factory).output.completion
+
+    assert (completion if isinstance(answer, str) else json.loads(completion)) == answer
+
+
+def test_a_structured_response_of_none_falls_through_to_the_last_ai_message(doubles):
+    # Witness: "s38 lg structured None used" (is not None -> True) answers "null".
+    assert run("structured_none").output.completion == "message text"
+
+
+def test_the_answer_is_the_last_ai_message_never_a_later_human_message(doubles):
+    # Witness: "s38 lg last message of any type" (isinstance AIMessage -> True) answers "later".
+    assert run("trailing_human").output.completion == "the answer"
+
+
+def test_a_graph_that_adds_no_ai_message_fails_with_no_answer_produced(doubles):
+    # Witnesses: "s38 lg last message of any type" (as above) answers with the question; "s38 lg no answer is empty"
+    # (return "") records no error.
+    state = run("adds_nothing")
+
+    assert state.metadata["agent_error"] == "NoAnswerError: no answer produced"
+    assert state.output.completion == ""
+
+
+def test_an_answer_in_content_blocks_is_their_text(doubles):
+    # Witness: "s38 lg content repr" (str(last_ai.content)) answers the list's repr.
+    assert run("content_blocks").output.completion == "Paris"
+
+
+def test_a_final_state_that_is_not_a_dict_reaches_the_output_map_and_without_one_is_no_answer(doubles):
+    # Witness: "s38 lg final state assumed dict" (if True) calls .get on the str, an AttributeError.
+    mapped = run("str_entrypoint", input_map="to_question", output_map="shouted")
+    unmapped = run("str_entrypoint", input_map="to_question")
+
+    assert mapped.output.completion == "PLAIN WORDS"
+    assert unmapped.metadata["agent_error"] == "NoAnswerError: no answer produced"
+
+
+# Interrupt
+
+
+@pytest.mark.parametrize(
+    "factory",
+    ["interrupts", "interrupts_without_checkpointer", "interrupts_in_subgraph"],
+    ids=["checkpointer", "no-checkpointer", "in-subgraph"],
+)
+def test_an_interrupted_run_has_an_empty_answer_no_error_and_stores_the_interrupt_value(doubles, factory):
+    # The value is stored in memory: only the scrub keeps it out of the log (see the run_task test below).
+    # Witnesses: "s38 lg interrupt not detected" (interrupted = False) fails with NoAnswerError; "s38 lg interrupted
+    # answer read" (completion always from _answer) does too; "s50 lg interrupt object stored" (i for i.value) stores
+    # the Interrupt's repr, id included. "s38 lg interrupt payload stored" is retired: storing is now the intent.
+    state = run(factory)
+
+
+
+
