@@ -100,6 +100,6 @@ def test_an_interrupted_run_has_an_empty_answer_no_error_and_stores_the_interrup
     # the Interrupt's repr, id included. "s38 lg interrupt payload stored" is retired: storing is now the intent.
     state = run(factory)
 
-
-
-
+    assert state.metadata["interrupted"] is True
+    assert state.metadata["agent_error"] is None
+    assert state.output.completion == ""
