@@ -1,0 +1,78 @@
+def test_dedupe_keeps_two_distinct_but_equal_id_less_messages_without_tool_calls():
+    # Witness: "s43 lg identity by equality" (m in unique) keeps only the first.
+    first, second = AIMessage("same"), AIMessage("same")
+    assert first == second  # control: the pair is equal, so only identity tells them apart
+
+    kept = _dedupe([first, second])
+
+    assert [id(m) for m in kept] == [id(first), id(second)]
+
+
+def test_dedupe_keeps_first_emission_order_when_objects_repeat():
+    # Witnesses: "s43 lg dedupe order reversed" (insert(0, m)) gives c, a, b; "s43 lg identity check dropped" keeps
+    # all five.
+    a, b, c = AIMessage("a"), AIMessage("b"), AIMessage("c")
+
+    kept = _dedupe([b, a, c, a, b])
+
+    assert [id(m) for m in kept] == [id(b), id(a), id(c)]
+
+
+# Config
+
+
+def received(doubles, case):
+    doubles.RECEIVED.clear()
+    state = run("recording", case=case)
+    assert state.metadata["agent_error"] is None
+    [(graph_input, config, kwargs)] = doubles.RECEIVED
+    return graph_input, config, kwargs
+
+
+def test_the_run_streams_values_and_updates_with_subgraphs_and_only_a_thread_id_without_case_config(doubles):
+    # Witnesses: "s38 lg values only" and "s38 lg subgraphs not streamed" change the kwargs; "s38 lg thread id not
+    # uuid4" (uuid1); "s38 lg no thread id" drops it.
+    graph_input, config, kwargs = received(doubles, {"id": "a", "input": QUESTION})
+
+    assert kwargs == {"stream_mode": ["values", "updates"], "subgraphs": True}
+    assert list(config) == ["configurable"] and list(config["configurable"]) == ["thread_id"]
+    assert uuid.UUID(config["configurable"]["thread_id"]).version == 4
+    assert [(type(m).__name__, m.text) for m in graph_input["messages"]] == [("HumanMessage", QUESTION)]
+
+
+def test_case_config_is_merged_into_configurable_and_can_override_the_thread_id(doubles):
+    # Witnesses: "s38 lg case config dropped"; "s38 lg thread id overrides case config" (order swapped).
+    _, merged, _ = received(doubles, {"id": "a", "input": "q", "config": {"user": "u-1", "tier": 2}})
+    _, overridden, _ = received(doubles, {"id": "a", "input": "q", "config": {"thread_id": "fixed"}})
+
+    assert {k: v for k, v in merged["configurable"].items() if k != "thread_id"} == {"user": "u-1", "tier": 2}
+    assert "thread_id" in merged["configurable"]
+    assert overridden == {"configurable": {"thread_id": "fixed"}}
+
+
+def test_a_solver_used_without_case_metadata_runs_with_no_case_config(doubles):
+    # Witness: "s38 lg case metadata required" (state.metadata["case"]) raises KeyError outside the case span.
+    _, config, _ = received(doubles, None)
+
+    assert list(config["configurable"]) == ["thread_id"]
+
+
+def test_each_case_attempt_gets_a_new_thread_so_a_shared_checkpointer_remembers_nothing(doubles):
+    # The graph answers with how many messages it saw; a reused thread would also see the earlier attempt's two.
+    # Witness: "s38 lg thread id constant" answers "1" then "3".
+    answers = [run("counts_messages").output.completion for _ in range(2)]
+
+    assert answers == ["1", "1"]
+
+
+def test_a_graph_compiled_with_a_checkpointer_runs_with_no_setup(doubles):
+    # Witness: "s38 lg no thread id" fails with LangGraph's missing thread_id ValueError.
+    state = run("with_checkpointer")
+
+    assert state.metadata["agent_error"] is None
+    assert state.output.completion == "saved"
+
+
+# Dataset fields
+
+
