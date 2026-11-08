@@ -103,8 +103,8 @@ def summarise(paths: tuple[str, ...], tracked: set[str]) -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
-    parser.add_argument("--minimum-present", type=int, default=61,
-                        help="Fail if recorded paths regress below 7 Nov 2026 checkpoint (61)")
+    parser.add_argument("--minimum-present", type=int, default=83,
+                        help="Fail if recorded paths regress below 8 Nov 2026 checkpoint (83)")
     parser.add_argument("--show-missing", action="store_true")
     parser.add_argument("--json", action="store_true", help="Print machine-readable report")
     args = parser.parse_args(argv)
