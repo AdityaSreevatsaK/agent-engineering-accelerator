@@ -58,7 +58,7 @@ jobs:
           tests/unit/test_readings.py
           tests/unit/test_report.py
           tests/unit/test_judge.py
-          tests/unit/test_judge_pairwise_recovered_prefix.py
+          tests/unit/test_judge_pairwise.py
           tests/unit/test_config.py
           tests/unit/test_dataset.py
           tests/unit/test_scorers.py
