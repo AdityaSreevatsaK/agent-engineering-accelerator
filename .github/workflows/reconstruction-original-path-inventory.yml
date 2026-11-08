@@ -38,7 +38,7 @@ jobs:
       - name: Check inventory parser and presence invariants
         run: python -m unittest reconstruction_tools.test_original_path_inventory -v
       - name: Ensure historical source-path presence does not regress
-        run: python -m reconstruction_tools.audit_original_paths --minimum-present 83 --show-missing
+        run: python -m reconstruction_tools.audit_original_paths --minimum-present 85 --show-missing
 
 # Historical file presence never implies original-byte fidelity or release approval.
 # No paid model calls, data generation, or interaction with sensitive baselines.
