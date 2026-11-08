@@ -22,7 +22,7 @@ Recovered code candidates have been manually transcribed line-by-line, including
 
 ## Fidelity and CI
 
-Source-verification script pins SHA-256 of the reconstructed candidates, original visible editor dimensions and screenshot case IDs/record count. The new **supplementary** end-to-end verification invokes real AEA CLI and native Strands with no cloud credentials, requiring the good agent to pass all 11 original screenshot cases and the broken agent to fail exactly the two ineligible refund cases (`refund_not_delivered`, `refund_outside_window`).
+Source-verification script pins SHA-256 of the reconstructed candidates, original visible editor dimensions and screenshot case IDs/record count. The new **supplementary** end-to-end verification invokes real AEA CLI and native Strands with no cloud credentials, requiring the correct agent to fail **only** the documented original-source wording conflict in `total_spend` and the broken agent to fail that same wording conflict **plus exactly two** ineligible refund cases (`refund_not_delivered`, `refund_outside_window`). The dataset screenshot visibly expects `Carol spent 17.50 across 2 orders.`, while the original `rules.py` recording visibly returns `Carol has spent 17.50 across 2 orders.`. Preserve both originals; do not edit either just to green the tests.
 
 Dedicated CI checks on Windows/Linux with Python 3.11/3.12 using native `strands-agents`. Passing runtime and editor counts does not establish **byte-for-byte original source identity** because no original source hashes/bytes are available.
 
