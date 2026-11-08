@@ -1,0 +1,120 @@
+
+    def recording():
+        graph = linear(MessagesState, reply("recorded")).compile()
+        original = graph.astream
+
+        def astream(input, config=None, **kwargs):
+            RECEIVED.append((input, config, kwargs))
+            return original(input, config, **kwargs)
+
+        graph.astream = astream
+        return graph
+
+
+    def counts_messages():
+        def node(state):
+            return {"messages": [ai(str(len(state["messages"])))]}
+
+        return linear(MessagesState, node).compile(checkpointer=SHARED_SAVER)
+
+
+    def with_checkpointer():
+        return linear(MessagesState, reply("saved")).compile(checkpointer=InMemorySaver())
+    """
+)
+
+
+@pytest.fixture(scope="module")
+def doubles(tmp_path_factory):
+    folder = tmp_path_factory.mktemp("lg_doubles")
+    (folder / f"{DOUBLES}.py").write_text(DOUBLES_SOURCE, encoding="utf-8")
+    sys.path.insert(0, str(folder))
+    try:
+        yield importlib.import_module(DOUBLES)
+    finally:
+        sys.path.remove(str(folder))
+        sys.modules.pop(DOUBLES, None)
+
+
+def ref(name):
+    return f"{DOUBLES}:{name}" if name else None
+
+
+def run(factory, input_map=None, output_map=None, text=QUESTION, case=None):
+    """Runs one case through the adapter. case is the raw case metadata; None leaves the metadata without a case."""
+    solver = langgraph_agent(ref(factory), input_map=ref(input_map), output_map=ref(output_map))
+    metadata = {"case": case} if case is not None else {}
+    state = TaskState(
+        model=ModelName("none/none"), sample_id="case-1", epoch=1, input=text, messages=[], metadata=metadata
+    )
+    return asyncio.run(solver(state, None))
+
+
+def calls(state):
+    return state.metadata["tool_calls"]
+
+
+def tool_results(state):
+    return [(m.tool_call_id, m.text) for m in state.messages if isinstance(m, ChatMessageTool)]
+
+
+# Factory types
+
+
+def test_an_uncompiled_state_graph_is_compiled_and_run(doubles):
+    # Witness: "s38 lg builder not compiled" (return built) fails it as not a local graph.
+    state = run("uncompiled")
+
+    assert state.metadata["agent_error"] is None
+    assert state.output.completion == "from the builder"
+
+
+def test_a_factory_returning_no_graph_fails_the_case_and_the_next_case_runs(doubles):
+    # Witnesses: "s38 lg any object accepted" (isinstance Pregel -> True) fails with an AttributeError instead; "s38 lg
+    # non-graph message" changes the message.
+    failed = run("not_a_graph")
+    after = run("plain_reply")
+
+    assert failed.metadata["agent_error"] == (
+        "UnsupportedGraphError: not a local LangGraph graph; deployed agents are not supported"
+    )
+    assert failed.output.completion == ""
+    assert calls(failed) == []
+    assert after.metadata["agent_error"] is None
+    assert after.output.completion == "plain reply"
+
+
+# Input
+
+
+def test_without_an_input_map_the_question_is_sent_as_one_human_message(doubles):
+    # Witness: "s38 lg default input not the question" sends a different text.
+    assert run("echo").output.completion == f"HumanMessage:{QUESTION}"
+
+
+def test_an_input_map_replaces_the_default_input_even_when_the_graph_has_messages(doubles):
+    # Witness: "s38 lg input map ignored" (if False) sends the default input.
+    assert run("echo", input_map="to_messages").output.completion == f"HumanMessage:mapped {QUESTION}"
+
+
+@pytest.mark.parametrize("factory", ["custom_state", "trail_only"], ids=["no-message-list", "message-list-not-named"])
+def test_a_graph_without_a_messages_channel_fails_naming_input_map(doubles, factory):
+    # trail_only keeps its messages under "trail": only a channel named "messages" takes the default input.
+    # Witness: "s38 lg messages channel check dropped" (if False) sends the messages input, and the run then fails with
+    # NoAnswerError instead.
+    state = run(factory)
+
+    assert state.metadata["agent_error"] == (
+        "MissingInputMapError: graph has no 'messages' channel; pass --input-map module:function to build its input"
+    )
+    assert state.output.completion == ""
+
+
+def test_custom_state_runs_with_an_input_map_and_an_output_map_whose_answer_is_stripped(doubles):
+    # Witnesses: "s38 lg output map ignored" (if False) gives NoAnswerError; "s38 lg output map not stripped".
+    state = run("custom_state", input_map="to_question", output_map="answer_of")
+
+    assert state.metadata["agent_error"] is None
+    assert state.output.completion == f"answer to {QUESTION}"
+
+
