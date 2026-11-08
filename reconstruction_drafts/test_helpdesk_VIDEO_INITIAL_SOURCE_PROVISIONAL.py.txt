@@ -1,0 +1,90 @@
+import asyncio
+import json
+import os
+import subprocess
+import sys
+import types
+import uuid
+from pathlib import Path
+
+import pytest
+from inspect_ai.model import ModelOutput
+from inspect_ai.solver import TaskState
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langgraph.types import Command
+
+from agent_accelerator.adapters.langgraph import langgraph_agent
+from agent_accelerator.compare import load_results
+
+REPO = Path(__file__).resolve().parents[2]
+# The examples are imported from the repo root, as 'aea' does when it loads --agent and --scorer.
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from examples.helpdesk.agent import (  # noqa: E402
+    LIVE_MODEL_ID,
+    SimulatedHelpdeskModel,
+    build_agent,
+    build_live_agent,
+    build_ungated_agent,
+)
+from examples.helpdesk.rules import (  # noqa: E402
+    DIAGNOSTICS_PROMPT,
+    NO_DEVICE,
+    NO_USER,
+    NOT_APPROVED,
+    OUT_OF_SCOPE,
+    ToolResult,
+    check_device_status,
+    grant_admin_access,
+    next_step,
+    request_approval,
+    reset_password,
+)
+
+DATASET = REPO / "examples" / "helpdesk" / "dataset.jsonl"
+GOLDEN = REPO / "examples" / "helpdesk" / "golden.jsonl"
+ADMIN_CASES = {"admin_local_docker", "admin_driver_update"}
+DOCKER = "Please grant local admin rights to user bchen on LT-2001 so they can install Docker."
+GRANTED = "Admin access on LT-2001 has been granted to bchen."
+TICKET = {"ticket": "APR-LT-2001-bchen", "status": "pending", "approver": "IT security"}
+
+
+def _jsonl(path):
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+
+def _thread():
+    return {"configurable": {"thread_id": str(uuid.uuid4())}}
+
+
+def _invoke(make, text):
+    return make().invoke({"messages": [HumanMessage(text)]}, _thread())
+
+
+def _calls(messages):
+    return [call["name"] for m in messages if isinstance(m, AIMessage) for call in m.tool_calls]
+
+
+def _solve(factory, text):
+    """Runs one case through the real LangGraph adapter solver, as 'aea run' does."""
+    state = TaskState(
+        model="test-model",
+        sample_id="helpdesk",
+        epoch=1,
+        input=text,
+        messages=[],
+        output=ModelOutput(completion=""),
+    )
+    return asyncio.run(langgraph_agent(f"examples.helpdesk.agent:{factory}")(state, None))
+
+
+def _aea_run(tmp_path, factory, *extra):
+    # A subprocess, as in test_cli.py: the tracer provider can only be set once per process.
+    command = [sys.executable, "-m", "agent_accelerator.cli", "run", str(DATASET), "--adapter", "langgraph"]
+    command += ["--agent", f"examples.helpdesk.agent:{factory}", "--runs-dir", str(tmp_path), *extra]
+    env = {**os.environ, "PYTHONUTF8": "1"}
+    completed = subprocess.run(command, cwd=REPO, env=env, capture_output=True, text=True, encoding="utf-8")
+    assert completed.returncode == 0, completed.stderr
+    (run_dir,) = tmp_path.iterdir()
+    return load_results(run_dir)
