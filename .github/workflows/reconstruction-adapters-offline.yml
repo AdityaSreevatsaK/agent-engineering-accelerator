@@ -34,7 +34,7 @@ jobs:
         env:
           AWS_EC2_METADATA_DISABLED: "true"
           PYTHONPATH: ${{ github.workspace }}/src
-        run: python -m pytest -q -m "not slow" tests/unit/test_adapters.py
+        run: python -m pytest -q -m "not slow" tests/unit/test_adapters.py tests/unit/test_langgraph_adapter.py
 
 # Recorded source has no external API calls and uses in-process model doubles.
 # This tests actual optional Strands and LangGraph dependencies, not paid providers.
