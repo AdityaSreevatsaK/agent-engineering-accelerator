@@ -1,0 +1,77 @@
+# Graph factories and maps for the adapter contract. Each factory builds a fresh graph; RECEIVED records what a
+# recording graph's astream was called with, and SHARED_SAVER is one checkpointer shared by every graph built from
+# counts_messages, so a reused thread id would show up as remembered messages.
+DOUBLES_SOURCE = textwrap.dedent(
+    """
+    import operator
+    from typing import Annotated, Any, TypedDict
+
+    from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langgraph.func import entrypoint
+    from langgraph.graph import END, START, MessagesState, StateGraph
+    from langgraph.graph.message import add_messages
+    from langgraph.types import Interrupt, Overwrite, interrupt
+    from pydantic import BaseModel
+
+    RECEIVED = []
+    SHARED_SAVER = InMemorySaver()
+    SECRET = "approve the 5000 USD claim of employee 7?"
+
+
+    class Boom(Exception):
+        pass
+
+
+    class Decision(BaseModel):
+        decision: str
+        amount: float
+
+
+    def usage(i, o):
+        return {"input_tokens": i, "output_tokens": o, "total_tokens": i + o}
+
+
+    def ai(content="", calls=(), id=None, usage=None):
+        tool_calls = [{"name": n, "args": a, "id": c, "type": "tool_call"} for n, a, c in calls]
+        return AIMessage(content=content, tool_calls=tool_calls, id=id, usage_metadata=usage)
+
+
+    def lookup(**kwargs):
+        return ai(calls=[("lookup", {"x": 1}, "t1")], **kwargs)
+
+
+    def found(**kwargs):
+        return ToolMessage("found", tool_call_id="t1", **kwargs)
+
+
+    def _done_with_usage(state):
+        return {"messages": [ai("done", usage=usage(10, 20))]}
+
+
+    def linear(state, *nodes):
+        graph = StateGraph(state)
+        names = [f"n{i}" for i in range(len(nodes))]
+        for name, node in zip(names, nodes):
+            graph.add_node(name, node)
+        for a, b in zip([START, *names], [*names, END]):
+            graph.add_edge(a, b)
+        return graph
+
+
+    def reply(text):
+        return lambda state: {"messages": [ai(text)]}
+
+
+    # Factory types
+
+    def uncompiled():
+        return linear(MessagesState, reply("from the builder"))
+
+
+    def not_a_graph():
+        return "a graph"
+
+
+    def plain_reply():
+        return linear(MessagesState, reply("plain reply")).compile()
