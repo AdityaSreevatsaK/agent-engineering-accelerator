@@ -1,0 +1,76 @@
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ({"a": [1, "x", None, True, 1.5]}, {"a": [1, "x", None, True, 1.5]}),
+        ("plain", "plain"),
+        ({"who": {"what": OPAQUE}}, {"who": {"what": "Opaque()"}}),
+        (OPAQUE, "Opaque()"),
+        (("employee", 7), ["employee", 7]),
+    ],
+    ids=["json-unchanged", "str-unchanged", "nested-object-repr", "top-level-object-repr", "tuple-list"],
+)
+def test_json_safe_keeps_json_data_and_turns_what_json_cannot_hold_into_its_repr(value, expected):
+    # Witness: "s49 lg json_safe identity" returns the object and the tuple unchanged.
+    assert _json_safe(value) == expected
+
+
+def test_json_safe_keeps_nan_as_nan():
+    # json writes NaN and reads it back, so NaN is not a fallback case. Witness: "s49 lg json_safe NaN rejected"
+    # (allow_nan=False) turns the whole value into its repr.
+    result = _json_safe({"x": math.nan})
+
+    assert list(result) == ["x"]
+    assert isinstance(result["x"], float) and math.isnan(result["x"])
+
+
+def circular():
+    value: dict = {"x": "y"}
+    value["self"] = value
+    return value
+
+
+@pytest.mark.parametrize("make", [circular, lambda: {("a", 1): "v"}], ids=["circular", "tuple-key"])
+def test_json_safe_falls_back_to_the_whole_value_repr_when_json_cannot_encode_it(make):
+    # Witness: "s49 lg json_safe fallback dropped" raises the ValueError or TypeError.
+    value = make()
+
+    assert _json_safe(value) == repr(value)
+
+
+@pytest.mark.parametrize("interrupted", [True, False], ids=["interrupted", "not-interrupted"])
+def test_run_checks_is_the_same_with_or_without_interrupts_because_it_reads_interrupted(interrupted):
+    # Witness: "s49 run_checks reads interrupts" (metadata.get("interrupted") -> "interrupts") flips both pairs.
+    case = Case(id="a", input="q", expect_interrupt=True)
+    base = {"agent_error": None, "interrupted": interrupted}
+
+    without = run_checks(case, "", base, show_values=True)
+    with_value = run_checks(case, "", {**base, "interrupts": ["approve?"]}, show_values=True)
+
+    assert with_value == without == {"expect_interrupt": None if interrupted else "expected an interrupt"}
+
+
+@pytest.mark.parametrize(
+    ("expect_interrupt", "interrupted", "result"),
+    [
+        (None, False, "absent"),
+        (None, True, "unexpected interrupt"),
+        (True, True, None),
+        (True, False, "expected an interrupt"),
+        (False, False, None),
+        (False, True, "unexpected interrupt"),
+    ],
+    ids=["unset-ran", "unset-interrupted", "true-interrupted", "true-ran", "false-ran", "false-interrupted"],
+)
+def test_expect_interrupt_check_for_every_combination(expect_interrupt, interrupted, result):
+    # "absent": the check is not run at all. Witnesses: "s38 expected interrupt never fails" (if False); "s38 unexpected
+    # interrupt never fails" (if False); "s38 interrupt check only when set" (drop 'or interrupted'); "s38 interrupt
+    # check only when interrupted" (drop 'case.expect_interrupt is not None or').
+    case = Case(id="a", input="q", expect_interrupt=expect_interrupt)
+
+    results = run_checks(case, "", {"agent_error": None, "interrupted": interrupted}, show_values=False)
+
+    assert results.get("expect_interrupt", "absent") == result
+
+
+# Trajectory
+
