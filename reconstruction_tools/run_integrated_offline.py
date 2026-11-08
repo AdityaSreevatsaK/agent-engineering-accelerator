@@ -10,6 +10,7 @@ NOT be mistaken for original historical captured-log files.
 """
 from __future__ import annotations
 
+import ast
 import subprocess
 import sys
 from pathlib import Path
@@ -58,6 +59,33 @@ REQUIRED_TEST_MODULES = (
 )
 
 
+# Two restored original CLI tests require BOTH lost historical calculator logs.
+# Explicitly defer only these, without changing their original test bodies.
+CLI_CAPTURE_DEFERRED = (
+    "test_compare_with_regression_exits_one",
+    "test_compare_output_file_matches_printed_markdown",
+)
+
+
+def verify_cli_capture_deferrals() -> bool:
+    source = ROOT / "tests" / "unit" / "test_cli.py"
+    if not source.is_file():
+        return False
+    tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
+    definitions = {
+        n.name: n for n in tree.body
+        if isinstance(n, ast.FunctionDef) and n.name.startswith("test_")
+    }
+    for name in CLI_CAPTURE_DEFERRED:
+        fn = definitions.get(name)
+        if fn is None:
+            raise RuntimeError(f"Missing explicitly deferred original CLI test: {name}")
+        symbols = {n.id for n in ast.walk(fn) if isinstance(n, ast.Name)}
+        if not {"FIXTURE", "BROKEN_FIXTURE"} <= symbols:
+            raise RuntimeError(f"CLI test no longer requires the two original logs: {name}")
+    return True
+
+
 def main() -> int:
     # Check before collection so previously unavailable data dependencies
     # cannot silently enter the passing-test numerator.
@@ -84,6 +112,11 @@ def main() -> int:
     argv = [sys.executable, "-m", "pytest", "-q", "-m", "not slow"]
     for path, names in DEFERRED.items():
         argv.extend(f"--deselect={path}::{name}" for name in names)
+    if verify_cli_capture_deferrals():
+        argv.extend(
+            f"--deselect=tests/unit/test_cli.py::{name}" for name in CLI_CAPTURE_DEFERRED
+        )
+        print("KNOWN GAP: two original CLI comparisons require unavailable original calculator logs.", flush=True)
     argv.append("tests/unit")
 
     print("INTEGRATED AEA RECONSTRUCTION: running all active offline unit tests.", flush=True)
