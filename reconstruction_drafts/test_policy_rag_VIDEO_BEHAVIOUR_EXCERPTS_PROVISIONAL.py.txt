@@ -1,0 +1,90 @@
+# Recorded source excerpts from tests/unit/test_policy_rag.py, around original lines 69-159.
+# These are NOT a runnable independent test module; the full recorded file is still pending.
+
+def _run(make, question):
+    """The search queries the agent made and its final reply."""
+    messages = make().invoke({"messages": [HumanMessage(question)]})["messages"]
+    queries = [call["args"]["query"] for m in messages if isinstance(m, AIMessage) for call in m.tool_calls]
+    return queries, messages[-1].content
+
+
+def _jsonl(path):
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+# search_policy
+
+def test_search_ranks_a_topic_term_match_above_chunks_that_only_mention_a_query_word():
+    # "lodging" is a TRV-4.2 topic term absent from its text (score 2); "expense" is only in the text of EXP-4.1 and
+    # EXP-6.2 (score 1 each). Unweighted, all three tie at 1 and the two EXP chunks win on section id.
+    # Witness s41 search topic not doubled: 'return 2 * len(' -> 'return 1 * len(' (rules.py:136).
+    assert _sections(search_policy("lodging expense")) == ["TRV-4.2", "EXP-4.1"]
+
+
+def test_search_breaks_ties_by_section_id_and_returns_at_most_two_hits():
+    # "usd" is in the text of five chunks and no chunk's topic terms, so all five score 1. By section id the first two
+    # are EXP-2.1 and EXP-4.1; corpus order would give TRV-4.2 and TRV-5.1.
+    # Witness s41 search ties in corpus order: 'key=lambda pair: (-pair[0], pair[1].section)' ->
+    # 'key=lambda pair: -pair[0]' (rules.py:144). Witness s41 search limit: 'hits[:SEARCH_LIMIT]' ->
+    # 'hits[:SEARCH_LIMIT + 1]' (rules.py:145).
+    assert json.loads(search_policy("usd")) == [_hit("EXP-2.1"), _hit("EXP-4.1")]
+
+
+@pytest.mark.parametrize("query", ["pet boarding", "what is it?"], ids=["no_shared_term", "only_stopwords"])
+def test_search_returns_an_empty_list_when_no_chunk_shares_a_term(query):
+    # Witness s41 search keeps zero scores: 'if pair[0] > 0' -> 'if pair[0] >= 0' (rules.py:144).
+    assert search_policy(query) == "[]"
+
+
+# relevant_chunks
+
+def test_grader_drops_a_retrieved_chunk_that_matches_the_query_only_in_its_text():
+    # Witness s41 grader accepts text matches: 'known is not None and wanted & known.keywords and' ->
+    # 'known is not None and' (rules.py:161).
+    results = [search_policy("lodging expense")]
+
+    assert _sections(results[0]) == ["TRV-4.2", "EXP-4.1"]  # control: both were retrieved
+    assert relevant_chunks("lodging expense", results) == [_hit("TRV-4.2")]
+
+
+def test_grader_skips_a_result_that_is_not_json_and_keeps_retrieval_order():
+    # A tool error reaches the grader as plain text; a ToolNode(handle_tool_errors=True) reports it.
+    # Witness s41 grader stops at invalid json: 'continue' -> 'return relevant' (rules.py:158).
+    results = ["Error: search failed", search_policy("alcohol"), search_policy("hotel")]
+
+    assert relevant_chunks("alcohol hotel", results) == [_hit("EXP-3.4"), _hit("TRV-4.2")]
+
+
+def test_grader_returns_a_chunk_retrieved_twice_only_once():
+    # Witness s41 grader no dedup: 'and chunk not in relevant:' -> ':' (rules.py:161).
+    assert relevant_chunks("hotel", [search_policy("hotel"), search_policy("hotel")]) == [_hit("TRV-4.2")]
+
+
+def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
+    # Witness s41 grader iterates non-list: 'chunks if isinstance(chunks, list) else []' -> 'chunks' (rules.py:159).
+    # Iterating the number 5 then raises TypeError.
+    results = ["5", '{"section": "TRV-4.2"}', '[1, {"section": "XYZ-9", "text": "hotel"}, {"title": "Hotel"}]']
+
+    assert relevant_chunks("hotel", results) == []
+
+
+# rewrite_query
+
+@pytest.mark.parametrize(
+    ("question", "rewritten"),
+    [
+        ("Can I expense a cab from the airport?", "expense taxi airport"),
+        ("Is an Uber OK after dinner?", "ride-hailing ok after meal"),
+        ("Booze at the hotel", "alcohol at hotel"),
+    ],
+    ids=["cab_to_taxi", "uber_and_dinner", "booze"],
+)
+def test_rewrite_drops_stopwords_and_maps_everyday_words_to_policy_terms(question, rewritten):
+    # Witness s41 rewrite no synonyms: 'SYNONYMS.get(term, term) for term' -> 'term for term' (rules.py:168).
+    # Witness s41 rewrite keeps stopwords: '"a an and are be can do"' -> '"a an and are be can do"' (rules.py:92).
+    assert rewrite_query(question) == rewritten
+
+
+def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
+    # Witness s41 rewrite keeps stopwords: 'for w in words if w not in STOPWORDS' -> 'for w in words' (rules.py:131).
+    assert rewrite_query("What is it, and how do I do it?") == ""
