@@ -1,0 +1,123 @@
+
+    def content_blocks():
+        blocks = [{"type": "text", "text": " Par"}, {"type": "text", "text": "is "}]
+        return linear(MessagesState, lambda state: {"messages": [AIMessage(content=blocks)]}).compile()
+
+
+    def str_entrypoint():
+        @entrypoint()
+        def run(inputs):
+            return "plain words"
+
+        return run
+
+
+    # Interrupt
+
+    def _ask(state):
+        interrupt(SECRET)
+        return {"messages": [ai("approved after asking")]}
+
+
+    def interrupts():
+        return linear(MessagesState, _ask).compile(checkpointer=InMemorySaver())
+
+
+    def interrupts_without_checkpointer():
+        return linear(MessagesState, _ask).compile()
+
+
+    def interrupts_in_subgraph():
+        return linear(MessagesState, linear(MessagesState, _ask).compile()).compile(checkpointer=InMemorySaver())
+
+
+    class Opaque:
+        def __repr__(self):
+            return "opaque(7)"
+
+
+    def two_interrupts_in_one_state():
+        # A final root state holding two interrupts in a fixed order, one with a payload JSON cannot hold as it is.
+        graph = linear(MessagesState, reply("never read")).compile()
+        pending = (
+            Interrupt({"step": "first", "who": ("employee", 7), "what": Opaque()}, id="i-1"),
+            Interrupt("second", id="i-2"),
+        )
+
+        async def astream(input, config=None, **kwargs):
+            yield (), "values", {"messages": [], "__interrupt__": pending}
+
+        graph.astream = astream
+        return graph
+
+
+    def repeated_interrupt_across_root_chunks():
+        # The same pending interrupt (same id) in two root "values" chunks, the second listing it after a new one.
+        graph = linear(MessagesState, reply("never read")).compile()
+        first, second = Interrupt("first", id="i-1"), Interrupt("second", id="i-2")
+
+        async def astream(input, config=None, **kwargs):
+            yield (), "values", {"messages": [], "__interrupt__": (first,)}
+            yield (), "values", {"messages": [], "__interrupt__": (second, first)}
+
+        graph.astream = astream
+        return graph
+
+
+    def _ask_a(state):
+        interrupt("from a")
+        return {}
+
+
+    def _ask_b(state):
+        interrupt("from b")
+        return {}
+
+
+    def parallel_interrupts():
+        # Two parallel nodes, so one step raises two interrupts.
+        graph = StateGraph(MessagesState)
+        graph.add_node("a", _ask_a)
+        graph.add_node("b", _ask_b)
+        graph.add_edge(START, "a")
+        graph.add_edge(START, "b")
+        return graph.compile()
+
+
+    def raises():
+        def node(state):
+            raise Boom("graph broke")
+
+        return linear(MessagesState, node).compile()
+
+
+    # Trajectory
+
+    def _inner_lookup(state):
+        return {"messages": [lookup(), found(name="lookup")]}
+
+
+    def invoked_subgraph():
+        inner = linear(MessagesState, _inner_lookup).compile()
+
+        def call(state):
+            inner.invoke({"messages": []})
+            finish = ai(calls=[("finish", {}, "t2")])
+            return {"messages": [finish, ToolMessage("finished", tool_call_id="t2", name="finish")]}
+
+        return linear(MessagesState, call, reply("done")).compile()
+
+
+    def invoked_subgraph_then_raises():
+        inner = linear(MessagesState, _inner_lookup).compile()
+
+        def call(state):
+            inner.invoke({"messages": []})
+            raise Boom("after the subgraph")
+
+        return linear(MessagesState, call).compile()
+
+
+    def subgraph_node():
+        return linear(MessagesState, linear(MessagesState, _inner_lookup).compile(), reply("done")).compile()
+

@@ -1,0 +1,94 @@
+
+    class Plain(TypedDict):
+        messages: Annotated[list, operator.add]
+
+
+    def _idless_lookup():
+        # operator.add assigns no ids, so the subgraph's messages stay id-less.
+        def node(state):
+            return {"messages": [lookup(usage=usage(1, 2)), found()]}
+
+        return linear(Plain, node).compile()
+
+
+    def _idd_lookup(state):
+        return {
+            "messages": [
+                lookup(id="ai-1", usage=usage(1, 2)),
+                found(id="tm-1"),
+            ]
+        }
+
+
+    def idless_then_idd():
+        inner = _idless_lookup()
+
+        def call(state):
+            inner.invoke({"messages": []})
+            return _idd_lookup(state)
+
+        return linear(MessagesState, call, _done_with_usage).compile()
+
+
+    def idd_then_idless():
+        inner = _idless_lookup()
+
+        def call(state):
+            inner.invoke({"messages": []})
+            return {}
+
+        return linear(MessagesState, _idd_lookup, call, _done_with_usage).compile()
+
+
+    def reused_call_ids():
+        def node(state):
+            return {
+                "messages": [
+                    ai(calls=[("lookup", {"x": 1}, "call-0")], id="ai-1"),
+                    ToolMessage("one", tool_call_id="call-0", id="tm-1"),
+                    ai(calls=[("lookup", {"x": 2}, "call-0")], id="ai-2"),
+                    ToolMessage("two", tool_call_id="call-0", id="tm-2"),
+                    ai("done", id="ai-3"),
+                ]
+            }
+
+        return linear(MessagesState, node).compile()
+
+
+    class Audited(TypedDict):
+        messages: Annotated[list, add_messages]
+        trail: Annotated[list, operator.add]
+
+
+    def every_update_value():
+        return linear(
+            Audited,
+            lambda state: {"trail": [ai(calls=[("audit", {}, "a1")]), ToolMessage("logged", tool_call_id="a1")]},
+            lambda state: {"messages": Overwrite([lookup(), found()])},
+            lambda state: None,
+            lambda state: {"messages": ai(calls=[("single", {}, "s1")])},
+            reply("done"),
+        ).compile()
+
+
+    def idless_answers():
+        def node(state):
+            return {"trail": [ai("draft one", usage=usage(1, 2)), ai("draft two", usage=usage(3, 4))]}
+
+        return linear(Audited, node, reply("done")).compile()
+
+
+    def plain_subgraph_node():
+        # operator.add in both graphs: the subgraph node's id-less reply and the parent's re-emission are one object.
+        inner = linear(Plain, lambda state: {"messages": [ai("done", usage=usage(1, 2))]}).compile()
+        return linear(Plain, inner).compile()
+
+
+    def equal_idless_answers():
+        def node(state):
+            return {"messages": [ai("same", usage=usage(1, 2)), ai("same", usage=usage(1, 2))]}
+
+        return linear(Plain, node).compile()
+
+
+    # Config
