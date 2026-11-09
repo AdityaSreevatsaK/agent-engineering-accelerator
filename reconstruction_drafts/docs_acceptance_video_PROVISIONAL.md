@@ -114,6 +114,21 @@ Recorded unit-test coverage addresses datasets, scorers, comparison and statisti
 - LangGraph interrupt resume and deployed graphs unsupported; `interrupt()` ends the case without scripted resume.
 - Config file covers four settings only (`adapter`, `agent`, `input_map`, `output_map`); other flags still passed on CLI.
 
+### Further details visible in the recorded deferred-items table
+
+The recording's original section 7 (approximately lines 137–147) distinguishes the following cases:
+
+| Item | Recorded constraint | Stated mitigation or plan |
+| --- | --- | --- |
+| Remote CI | Historical local-only repository had no git remote; original workflow existed as a template but had never run remotely | Push to a remote, execute the workflow, and review resulting failures |
+| Live-model repeatability | D9 needs repeated live-model runs and provider access to measure variance | Latency and cost remain informational; no blocking `--max-latency` or `--max-cost` gates |
+| Multi-turn cases | The dataset schema represents a single input/target per case | Explicitly deferred beyond 2.2.0 |
+| Additional framework adapter | Only Strands and LangGraph supported; `adapters/__init__.py:load_factory` is a factory-loader, not a universal framework API | Deferred |
+| LangGraph interrupt resume and deployed graphs | `interrupt()` ends the evaluation case and `expect_interrupt` checks the stop; there is no scripted resume | Unsupported in 2.2.0 |
+| Configuration file coverage | `--config` covers only `adapter`, `agent`, `input_map` and `output_map` | Other options remain command-line flags |
+
+This table is a video-grounded transcription aid, not a replacement for the complete historical Markdown table.
+
 ## 8. Summary
 
 2.0.0 verdict, not re-run for 2.2.0: commit `ff49879` meets all 22 confirmed decisions except D9 (latency/cost gates), which is partly met. Agreed scope is met, including LLM judge (golden, reference-free and pairwise), HTML/PDF export, plain-language report guidance, and Cohen's kappa calibration. Explicitly deferred: CI workflow execution (blocked by no remote) and multi-turn cases.
