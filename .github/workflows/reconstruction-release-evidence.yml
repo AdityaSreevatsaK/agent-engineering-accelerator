@@ -1,0 +1,61 @@
+name: AEA release-evidence and source-provenance audit
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_tools/audit_release_evidence.py
+      - reconstruction_tools/test_release_evidence_audit.py
+      - reconstruction_tools/audit_original_paths.py
+      - reconstruction_tools/preflight_historical_ci.py
+      - reconstruction_manifest/**
+      - reconstruction_drafts/docs_acceptance_video_PROVISIONAL.md
+      - reconstruction_drafts/docs_review_video_PROVISIONAL.md
+      - .github/workflows/reconstruction-release-evidence.yml
+      - baselines/**
+      - docs/**
+      - tests/fixtures/**
+      - uv.lock
+      - README.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence:
+    name: Evidence audit / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Execute provenance and release-readiness unit checks
+        run: python -m unittest reconstruction_tools.test_release_evidence_audit -v
+      - name: Print reproducible evidence report
+        run: python -m reconstruction_tools.audit_release_evidence --format markdown
+      - name: Ensure explicit release request cannot be silently approved
+        shell: python
+        run: |
+          import subprocess
+          import sys
+          outcome = subprocess.run(
+              [sys.executable, "-m", "reconstruction_tools.audit_release_evidence",
+               "--require-release-ready"],
+              check=False,
+          )
+          if outcome.returncode != 1:
+              raise SystemExit(
+                  f"Expected fail-closed release gate exit 1; received {outcome.returncode}"
+              )
+
+# This reports facts only; historical baseline payloads/traces are never read.
+# Passing this guard does not authenticate source bytes or approve a release.
