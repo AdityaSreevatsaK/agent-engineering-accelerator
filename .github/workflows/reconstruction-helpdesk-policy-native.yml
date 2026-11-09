@@ -37,6 +37,14 @@ jobs:
           AWS_ACCESS_KEY_ID: ""
           AWS_SECRET_ACCESS_KEY: ""
         run: python -m pytest -q -m "not slow" tests/unit/test_helpdesk.py tests/unit/test_policy_rag.py
+      - name: Run recorded offline end-to-end example tests
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.11'
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+          AWS_EC2_METADATA_DISABLED: "true"
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+        run: python -m pytest -q -m slow tests/unit/test_helpdesk.py tests/unit/test_policy_rag.py
 
 # These two provisional reconstructions use offline graph doubles.
 # This workflow cannot prove byte-for-byte original text fidelity.
