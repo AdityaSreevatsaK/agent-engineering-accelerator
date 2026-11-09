@@ -79,11 +79,30 @@ Not protected:
 
 ## 4. Security notes
 
-The original recording reviews local reference loading/imports, report/export behaviour, filesystem boundaries, tool metadata, privacy and injection risks. These are historical review findings rather than proof of present security of the reconstructed package.
+The recording's **Security notes** section (approximately source lines 113–126) identifies the following concrete trust boundaries:
+
+- Agent references (`--agent module:function`), scorer references (`--scorer module:function`) and LangGraph `--input-map`/`--output-map` references are imported and **executed** in the current Python process. They are trusted code, not sandboxed plug-ins. Only run references you trust.
+- An explicitly supplied `--config FILE` is a TOML document containing import references for `adapter`, `agent`, `input_map` and `output_map`. Configuration is not silently auto-discovered. CLI flags override the file. Missing/invalid TOML, non-UTF-8 input, unknown keys and invalid reference values produce configuration errors before run-directory creation.
+- A custom scorer receives each sample's `TaskState` before redaction and can inspect the completion, messages and metadata. It can also make network or filesystem calls. Scrubbing afterwards does not protect against a malicious scorer.
+- Dataset contents are data, not code, but may cause a trusted agent to invoke real tools. Treat datasets as trusted inputs where tools have real-world effects.
+- `tracing.py:configure_tracing` sets process-wide environment variables, so other components within that process can inherit those settings.
+- The reviewed files do not load provider credentials themselves; framework clients may use environment credentials (for example, AWS credentials for Bedrock). This is not evidence that a custom user agent is credential-safe.
+- The CLI failure hint directing users to rerun with `--capture-content` is only an operator suggestion, not an automatic capture or upload.
 
 ## 5. Retention
 
-Logs and traces are stored locally under a run directory; baselines copied to the repository may be committed. The review does not describe an automatic data expiration/retention service. Treat retention, sharing and deletion of captured content as operator responsibilities.
+The recorded **Retention** section (approximately lines 98–111) states that AEA does not automatically remove run directories; `JsonlSpanExporter` opens `traces.jsonl` in append mode.
+
+| Artefact | Content by default? | With `--capture-content`? | Retention responsibility |
+| --- | --- | --- | --- |
+| `runs/<timestamp>/log.json` | No, scrubbed | Yes, full prompts, answers, messages and tool payloads | User manually deletes run directory |
+| `runs/<timestamp>/traces.jsonl` | No, redacted spans | Yes, full framework attributes | User manually deletes run directory |
+| `runs/<timestamp>/report.md` | No raw payloads, derived from log and traces | Report still derives from the captured data | User manually deletes run directory |
+| `baselines/<name>.json` | Depends on whether copied from scrubbed or captured run | May contain full captured content | User; not git-ignored, may be committed |
+| `comparison*.md` | Metrics, pass/fail, no content by default | No additional capture setting | User; ignored by default |
+| Custom `--runs-dir` outside default patterns | Same as run artefacts | Same as run artefacts | User; may not match git-ignore patterns |
+
+The video recommends deleting an entire run directory (for example, `rm -rf runs/<run-id>`) and choosing a project retention period. There is no built-in clean command. The recorded `.gitignore` excludes `runs/`, `runs-*/` and `comparison*.md`; baselines are committed by design and should contain only intentionally shareable scrubbed logs.
 
 ## 6. Residual risks
 
