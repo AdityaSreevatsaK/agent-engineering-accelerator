@@ -1,0 +1,45 @@
+name: AEA recovered active-test provenance guard
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_tools/verify_active_video_test_provenance.py
+      - reconstruction_tools/test_active_video_test_provenance.py
+      - reconstruction_drafts/test_langgraph_adapter_PARTIAL_lines_*
+      - reconstruction_drafts/test_triage_FULL_VIDEO_CANDIDATE.py
+      - reconstruction_drafts/test_expense_FULL_VIDEO_CANDIDATE.py
+      - tests/unit/test_triage.py
+      - tests/unit/test_expense.py
+      - tests/unit/test_helpdesk.py
+      - tests/unit/test_policy_rag.py
+      - tests/unit/test_langgraph_adapter.py
+      - .github/workflows/reconstruction-active-test-provenance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  video-test-provenance:
+    name: Active test provenance / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Protect archived candidate and LangGraph-fragment source
+        run: python -m reconstruction_tools.verify_active_video_test_provenance
+      - name: Assert provenance-checker rejects unreviewed changes
+        run: python -m unittest reconstruction_tools.test_active_video_test_provenance -v
+
+# This is an intentionally stdlib-only source-preservation guard.
+# Historical footage and original-byte fidelity remain independent evidence.
