@@ -32,7 +32,9 @@ class VideoTestProvenanceTests(unittest.TestCase):
     def test_current_checkpoint_matches_reviewed_source(self):
         report = audit_all(root=self.root)
         self.assertEqual(len(report), 5)
-        self.assertEqual(report["test_langgraph_adapter"]["lines_delta"], 0)
+        # The archived file has 1,006 physical lines plus a terminal LF,
+        # so its editor-display convention counts one additional line.
+        self.assertEqual(report["test_langgraph_adapter"]["lines_delta"], 1)
         self.assertEqual(report["test_langgraph_adapter"]["chars_delta"], -25)
         self.assertEqual(report["test_triage"]["lines_delta"], -5)
         self.assertEqual(report["test_triage"]["chars_delta"], -447)
