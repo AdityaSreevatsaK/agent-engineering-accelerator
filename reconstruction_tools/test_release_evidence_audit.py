@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from reconstruction_tools.audit_original_paths import ROOT, load_inventory
 from reconstruction_tools.audit_release_evidence import inspect, main, render_markdown
@@ -57,9 +58,10 @@ class ReleaseEvidenceAuditTests(unittest.TestCase):
         )
 
     def test_strict_mode_never_grants_approval_based_on_missing_files(self):
-        self.assertEqual(
-            main(["--root", str(self.root), "--require-release-ready"]), 1
-        )
+        with patch("reconstruction_tools.audit_release_evidence.tracked_files", return_value=set()):
+            self.assertEqual(
+                main(["--root", str(self.root), "--require-release-ready"]), 1
+            )
 
     def test_placeholder_inventory_does_not_grant_historical_fidelity(self):
         # For this test only: 117 dummy files demonstrate that path presence
