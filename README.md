@@ -64,7 +64,7 @@ The CLI returns **0** for success, **1** for a detected regression, and **2** fo
 The new cross-platform dependency workflow **does not use the historical lockfile or historical baselines**. It generates a fresh temporary lock, installs with `--locked`, and runs native offline tests.
 
 ```sh
-uv run --locked python -m reconstruction_tools.run_integrated_offline
+uv run --locked python -m reconstruction_tools.run_integrated_offline_safe
 uv run --locked python -m reconstruction_tools.replay_original_ci_example_matrix --scenario all
 uv run --locked python -m reconstruction_tools.audit_release_evidence --format markdown
 ```
