@@ -92,6 +92,7 @@ def _aea_run(tmp_path, factory, *extra):
 
 # tools
 
+
 @pytest.mark.parametrize(
     ("device_id", "online", "disk"),
     [("LT-1042", True, 7), ("LT-2001", False, 41), ("DT-3300", True, 63)],
@@ -134,6 +135,7 @@ def test_password_reset_and_approval_return_their_records_for_a_known_user():
 
 
 # diagnostics
+
 
 @pytest.mark.parametrize(("disk", "warned"), [(9, True), (10, False)], ids=["just_under_threshold", "at_threshold"])
 def test_low_disk_warning_is_given_only_below_10_percent_free(disk, warned):
@@ -182,6 +184,7 @@ def test_device_questions_go_to_diagnostics_which_reports_the_status_or_the_tool
 
 # actions: password
 
+
 @pytest.mark.parametrize(
     ("text", "reply", "calls"),
     [
@@ -208,6 +211,7 @@ def test_password_requests_go_to_actions_which_resets_or_reports_the_unknown_use
 
 # supervisor
 
+
 @pytest.mark.parametrize(
     "text",
     ["Can you book a meeting room for Friday afternoon?", "What is the meal per diem for a trip to London?"],
@@ -218,13 +222,12 @@ def test_request_that_is_not_it_support_is_declined_by_the_supervisor_with_no_to
     # `if kind != "password" and "route_diagnostics" in rules:` (rules.py:166); the request goes to diagnostics.
     messages = _invoke(build_agent, text)["messages"]
 
-    assert [(type(m).__name__, m.content) for m in messages] == [
-        ("HumanMessage", text), ("AIMessage", OUT_OF_SCOPE)
-    ]
+    assert [(type(m).__name__, m.content) for m in messages] == [("HumanMessage", text), ("AIMessage", OUT_OF_SCOPE)]
     assert _calls(messages) == []
 
 
 # the approval gate
+
 
 def test_gated_agent_pauses_after_request_approval_with_the_ticket_and_never_grants():
     # Witness s42 interrupt payload drops ticket: `{"action": "grant_admin_access", **ticket}` ->
@@ -232,7 +235,7 @@ def test_gated_agent_pauses_after_request_approval_with_the_ticket_and_never_gra
     agent = build_agent()
     config = _thread()
     result = agent.invoke({"messages": [HumanMessage(DOCKER)]}, config)
-    # Actions worker is still in its checkpoint, not yet the root's messages.
+    # The actions worker has not finished, so its messages are in its own checkpoint, not yet the root's.
     (task,) = agent.get_state(config, subgraphs=True).tasks
 
     (pending,) = result["__interrupt__"]
