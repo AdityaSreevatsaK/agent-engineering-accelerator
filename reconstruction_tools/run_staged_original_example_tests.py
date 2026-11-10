@@ -22,12 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(name: str) -> int:
-    source, _ = validate_source(name)
+    # Verify immutable early transcript evidence separately from the upgraded active source.
+    validate_source(name)
+    from reconstruction_tools.verify_active_video_test_provenance import inspect_active
+    inspect_active(f"test_{name}")
     path = ROOT / "tests" / "unit" / f"test_{name}.py"
     if not path.is_file():
         raise RuntimeError(f"Historical-path candidate absent: {path}")
-    if path.read_text(encoding="utf-8") != source:
-        raise RuntimeError(f"Original-path {name} test diverges from pinned video candidate")
     names = TRIAGE_TESTS if name == "triage" else EXPENSE_TESTS
     env = dict(os.environ)
     env.update({
