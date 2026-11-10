@@ -103,7 +103,30 @@ The video states these are not decisions from `decisions.md`; they record implem
 
 ## 6. Test coverage (unit tests only; integration/E2E out of scope)
 
-Recorded unit-test coverage addresses datasets, scorers, comparison and statistics, report/reading, export, CLI, init, adapters, run_task, traces and privacy, judge and pairwise judge. **The precise original table rows are not fully transcribed here.**
+The 8 November recording recovers the following individual table rows. The historical **Met** column is the original author's reported assessment at that time, **not** an independently established 2026 reconstruction release verdict.
+
+| Module | Video-recorded status | Recorded evidence |
+| --- | --- | --- |
+| `dataset.py` | Met | `tests/unit/test_dataset.py` |
+| `scorers.py` | Met | `tests/unit/test_scorers.py` |
+| `compare.py` | Met | `tests/unit/test_compare.py`, `tests/unit/test_compare_statistics.py` |
+| `run.py` | Met | `tests/unit/test_build_task.py`, `tests/unit/test_run_task.py`, `tests/unit/test_scrub.py` |
+| `tracing.py` | Met | `tests/unit/test_tracing.py` |
+| `stats.py` | Met | `tests/unit/test_stats.py`, `tests/unit/test_stats_compare.py` |
+| `run_metrics.py` | Met | `tests/unit/test_run_metrics.py` |
+| `tool_metrics.py` | Met | `tests/unit/test_tool_metrics.py` |
+| `trace_summary.py` | Met | `tests/unit/test_trace_summary.py` |
+| `report.py` | Met | `tests/unit/test_report.py`, `tests/unit/test_report_pairwise.py` (pairwise judge report section) |
+| `cli.py` | Met | `tests/unit/test_cli.py`, `tests/unit/test_init.py`, `tests/unit/test_tokens.py` |
+| `config.py` (2.2.0) | Met | `tests/unit/test_config.py` (loading, precedence, ordering, provenance, non-UTF-8 files) |
+| `adapters/` | Met | `tests/unit/test_adapters.py`, `tests/unit/test_langgraph_adapter.py`; `tests/conformance/test_conformance.py` runs offline graph shapes through the real solver and CLI |
+| `judge.py` | Met | `tests/unit/test_judge.py` (golden and reference-free modes), `tests/unit/test_judge_pairwise.py` (pairwise mode, baseline loading, order swapping), `tests/unit/test_cli_pairwise.py` (CLI integration), `tests/unit/test_judge_interrupt.py` (interrupted samples) |
+| `export.py` | Met | `tests/unit/test_export.py` (HTML/PDF export via headless browser) |
+| `judge_double.py` | Met | `tests/unit/test_judge_double.py` (deterministic judge double), `tests/unit/test_judge_double_pairwise.py` (pairwise judge double) |
+| `readings.py` | Met | `tests/unit/test_readings.py` (plain-language summary, glossary, how-to-read guidance), `tests/unit/test_readings_pairwise.py` (pairwise judge readings) |
+| Examples (calculator, orders, expense, triage, policy_rag, helpdesk) | Met | `tests/unit/test_expense.py`, `tests/unit/test_triage.py`, `tests/unit/test_policy_rag.py`, `tests/unit/test_helpdesk.py`; all six examples reportedly verified via `scripts/ci.sh` regression checks |
+
+Recorded command guidance: `uv run pytest` (excluding slow subprocess tests), `uv run pytest -m slow` (CLI subprocess tests), or `scripts/ci.sh` (lint, types, unit and conformance tests, example regressions). The recorded workflow requires unavailable historical `uv.lock` and baselines in this reconstruction.
 
 ## 7. Known not-met items (explicitly deferred or blocked)
 

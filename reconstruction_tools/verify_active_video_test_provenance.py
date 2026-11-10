@@ -42,12 +42,12 @@ CANDIDATES = {
         29000, 653, 31, 656, 29737, "CRLF",
     ),
     "test_helpdesk": Candidate(
-        "b5f8da8c197fe551b706d54bf2d89314754b0b84",
-        16799, 413, 19, 454, 20015, "LF",
+        "b29b47234cd8c9949d0f0ddd3edda60fe3f77e2f",
+        19940, 450, 19, 454, 20015, "LF",
     ),
     "test_policy_rag": Candidate(
-        "937be5b35d57c8aa07e7fabf8d13bac00c48b4dd",
-        14525, 367, 25, 416, 18377, "LF",
+        "95fae55413af53737e18cb5193c7701886b57786",
+        18195, 402, 25, 416, 18377, "LF",
     ),
     "test_langgraph_adapter": Candidate(
         "ad2631dcf71fc08e5e3c69b9aeced72dc3b32551",

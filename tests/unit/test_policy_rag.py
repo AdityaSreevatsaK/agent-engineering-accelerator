@@ -89,7 +89,9 @@ def test_search_ranks_a_topic_term_match_above_chunks_that_only_mention_a_query_
 def test_search_breaks_ties_by_section_id_and_returns_at_most_two_hits():
     # "usd" is in the text of five chunks and no chunk's topic terms, so all five score 1.
     # By section id the first two are EXP-2.1 and EXP-4.1; corpus order would give TRV-4.2 and TRV-5.1.
-    # Witness s41 search ties in corpus order; search limit (rules.py:144-145).
+    # Witness s41 search ties in corpus order: `key=lambda pair: (-pair[0], pair[1].section)` ->
+    # `key=lambda pair: -pair[0]` (rules.py:144). Witness s41 search limit: `hits[:SEARCH_LIMIT]` ->
+    # `hits[:SEARCH_LIMIT + 1]` (rules.py:145).
     assert json.loads(search_policy("usd")) == [_hit("EXP-2.1"), _hit("EXP-4.1")]
 
 
@@ -102,7 +104,8 @@ def test_search_returns_an_empty_list_when_no_chunk_shares_a_term(query):
 # relevant_chunks
 
 def test_grader_drops_a_retrieved_chunk_that_matches_the_query_only_in_its_text():
-    # Witness s41 grader accepts text matches (rules.py:161).
+    # Witness s41 grader accepts text matches: `known is not None and wanted & known.keywords and` ->
+    # `known is not None and` (rules.py:161).
     results = [search_policy("lodging expense")]
 
     assert _sections(results[0]) == ["TRV-4.2", "EXP-4.1"]
@@ -118,12 +121,13 @@ def test_grader_skips_a_result_that_is_not_json_and_keeps_retrieval_order():
 
 
 def test_grader_returns_a_chunk_retrieved_twice_only_once():
-    # Witness s41 grader no dedup (rules.py:161).
+    # Witness s41 grader no dedup: `and chunk not in relevant:` -> `:` (rules.py:161).
     assert relevant_chunks("hotel", [search_policy("hotel"), search_policy("hotel")]) == [_hit("TRV-4.2")]
 
 
 def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
-    # Witness s41 grader iterates non-list (rules.py:159).
+    # Witness s41 grader iterates non-list: `chunks if isinstance(chunks, list) else []` -> `chunks` (rules.py:159);
+    # iterating the number 5 then raises TypeError.
     results = ['5', '{"section": "TRV-4.2"}', '[1, {"section": "XYZ-9", "text": "hotel"}, {"title": "Hotel"}]']
 
     assert relevant_chunks("hotel", results) == []
@@ -141,12 +145,13 @@ def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
     ids=["cab_to_taxi", "uber_and_dinner", "booze"],
 )
 def test_rewrite_drops_stopwords_and_maps_everyday_words_to_policy_terms(question, rewritten):
-    # Witness s41 rewrite no synonyms; rewrite keeps stopwords (rules.py:168, 92).
+    # Witness s41 rewrite no synonyms: `SYNONYMS.get(term, term) for term` -> `term for term` (rules.py:168).
+    # Witness s41 rewrite keeps stopwords: `STOPWORDS - "a and are be can do"` -> `"a and are be do"` (rules.py:92).
     assert rewrite_query(question) == rewritten
 
 
 def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
-    # Witness s41 rewrite keeps stopwords (rules.py:131).
+    # Witness s41 rewrite keeps stopwords: `for w in words if w not in STOPWORDS` -> `for w in words` (rules.py:131).
     assert rewrite_query("What is it, and how do I do it?") == ""
 
 
@@ -170,7 +175,9 @@ def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
 def test_decide_answers_from_belief_only_when_confident_without_always_search_before_any_search(
     prompt, query, searched, step
 ):
-    # Witnesses s41 decide always search ignored; searched ignored; confident not required (rules.py:197).
+    # Witnesses, all rules.py:197: s41 decide always_search ignored (drop `"always_search" not in rules and `);
+    # s41 decide searched ignored (drop `and not searched`); s41 decide confident not required (drop
+    # `and "confident" in rules`).
     assert decide(prompt, query, searched) == step
 
 
@@ -192,7 +199,10 @@ CHUNKS = [_hit("TRV-4.2"), _hit("EXP-2.1")]
 def test_answer_quotes_the_first_extract_citing_it_and_says_not_covered_only_when_the_prompt_says_so(
     prompt, chunks, reply
 ):
-    # Witness s41 answer always cites, always not covered, last extract (rules.py:208-210).
+    # Witness s41 answer always cites: `if "cite" in rules else first["text"]` -> `if True else first["text"]`
+    # (rules.py:210). Witness s41 answer always not covered: `if "not_covered" in rules else NOT_FOUND` ->
+    # `if True else NOT_FOUND` (rules.py:208). Witness s41 answer last extract: `first = chunks[0]` ->
+    # `first = chunks[-1]` (rules.py:209).
     assert answer(prompt, chunks) == reply
 
 
@@ -207,7 +217,10 @@ def test_answer_quotes_the_first_extract_citing_it_and_says_not_covered_only_whe
     ids=["extracts", "no_extracts", "header_question_extracts", "header_question_no_extracts"],
 )
 def test_answer_request_round_trips_its_extracts(question, chunks, parsed):
-    # Witness s41 parse no empty case and s45 parse rejects header question (rules.py:182-185).
+    # Witness s41 parse no empty case: `return [] if extracts == NO_EXTRACTS else json.loads(extracts)` ->
+    # `return json.loads(extracts)` (rules.py:185). Witness s45 parse rejects a header question: `if not
+    # text.startswith(_REQUEST_PREFIX):` -> `if not text.startswith(_REQUEST_PREFIX) or ANSWER_HEADER in
+    # text[len(_REQUEST_PREFIX):]:` (rules.py:182), a fix that refuses the ambiguous case, fails both header ids.
     assert parse_answer_request(answer_request(question, chunks)) == parsed
 
 
@@ -217,7 +230,8 @@ def test_answer_request_round_trips_its_extracts(question, chunks, parsed):
     ids=["extracts", "no_extracts"],
 )
 def test_answer_request_is_the_header_then_the_question_then_the_extracts_one_per_line(chunks, extracts):
-    # Witness s45 request question label dropped (rules.py:172).
+    # Witness s45 request question label dropped: `_REQUEST_PREFIX = f"{ANSWER_HEADER}\\nQuestion: "` ->
+    # `_REQUEST_PREFIX = f"{ANSWER_HEADER}\\n"` (rules.py:172); the round trip above still passes.
     assert answer_request("Hotel cap?", chunks).split("\n") == [
         ANSWER_HEADER,
         "Question: Hotel cap?",
@@ -232,21 +246,25 @@ def test_answer_request_is_the_header_then_the_question_then_the_extracts_one_pe
 )
 def test_text_that_is_not_an_answer_request_parses_to_none(text):
     # A question opening with the header has no "Extracts: " tail, so reading it as a request used to raise.
-    # Witness s41 parse accepts any text; s45 parse header only (rules.py:182).
+    # Witness s41 parse accepts any text: `if not text.startswith(_REQUEST_PREFIX):` -> `if False:` (rules.py:182).
+    # Witness s45 parse header only: `if not text.startswith(_REQUEST_PREFIX):` ->
+    # `if not text.startswith(ANSWER_HEADER):` (rules.py:182) raises JSONDecodeError on the header question.
     assert parse_answer_request(text) is None
 
 
 # prompts and the model double
 
 def test_confident_prompt_is_the_good_prompt_with_always_search_replaced_by_confident():
-    # Witness s41 confident prompt drops not_covered (rules.py:118).
+    # Witness s41 confident prompt drops not_covered: `("confident", "cite", "not_covered")` ->
+    # `("confident", "cite")` (rules.py:113).
     assert active_rules(PROMPT) == {"always_search", "cite", "not_covered"}
     assert active_rules(PROMPT_CONFIDENT) == {"confident", "cite", "not_covered"}
     assert PROMPT_CONFIDENT.replace(RULE_SENTENCES["confident"], RULE_SENTENCES["always_search"]) == PROMPT
 
 
 def test_model_double_behaviour_follows_the_system_prompt_it_is_given():
-    # Witness s41 model ignores prompt (agent.py:49).
+    # Witness s41 model ignores prompt: `system_prompt = next(str(m.content) for m in messages if isinstance(m,
+    # SystemMessage))` -> `system_prompt = PROMPT` (agent.py:49).
     def reply(prompt):
         return SimulatedPolicyModel().invoke([SystemMessage(prompt), HumanMessage(HOTEL_LEEDS)])
 
@@ -259,7 +277,8 @@ def test_model_double_behaviour_follows_the_system_prompt_it_is_given():
 # the agent
 
 def test_agent_answer_quotes_the_retrieved_figure_and_cites_its_section():
-    # Witness s41 answer node drops graded chunks (agent.py:107).
+    # Witness s41 answer node drops graded chunks: `rules.answer_request(question, _relevant(state["messages"]))` ->
+    # `rules.answer_request(question, [])` (agent.py:107).
     queries, reply = _run(build_agent, "What is the nightly hotel cap in London?")
 
     assert queries == ["What is the nightly hotel cap in London?"]
@@ -267,7 +286,8 @@ def test_agent_answer_quotes_the_retrieved_figure_and_cites_its_section():
 
 
 def test_agent_answers_a_question_that_starts_with_the_answer_header_by_searching_for_it():
-    # Witness s45 parse header only.
+    # The header words are not any chunk's topic terms, so "hotel" alone makes TRV-4.2 the only relevant hit.
+    # Witness s45 parse header only (above): the decide step reads the question as an answer request and raises.
     queries, reply = _run(build_agent, HEADER_QUESTION)
 
     assert queries == [HEADER_QUESTION]
@@ -275,7 +295,9 @@ def test_agent_answers_a_question_that_starts_with_the_answer_header_by_searchin
 
 
 def test_agent_rewrites_a_query_with_no_relevant_hit_and_answers_from_the_rewritten_search():
-    # Witness s41 rewrite node passes query through (agent.py:102).
+    # The first search hits only text mentions of "expense"; "cab" is not a policy term until rewritten to "taxi".
+    # Witness s41 rewrite node passes query through: `HumanMessage(rules.rewrite_query(_current_query(state[` ->
+    # `HumanMessage((_current_query(state[` (agent.py:102).
     queries, reply = _run(build_agent, "Can I expense a cab from the airport?")
 
     assert queries == ["Can I expense a cab from the airport?", "expense taxi airport"]
@@ -283,7 +305,10 @@ def test_agent_rewrites_a_query_with_no_relevant_hit_and_answers_from_the_rewrit
 
 
 def test_agent_stops_after_two_rewrites_and_says_the_question_is_not_covered():
-    # Witness s41 rewrite cap off by one (agent.py:99).
+    # "reimbursed" and "travel" are in the text of five chunks but no chunk's topic terms, so every search returns hits
+    # and the grader rejects them all.
+    # Witness s41 rewrite cap off by one: `rewrites >= MAX_REWRITES else` -> `rewrites > MAX_REWRITES else`
+    # (agent.py:99).
     queries, reply = _run(build_agent, PET_BOARDING)
 
     assert _sections(search_policy("pet boarding reimbursed travel")) == ["EXP-2.1", "EXP-7.1"]
@@ -292,7 +317,8 @@ def test_agent_stops_after_two_rewrites_and_says_the_question_is_not_covered():
 
 
 def test_factories_differ_only_in_prompt_and_the_confident_one_answers_hotel_questions_from_belief():
-    # Witness s41 confident factory good prompt (agent.py:129).
+    # Witness s41 confident factory good prompt: `_build(SimulatedPolicyModel(), PROMPT_CONFIDENT)` ->
+    # `_build(SimulatedPolicyModel(), PROMPT)` (agent.py:129).
     good, confident = _run(build_agent, HOTEL_LEEDS), _run(build_confident_agent, HOTEL_LEEDS)
 
     assert good == ([HOTEL_LEEDS], _cited("TRV-4.2"))
@@ -302,7 +328,8 @@ def test_factories_differ_only_in_prompt_and_the_confident_one_answers_hotel_que
 
 def test_importing_the_agent_does_not_import_langchain_aws():
     # A subprocess, so no earlier import in this process can hide the result.
-    # Witness s41 live import at module level (agent.py:16).
+    # Witness s41 live import at module level: `from langchain_core.tools import tool\n` ->
+    # `from langchain_core.tools import tool\nimport langchain_aws\n` (agent.py:16).
     code = "import sys, examples.policy_rag.agent; print('langchain_aws' in sys.modules)"
     completed = subprocess.run([sys.executable, "-c", code], cwd=REPO, capture_output=True, text=True)
 
@@ -310,8 +337,12 @@ def test_importing_the_agent_does_not_import_langchain_aws():
 
 
 def test_live_agent_runs_the_good_prompt_on_bedrock_with_only_the_model_id(monkeypatch):
-    # Bedrock model is replaced by a double, so this runs offline.
-    # Witness s44 live temperature and s41 live confident prompt (agent.py:136).
+    # The Bedrock model is replaced by the double, so the graph runs offline with the prompt build_live_agent chose.
+    # Claude Haiku 5.5 on Bedrock rejects `temperature`, so the factory must pass the model id and nothing else.
+    # Witness s44 policy_rag live temperature: `ChatBedrockConverse(model=LIVE_MODEL_ID)` ->
+    # `ChatBedrockConverse(model=LIVE_MODEL_ID, temperature=0)` (agent.py:136).
+    # Witness s41 live agent confident prompt: `LIVE_MODEL_ID), PROMPT)` -> `LIVE_MODEL_ID), PROMPT_CONFIDENT)`
+    # (agent.py:136).
     received = {}
 
     class FakeBedrock(SimulatedPolicyModel):
@@ -332,7 +363,9 @@ def test_live_agent_runs_the_good_prompt_on_bedrock_with_only_the_model_id(monke
 # golden
 
 def test_golden_has_six_dataset_cases_five_labelled_pass_and_each_reference_is_the_good_agent_reply():
-    # Witness s41 golden alcohol unlabelled and meal-per-diem figure.
+    # Witness s41 golden alcohol unlabelled: `"label": "pass", "notes": "Quoted from EXP-3.4."` ->
+    # `"notes": "Quoted from EXP-3.4."` (golden.jsonl:5). Witness s41 golden meal per diem figure: `USD 95 per day for
+    # international travel.` -> `USD 90 per day for international travel.` (rules.py:62).
     questions = {case["id"]: case["input"] for case in _jsonl(DATASET)}
     golden = _jsonl(GOLDEN)
     replies = {entry["id"]: _run(build_agent, questions[entry["id"]])[1] for entry in golden}
@@ -354,6 +387,8 @@ def test_dataset_run_passes_with_the_good_prompt_and_fails_only_the_hotel_cases_
     tmp_path, factory, failing
 ):
     # A subprocess, as in test_expense.py: the tracer provider can only be set once per process.
+    # Witness s41 e2e build_agent confident: `_build(SimulatedPolicyModel(), PROMPT)` ->
+    # `_build(SimulatedPolicyModel(), PROMPT_CONFIDENT)` (agent.py:124).
     command = [sys.executable, "-m", "agent_accelerator.cli", "run", str(DATASET), "--adapter", "langgraph"]
     command += ["--agent", f"examples.policy_rag.agent:{factory}", "--runs-dir", str(tmp_path)]
     env = {**os.environ, "PYTHONUTF8": "1"}

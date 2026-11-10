@@ -41,7 +41,11 @@ class VideoTestProvenanceTests(unittest.TestCase):
         self.assertEqual(report["test_expense"]["lines_delta"], -2)
         self.assertEqual(report["test_expense"]["chars_delta"], -84)
         self.assertEqual(report["test_helpdesk"]["test_functions"], 19)
+        self.assertEqual(report["test_helpdesk"]["lines_delta"], -4)
+        self.assertEqual(report["test_helpdesk"]["chars_delta"], -75)
         self.assertEqual(report["test_policy_rag"]["test_functions"], 25)
+        self.assertEqual(report["test_policy_rag"]["lines_delta"], -14)
+        self.assertEqual(report["test_policy_rag"]["chars_delta"], -182)
 
     def test_unreviewed_change_in_active_candidate_rejected(self):
         name = "test_policy_rag"

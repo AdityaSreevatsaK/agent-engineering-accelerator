@@ -106,12 +106,12 @@ The video recommends deleting an entire run directory (for example, `rm -rf runs
 
 ## 6. Residual risks
 
-- Argument hashes in tool metrics are SHA256 of `[name, arguments]` at score time, then discarded; a user with original arguments and scorer seed might compare guesses, though the seed is in-memory and changes per run.
-- Output digest is HMAC-SHA256 with a per-run random key. An attacker with both captured and scrubbed logs for the same run could match outputs by digest. Do not commit or share `--capture-content` logs.
-- Tool and check names remain in reports and score metadata; choose generic names if identifiers could be sensitive.
-- `--input-price` and `--output-price` are not type-validated beyond numeric parsing; negative prices give negative cost. This is misleading but not a security risk.
+- Argument hashes in tool metrics are SHA256 of `[name, arguments]`, computed at score time then discarded; the hash does not survive scrubbing. Someone with access to the running process, the original arguments and the scorer's random seed could recompute guesses. The source review calls the risk low when the attacker has no access to the running process; this hash only counts redundant calls within one run.
+- Output digest is keyed HMAC-SHA256 with a per-run random key that is never stored. Someone with both a `--capture-content` log and scrubbed log from the same run could match outputs using a digest. The compare warning (`compare.py:compare`) flags when either side was captured. Mitigation: do not commit or share `--capture-content` logs.
+- Tool and check names in reports and score metadata are intentionally retained. If a name encodes a sensitive identifier (for example, a customer name as a function name), it appears in logs and reports. Mitigation: use generic names.
+- Negative or zero prices: `--input-price` and `--output-price` are parsed as numbers but the recorded review found no further non-negative validation. Negative values can produce negative cost; zero yields zero cost. This can mislead operators but is not in itself a security risk. (Re-check against newer reconstructed runtime separately.)
 - `aea init --force` overwrites `agent.py` and `dataset.jsonl` in a non-empty directory without another confirmation beyond explicit `--force`.
-- HTML/PDF export renders Markdown through a headless-browser subprocess. Exported files are not gitignored. A malicious Markdown report could contain executable HTML/JS; export only reports generated from trusted local runs and baselines.
+- HTML/PDF export (`aea export`, `cli.py:_export`) converts Markdown to HTML or PDF via a headless-browser subprocess (`export.py`). Markdown is parsed to HTML and the renderer is launched with a `file://` URL; exports written by `--output` are not git-ignored automatically. Report content (pass/fail, metrics, explanations) is rendered rather than intentionally executed, but malicious Markdown could embed executable HTML/JS that the browser renders during PDF generation, and the exported file could retain it. The historical command was described as local-only, with no automatic upload or external request made by the export command; this does **not** guarantee arbitrary embedded HTML cannot itself reach external resources. Mitigation: export only Markdown from trusted local runs and baselines.
 
 ## 7. Known limits
 
