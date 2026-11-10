@@ -7,12 +7,12 @@ It never claims to recover the original fixture or original baselines.
 """
 from __future__ import annotations
 
-from hashlib import sha256
-from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Callable
+from collections.abc import Callable
+from hashlib import sha256
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CAPTURE = Path("tests/fixtures/calculator_capture_content.json")
