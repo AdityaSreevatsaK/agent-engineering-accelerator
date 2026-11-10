@@ -32,8 +32,7 @@ def preflight(root: Path) -> None:
         target = root / rel
         if target.exists() or target.is_symlink():
             raise FileExistsError(
-                f"Refusing to overwrite existing data at {target}; "
-                "inspect original source evidence manually"
+                f"Refusing to overwrite existing data at {target}; inspect original source evidence manually"
             )
         for parent in target.parents:
             if parent == root:
