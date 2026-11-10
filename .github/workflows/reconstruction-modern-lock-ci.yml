@@ -1,0 +1,93 @@
+name: AEA contemporary dependency-resolution and offline CI
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - README.md
+      - pyproject.toml
+      - .github/workflows/reconstruction-modern-lock-ci.yml
+      - reconstruction_tools/test_operator_readme.py
+      - reconstruction_tools/run_integrated_offline.py
+      - reconstruction_tools/replay_original_ci_example_matrix.py
+      - examples/**
+      - src/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-lock-and-verify:
+    name: Temporary modern lock / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    env:
+      PYTHONUTF8: '1'
+      AWS_EC2_METADATA_DISABLED: 'true'
+      AWS_ACCESS_KEY_ID: ''
+      AWS_SECRET_ACCESS_KEY: ''
+      AWS_SESSION_TOKEN: ''
+      OPENAI_API_KEY: ''
+      ANTHROPIC_API_KEY: ''
+      AZURE_OPENAI_API_KEY: ''
+      GOOGLE_API_KEY: ''
+    steps:
+      - name: Checkout reconstruction candidate only
+        uses: actions/checkout@v4
+      - name: Select Python for dependency resolution and execution
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pinned resolver (not the lost historical lockfile)
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - name: Refuse to overwrite an existing historical lock
+        shell: python
+        run: |
+          from pathlib import Path
+          if Path("uv.lock").exists():
+              raise SystemExit("Refusing to overwrite a tracked lockfile; investigate its provenance")
+      - name: Generate a NEW lock from current pyproject.toml
+        run: uv lock
+      - name: Install all extras and development tooling using that job's lock
+        run: uv sync --all-extras --group dev --locked
+      - name: Check source format and imports with the generated resolution
+        run: |
+          uv run --locked ruff check src examples
+          uv run --locked ruff format --check src examples
+          uv run --locked pyright
+      - name: Validate README, release boundary, and modern lock policy
+        run: uv run --locked python -m unittest reconstruction_tools.test_operator_readme -v
+      - name: Run reconstructed original-path native unit suite with explicit fixture deferrals
+        run: uv run --locked python -m reconstruction_tools.run_integrated_offline
+      - name: Replay all seven original CI example stages with disposable new baselines
+        run: uv run --locked python -m reconstruction_tools.replay_original_ci_example_matrix --scenario all
+      - name: Record job-specific lock SHA256 (not historical source evidence)
+        shell: python
+        run: |
+          from hashlib import sha256
+          from pathlib import Path
+          lock = Path("uv.lock")
+          print(f"TEMPORARY MODERN LOCK SHA256: {sha256(lock.read_bytes()).hexdigest()}")
+          print("This file was newly resolved by CI, not recovered from the historic repository.")
+      - name: Retain short-lived generated dependency resolution for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-nonhistorical-uv-lock-${{ matrix.os }}-py${{ matrix.python }}
+          path: uv.lock
+          if-no-files-found: ignore
+          retention-days: 7
+
+# Original historical uv.lock, 14 historical baseline files and captured-log
+# fixtures are unavailable. This is a separate, modern replacement CI suite,
+# NOT byte-fidelity verification of the original locked scripts/ci.sh.
+# GitHub token is read-only; this workflow never commits the generated lock.
