@@ -24,11 +24,6 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 
-from inspect_ai.log import read_eval_log
-
-from agent_accelerator.compare import load_results
-from agent_accelerator.dataset import dataset_sha256, load_dataset
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -183,6 +178,13 @@ def run_command(args: list[str], expected: int) -> subprocess.CompletedProcess[s
 
 
 def single_run(lane: Lane, root: Path, factory: str, folder: str, expected_failures: frozenset[str]) -> Path:
+    # Keep manifest/safety unit tests standard-library-only. Native agent
+    # dependencies are required only for the actual end-to-end replay.
+    from inspect_ai.log import read_eval_log
+
+    from agent_accelerator.compare import load_results
+    from agent_accelerator.dataset import dataset_sha256, load_dataset
+
     output = root / lane.label / folder
     if output.exists():
         raise AssertionError(f"{lane.label}: refuse to reuse generated test location {output}")
