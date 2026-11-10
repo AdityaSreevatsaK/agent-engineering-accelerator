@@ -44,6 +44,9 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/src
         run: python -m reconstruction_tools.run_integrated_offline
 
+      - name: Report historical source-video count gaps (informational; not a fidelity gate)
+        run: python reconstruction_tools/audit_original_example_test_counts.py
+
       - name: Recover seven original comparison cases misclassified by subprocess fixture marker
         env:
           AWS_EC2_METADATA_DISABLED: "true"
