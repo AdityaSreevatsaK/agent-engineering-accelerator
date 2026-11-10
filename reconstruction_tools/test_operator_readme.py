@@ -4,6 +4,7 @@ The historical README was a title-only stub. The new guide must never be
 mistaken for byte-authenticated original AEA documentation or a production
 release signoff.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
