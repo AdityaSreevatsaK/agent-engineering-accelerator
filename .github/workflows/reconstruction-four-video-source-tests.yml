@@ -32,6 +32,8 @@ jobs:
         run: |
           python -m compileall -q tests/unit/test_helpdesk.py tests/unit/test_policy_rag.py tests/unit/test_triage.py tests/unit/test_expense.py
           python reconstruction_tools/audit_original_example_test_counts.py
+      - name: Check editor count and actual newline distinction (stdlib)
+        run: python -m unittest reconstruction_tools.test_video_line_ending_diagnostics -v
       - name: Execute integrated regression using disposable synthetic fixture
         env:
           AWS_EC2_METADATA_DISABLED: "true"
