@@ -275,7 +275,8 @@ def test_model_double_behaviour_follows_the_system_prompt_it_is_given():
 # the agent
 
 def test_agent_answer_quotes_the_retrieved_figure_and_cites_its_section():
-    # Witness s41 answer node drops graded chunks (agent.py:107).
+    # Witness s41 answer node drops graded chunks: `rules.answer_request(question, _relevant(state["messages"]))` ->
+    # `rules.answer_request(question, [])` (agent.py:107).
     queries, reply = _run(build_agent, "What is the nightly hotel cap in London?")
 
     assert queries == ["What is the nightly hotel cap in London?"]
@@ -283,7 +284,8 @@ def test_agent_answer_quotes_the_retrieved_figure_and_cites_its_section():
 
 
 def test_agent_answers_a_question_that_starts_with_the_answer_header_by_searching_for_it():
-    # Witness s45 parse header only.
+    # The header words are not any chunk's topic terms, so "hotel" alone makes TRV-4.2 the only relevant hit.
+    # Witness s45 parse header only (above): the decide step reads the question as an answer request and raises.
     queries, reply = _run(build_agent, HEADER_QUESTION)
 
     assert queries == [HEADER_QUESTION]
@@ -291,7 +293,9 @@ def test_agent_answers_a_question_that_starts_with_the_answer_header_by_searchin
 
 
 def test_agent_rewrites_a_query_with_no_relevant_hit_and_answers_from_the_rewritten_search():
-    # Witness s41 rewrite node passes query through (agent.py:102).
+    # The first search hits only text mentions of "expense"; "cab" is not a policy term until rewritten to "taxi".
+    # Witness s41 rewrite node passes query through: `HumanMessage(rules.rewrite_query(_current_query(state[` ->
+    # `HumanMessage((_current_query(state[` (agent.py:102).
     queries, reply = _run(build_agent, "Can I expense a cab from the airport?")
 
     assert queries == ["Can I expense a cab from the airport?", "expense taxi airport"]
@@ -299,7 +303,10 @@ def test_agent_rewrites_a_query_with_no_relevant_hit_and_answers_from_the_rewrit
 
 
 def test_agent_stops_after_two_rewrites_and_says_the_question_is_not_covered():
-    # Witness s41 rewrite cap off by one (agent.py:99).
+    # "reimbursed" and "travel" are in the text of five chunks but no chunk's topic terms, so every search returns hits
+    # and the grader rejects them all.
+    # Witness s41 rewrite cap off by one: `rewrites >= MAX_REWRITES else` -> `rewrites > MAX_REWRITES else`
+    # (agent.py:99).
     queries, reply = _run(build_agent, PET_BOARDING)
 
     assert _sections(search_policy("pet boarding reimbursed travel")) == ["EXP-2.1", "EXP-7.1"]
@@ -308,7 +315,8 @@ def test_agent_stops_after_two_rewrites_and_says_the_question_is_not_covered():
 
 
 def test_factories_differ_only_in_prompt_and_the_confident_one_answers_hotel_questions_from_belief():
-    # Witness s41 confident factory good prompt (agent.py:129).
+    # Witness s41 confident factory good prompt: `_build(SimulatedPolicyModel(), PROMPT_CONFIDENT)` ->
+    # `_build(SimulatedPolicyModel(), PROMPT)` (agent.py:129).
     good, confident = _run(build_agent, HOTEL_LEEDS), _run(build_confident_agent, HOTEL_LEEDS)
 
     assert good == ([HOTEL_LEEDS], _cited("TRV-4.2"))
@@ -318,7 +326,8 @@ def test_factories_differ_only_in_prompt_and_the_confident_one_answers_hotel_que
 
 def test_importing_the_agent_does_not_import_langchain_aws():
     # A subprocess, so no earlier import in this process can hide the result.
-    # Witness s41 live import at module level (agent.py:16).
+    # Witness s41 live import at module level: `from langchain_core.tools import tool\n` ->
+    # `from langchain_core.tools import tool\nimport langchain_aws\n` (agent.py:16).
     code = "import sys, examples.policy_rag.agent; print('langchain_aws' in sys.modules)"
     completed = subprocess.run([sys.executable, "-c", code], cwd=REPO, capture_output=True, text=True)
 
@@ -326,8 +335,12 @@ def test_importing_the_agent_does_not_import_langchain_aws():
 
 
 def test_live_agent_runs_the_good_prompt_on_bedrock_with_only_the_model_id(monkeypatch):
-    # Bedrock model is replaced by a double, so this runs offline.
-    # Witness s44 live temperature and s41 live confident prompt (agent.py:136).
+    # The Bedrock model is replaced by the double, so the graph runs offline with the prompt build_live_agent chose.
+    # Claude Haiku 5.5 on Bedrock rejects `temperature`, so the factory must pass the model id and nothing else.
+    # Witness s44 policy_rag live temperature: `ChatBedrockConverse(model=LIVE_MODEL_ID)` ->
+    # `ChatBedrockConverse(model=LIVE_MODEL_ID, temperature=0)` (agent.py:136).
+    # Witness s41 live agent confident prompt: `LIVE_MODEL_ID), PROMPT)` -> `LIVE_MODEL_ID), PROMPT_CONFIDENT)`
+    # (agent.py:136).
     received = {}
 
     class FakeBedrock(SimulatedPolicyModel):
@@ -348,7 +361,9 @@ def test_live_agent_runs_the_good_prompt_on_bedrock_with_only_the_model_id(monke
 # golden
 
 def test_golden_has_six_dataset_cases_five_labelled_pass_and_each_reference_is_the_good_agent_reply():
-    # Witness s41 golden alcohol unlabelled and meal-per-diem figure.
+    # Witness s41 golden alcohol unlabelled: `"label": "pass", "notes": "Quoted from EXP-3.4."` ->
+    # `"notes": "Quoted from EXP-3.4."` (golden.jsonl:5). Witness s41 golden meal per diem figure: `USD 95 per day for
+    # international travel.` -> `USD 90 per day for international travel.` (rules.py:62).
     questions = {case["id"]: case["input"] for case in _jsonl(DATASET)}
     golden = _jsonl(GOLDEN)
     replies = {entry["id"]: _run(build_agent, questions[entry["id"]])[1] for entry in golden}
