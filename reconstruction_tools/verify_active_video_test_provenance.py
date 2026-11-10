@@ -34,20 +34,20 @@ class Candidate:
 
 CANDIDATES = {
     "test_triage": Candidate(
-        "6928d1154705166b425ab3333491bb9e4e9ca2ea",
-        19400, 438, 16, 444, 19847, "LF",
+        "a44c4a50907e015b33e1db71c995dc223152a3ab",
+        19839, 443, 16, 444, 19847, "LF",
     ),
     "test_expense": Candidate(
-        "98912aeefbbaf5f7599fce9343c982268663e038",
-        29000, 653, 31, 656, 29737, "CRLF",
+        "c29989ebdc3530bfc60e7ff20313d4ea7c642b9f",
+        29084, 655, 31, 656, 29737, "CRLF",
     ),
     "test_helpdesk": Candidate(
-        "b29b47234cd8c9949d0f0ddd3edda60fe3f77e2f",
-        19940, 450, 19, 454, 20015, "LF",
+        "aade704be3bdd6e33100984e94232e10353b802f",
+        19960, 453, 19, 454, 20015, "LF",
     ),
     "test_policy_rag": Candidate(
-        "95fae55413af53737e18cb5193c7701886b57786",
-        18195, 402, 25, 416, 18377, "LF",
+        "9ccfc238b289a18a51b62e30533c7158d6be7e01",
+        18310, 415, 25, 416, 18377, "LF",
     ),
     "test_langgraph_adapter": Candidate(
         "ad2631dcf71fc08e5e3c69b9aeced72dc3b32551",
@@ -68,6 +68,11 @@ FRAGMENT_NAME = re.compile(
 def git_blob_digest(content: str) -> str:
     """Git's SHA-1 object identity over a canonical LF-text blob."""
     data = content.encode("utf-8")
+    return sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+
+
+def git_blob_digest_bytes(data: bytes) -> str:
+    """Git blob identity over exact stored bytes, including historical CRLF."""
     return sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
 
 
@@ -103,7 +108,10 @@ def inspect_active(name: str, *, root: Path = ROOT) -> dict[str, int]:
     spec = CANDIDATES[name]
     path = root / "tests" / "unit" / f"{name}.py"
     content = path.read_text(encoding="utf-8")
-    digest = git_blob_digest(content)
+    # Expense is intentionally checked in with original Windows CRLF bytes.
+    # Other reviewed candidates use LF blobs; text read is newline-normalised.
+    digest = (git_blob_digest_bytes(path.read_bytes()) if name == "test_expense"
+              else git_blob_digest(content))
     if digest != spec.git_blob:
         raise AssertionError(
             f"{name}: source candidate drifted from reviewed Git blob: "
@@ -159,11 +167,22 @@ def audit_all(*, root: Path = ROOT) -> dict[str, dict[str, int]]:
     results: dict[str, dict[str, int]] = {}
     for name in CANDIDATES:
         results[name] = inspect_active(name, root=root)
+    # Legacy provisional video drafts are preserved as historical evidence,
+    # not overwritten when a later recording improves the active reconstruction.
+    from reconstruction_tools.verify_original_video_test_candidates import validate_source
     for name, filename in DIRECT_COPIES.items():
-        archived = (root / "reconstruction_drafts" / filename).read_text(encoding="utf-8")
-        active = (root / "tests" / "unit" / f"{name}.py").read_text(encoding="utf-8")
-        if archived != active:
-            raise AssertionError(f"{name}: active test changed independently of archived video candidate")
+        archive = root / "reconstruction_drafts" / filename
+        if root == ROOT:
+            validate_source(name)  # pins legacy SHA256 and its historical dimensions
+        elif not archive.is_file():
+            raise AssertionError(f"{name}: preserved provisional source draft missing")
+        else:
+            # Independently pin the archived bytes against the reviewed baseline.
+            import hashlib
+            from reconstruction_tools.verify_original_video_test_candidates import SOURCES
+            original = archive.read_text(encoding="utf-8")
+            if hashlib.sha256(original.encode("utf-8")).hexdigest() != SOURCES[name]["sha256"]:
+                raise AssertionError(f"{name}: preserved provisional video candidate changed")
     assemble_langgraph_fragments(root=root)
     return results
 
