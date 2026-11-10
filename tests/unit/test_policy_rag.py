@@ -89,7 +89,9 @@ def test_search_ranks_a_topic_term_match_above_chunks_that_only_mention_a_query_
 def test_search_breaks_ties_by_section_id_and_returns_at_most_two_hits():
     # "usd" is in the text of five chunks and no chunk's topic terms, so all five score 1.
     # By section id the first two are EXP-2.1 and EXP-4.1; corpus order would give TRV-4.2 and TRV-5.1.
-    # Witness s41 search ties in corpus order; search limit (rules.py:144-145).
+    # Witness s41 search ties in corpus order: `key=lambda pair: (-pair[0], pair[1].section)` ->
+    # `key=lambda pair: -pair[0]` (rules.py:144). Witness s41 search limit: `hits[:SEARCH_LIMIT]` ->
+    # `hits[:SEARCH_LIMIT + 1]` (rules.py:145).
     assert json.loads(search_policy("usd")) == [_hit("EXP-2.1"), _hit("EXP-4.1")]
 
 
@@ -102,7 +104,8 @@ def test_search_returns_an_empty_list_when_no_chunk_shares_a_term(query):
 # relevant_chunks
 
 def test_grader_drops_a_retrieved_chunk_that_matches_the_query_only_in_its_text():
-    # Witness s41 grader accepts text matches (rules.py:161).
+    # Witness s41 grader accepts text matches: `known is not None and wanted & known.keywords and` ->
+    # `known is not None and` (rules.py:161).
     results = [search_policy("lodging expense")]
 
     assert _sections(results[0]) == ["TRV-4.2", "EXP-4.1"]
@@ -118,12 +121,13 @@ def test_grader_skips_a_result_that_is_not_json_and_keeps_retrieval_order():
 
 
 def test_grader_returns_a_chunk_retrieved_twice_only_once():
-    # Witness s41 grader no dedup (rules.py:161).
+    # Witness s41 grader no dedup: `and chunk not in relevant:` -> `:` (rules.py:161).
     assert relevant_chunks("hotel", [search_policy("hotel"), search_policy("hotel")]) == [_hit("TRV-4.2")]
 
 
 def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
-    # Witness s41 grader iterates non-list (rules.py:159).
+    # Witness s41 grader iterates non-list: `chunks if isinstance(chunks, list) else []` -> `chunks` (rules.py:159);
+    # iterating the number 5 then raises TypeError.
     results = ['5', '{"section": "TRV-4.2"}', '[1, {"section": "XYZ-9", "text": "hotel"}, {"title": "Hotel"}]']
 
     assert relevant_chunks("hotel", results) == []
@@ -141,12 +145,13 @@ def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
     ids=["cab_to_taxi", "uber_and_dinner", "booze"],
 )
 def test_rewrite_drops_stopwords_and_maps_everyday_words_to_policy_terms(question, rewritten):
-    # Witness s41 rewrite no synonyms; rewrite keeps stopwords (rules.py:168, 92).
+    # Witness s41 rewrite no synonyms: `SYNONYMS.get(term, term) for term` -> `term for term` (rules.py:168).
+    # Witness s41 rewrite keeps stopwords: `STOPWORDS - "a and are be can do"` -> `"a and are be do"` (rules.py:92).
     assert rewrite_query(question) == rewritten
 
 
 def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
-    # Witness s41 rewrite keeps stopwords (rules.py:131).
+    # Witness s41 rewrite keeps stopwords: `for w in words if w not in STOPWORDS` -> `for w in words` (rules.py:131).
     assert rewrite_query("What is it, and how do I do it?") == ""
 
 
@@ -170,7 +175,9 @@ def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
 def test_decide_answers_from_belief_only_when_confident_without_always_search_before_any_search(
     prompt, query, searched, step
 ):
-    # Witnesses s41 decide always search ignored; searched ignored; confident not required (rules.py:197).
+    # Witnesses, all rules.py:197: s41 decide always_search ignored (drop `"always_search" not in rules and `);
+    # s41 decide searched ignored (drop `and not searched`); s41 decide confident not required (drop
+    # `and "confident" in rules`).
     assert decide(prompt, query, searched) == step
 
 
@@ -192,7 +199,10 @@ CHUNKS = [_hit("TRV-4.2"), _hit("EXP-2.1")]
 def test_answer_quotes_the_first_extract_citing_it_and_says_not_covered_only_when_the_prompt_says_so(
     prompt, chunks, reply
 ):
-    # Witness s41 answer always cites, always not covered, last extract (rules.py:208-210).
+    # Witness s41 answer always cites: `if "cite" in rules else first["text"]` -> `if True else first["text"]`
+    # (rules.py:210). Witness s41 answer always not covered: `if "not_covered" in rules else NOT_FOUND` ->
+    # `if True else NOT_FOUND` (rules.py:208). Witness s41 answer last extract: `first = chunks[0]` ->
+    # `first = chunks[-1]` (rules.py:209).
     assert answer(prompt, chunks) == reply
 
 
@@ -207,7 +217,10 @@ def test_answer_quotes_the_first_extract_citing_it_and_says_not_covered_only_whe
     ids=["extracts", "no_extracts", "header_question_extracts", "header_question_no_extracts"],
 )
 def test_answer_request_round_trips_its_extracts(question, chunks, parsed):
-    # Witness s41 parse no empty case and s45 parse rejects header question (rules.py:182-185).
+    # Witness s41 parse no empty case: `return [] if extracts == NO_EXTRACTS else json.loads(extracts)` ->
+    # `return json.loads(extracts)` (rules.py:185). Witness s45 parse rejects a header question: `if not
+    # text.startswith(_REQUEST_PREFIX):` -> `if not text.startswith(_REQUEST_PREFIX) or ANSWER_HEADER in
+    # text[len(_REQUEST_PREFIX):]:` (rules.py:182), a fix that refuses the ambiguous case, fails both header ids.
     assert parse_answer_request(answer_request(question, chunks)) == parsed
 
 
@@ -217,7 +230,8 @@ def test_answer_request_round_trips_its_extracts(question, chunks, parsed):
     ids=["extracts", "no_extracts"],
 )
 def test_answer_request_is_the_header_then_the_question_then_the_extracts_one_per_line(chunks, extracts):
-    # Witness s45 request question label dropped (rules.py:172).
+    # Witness s45 request question label dropped: `_REQUEST_PREFIX = f"{ANSWER_HEADER}\\nQuestion: "` ->
+    # `_REQUEST_PREFIX = f"{ANSWER_HEADER}\\n"` (rules.py:172); the round trip above still passes.
     assert answer_request("Hotel cap?", chunks).split("\n") == [
         ANSWER_HEADER,
         "Question: Hotel cap?",
@@ -232,7 +246,9 @@ def test_answer_request_is_the_header_then_the_question_then_the_extracts_one_pe
 )
 def test_text_that_is_not_an_answer_request_parses_to_none(text):
     # A question opening with the header has no "Extracts: " tail, so reading it as a request used to raise.
-    # Witness s41 parse accepts any text; s45 parse header only (rules.py:182).
+    # Witness s41 parse accepts any text: `if not text.startswith(_REQUEST_PREFIX):` -> `if False:` (rules.py:182).
+    # Witness s45 parse header only: `if not text.startswith(_REQUEST_PREFIX):` ->
+    # `if not text.startswith(ANSWER_HEADER):` (rules.py:182) raises JSONDecodeError on the header question.
     assert parse_answer_request(text) is None
 
 
