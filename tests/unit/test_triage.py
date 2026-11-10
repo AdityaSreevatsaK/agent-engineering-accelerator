@@ -207,9 +207,14 @@ def test_classifier_reply_is_parsed_from_embedded_json_with_safe_fallbacks(text,
             [],
         ),
     ],
+    ids=["billing_overdue_invoice", "technical_unknown_issue", "account", "other"],
 )
 def test_each_category_is_routed_to_its_specialist(ticket, category, priority, reply, tools):
+    # Witness s40 technical routed to general: `"technical": "technical",` -> `"technical": "general",` (agent.py:175).
+    # Witness s40 account routed to technical: `"account": "general",` -> `"account": "technical",` (agent.py:175).
+    # Witness s40 overdue reply wrong status: `elif invoice["status"] == "overdue":` -> `elif False:` (agent.py:133).
     state = _run(build_agent, ticket)
+
     assert _answer(state) == {"category": category, "priority": priority, "reply": reply}
     assert _tools(state) == tools
 
