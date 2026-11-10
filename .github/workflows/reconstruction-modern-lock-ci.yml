@@ -9,6 +9,8 @@ on:
       - pyproject.toml
       - .github/workflows/reconstruction-modern-lock-ci.yml
       - reconstruction_tools/test_operator_readme.py
+      - reconstruction_tools/test_integrated_fixture_wrapper.py
+      - reconstruction_tools/run_integrated_offline_safe.py
       - reconstruction_tools/run_integrated_offline.py
       - reconstruction_tools/replay_original_ci_example_matrix.py
       - examples/**
@@ -63,15 +65,17 @@ jobs:
         run: |
           uv run --locked ruff check src examples
           uv run --locked pyright
-      - name: Gate formatting of newly authored reconstruction test
-        run: uv run --locked ruff format --check reconstruction_tools/test_operator_readme.py
+      - name: Gate lint and format of new reconstruction safety tooling
+        run: |
+          uv run --locked ruff check reconstruction_tools/test_operator_readme.py reconstruction_tools/test_integrated_fixture_wrapper.py reconstruction_tools/run_integrated_offline_safe.py
+          uv run --locked ruff format --check reconstruction_tools/test_operator_readme.py reconstruction_tools/test_integrated_fixture_wrapper.py reconstruction_tools/run_integrated_offline_safe.py
       - name: Report historical source formatting differences without changing evidence
         continue-on-error: true
         run: uv run --locked ruff format --check src examples
-      - name: Validate README, release boundary, and modern lock policy
-        run: uv run --locked python -m unittest reconstruction_tools.test_operator_readme -v
-      - name: Run reconstructed original-path native unit suite with explicit fixture deferrals
-        run: uv run --locked python -m reconstruction_tools.run_integrated_offline
+      - name: Validate README, synthetic-fixture cleanup and modern lock policy
+        run: uv run --locked python -m unittest reconstruction_tools.test_operator_readme reconstruction_tools.test_integrated_fixture_wrapper -v
+      - name: Run reconstructed original-path unit suite with safe, temporary fixture
+        run: uv run --locked python -m reconstruction_tools.run_integrated_offline_safe
       - name: Replay all seven original CI example stages with disposable new baselines
         run: uv run --locked python -m reconstruction_tools.replay_original_ci_example_matrix --scenario all
       - name: Record job-specific lock SHA256 (not historical source evidence)
