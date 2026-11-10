@@ -15,7 +15,7 @@ The original historical `uv.lock` was not supplied and the user cannot upload or
 1. Fails closed if a `uv.lock` is already present at the checked-out historical path.
 2. Installs a pinned `uv` resolver and generates a **new temporary** lock from the current `pyproject.toml`.
 3. Installs runtime/framework/dev dependencies with `uv sync --all-extras --group dev --locked`; no paid provider keys.
-4. Gates Ruff lint, Pyright and formatting of newly authored reconstruction-test source. The original recovered source contains four **pre-existing Ruff formatter differences** (cli.py, compare.py, judge.py, readings.py); its formatter output remains an **explicit non-gating diagnostic** rather than silently rewriting video-derived source. Also runs README safety tests, native offline integrated tests and the seven-example regression replay.
+4. Gates Ruff lint, Pyright and formatting of newly authored reconstruction-test source. The original recovered source contains four **pre-existing Ruff formatter differences** (cli.py, compare.py, judge.py, readings.py); its formatter output remains an **explicit non-gating diagnostic** rather than silently rewriting video-derived source. Also runs README safety tests, the native offline integrated suite through a new **safe synthetic-fixture wrapper** (with checksum-guarded cleanup), and the seven-example regression replay.
 5. Prints the SHA256 of the generated lock and uploads it as a **seven-day CI artifact** for reviewers.
 6. Never pushes this file to the repository, and has `contents: read` permission only.
 
