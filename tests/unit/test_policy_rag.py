@@ -79,6 +79,7 @@ def _jsonl(path):
 
 # search_policy
 
+
 def test_search_ranks_a_topic_term_match_above_chunks_that_only_mention_a_query_word():
     # "lodging" is a TRV-4.2 topic term absent from its text (score 2); "expense" is only in the text of EXP-4.1 and
     # EXP-6.2 (score 1 each). Unweighted, all three tie at 1 and the two EXP chunks win on section id.
@@ -102,6 +103,7 @@ def test_search_returns_an_empty_list_when_no_chunk_shares_a_term(query):
 
 
 # relevant_chunks
+
 
 def test_grader_drops_a_retrieved_chunk_that_matches_the_query_only_in_its_text():
     # Witness s41 grader accepts text matches: `known is not None and wanted & known.keywords and` ->
@@ -135,6 +137,7 @@ def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
 
 # rewrite_query
 
+
 @pytest.mark.parametrize(
     ("question", "rewritten"),
     [
@@ -157,6 +160,7 @@ def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
 
 # decide
 
+
 @pytest.mark.parametrize(
     ("prompt", "query", "searched", "step"),
     [
@@ -168,8 +172,12 @@ def test_rewrite_of_a_question_made_only_of_stopwords_is_empty():
         ("Answer employee questions.", HOTEL_LEEDS, False, Search(HOTEL_LEEDS)),
     ],
     ids=[
-        "always_search", "confident_with_a_belief", "confident_after_a_search",
-        "confident_without_a_belief", "always_search_overrides_confident", "no_rule",
+        "always_search",
+        "confident_with_a_belief",
+        "confident_after_a_search",
+        "confident_without_a_belief",
+        "always_search_overrides_confident",
+        "no_rule",
     ],
 )
 def test_decide_answers_from_belief_only_when_confident_without_always_search_before_any_search(
@@ -182,6 +190,7 @@ def test_decide_answers_from_belief_only_when_confident_without_always_search_be
 
 
 # answer
+
 
 CHUNKS = [_hit("TRV-4.2"), _hit("EXP-2.1")]
 
@@ -254,6 +263,7 @@ def test_text_that_is_not_an_answer_request_parses_to_none(text):
 
 # prompts and the model double
 
+
 def test_confident_prompt_is_the_good_prompt_with_always_search_replaced_by_confident():
     # Witness s41 confident prompt drops not_covered: `("confident", "cite", "not_covered")` ->
     # `("confident", "cite")` (rules.py:113).
@@ -275,6 +285,7 @@ def test_model_double_behaviour_follows_the_system_prompt_it_is_given():
 
 
 # the agent
+
 
 def test_agent_answer_quotes_the_retrieved_figure_and_cites_its_section():
     # Witness s41 answer node drops graded chunks: `rules.answer_request(question, _relevant(state["messages"]))` ->
@@ -362,6 +373,7 @@ def test_live_agent_runs_the_good_prompt_on_bedrock_with_only_the_model_id(monke
 
 # golden
 
+
 def test_golden_has_six_dataset_cases_five_labelled_pass_and_each_reference_is_the_good_agent_reply():
     # Witness s41 golden alcohol unlabelled: `"label": "pass", "notes": "Quoted from EXP-3.4."` ->
     # `"notes": "Quoted from EXP-3.4."` (golden.jsonl:5). Witness s41 golden meal per diem figure: `USD 95 per day for
@@ -376,6 +388,7 @@ def test_golden_has_six_dataset_cases_five_labelled_pass_and_each_reference_is_t
 
 
 # end to end, through `aea run`
+
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
