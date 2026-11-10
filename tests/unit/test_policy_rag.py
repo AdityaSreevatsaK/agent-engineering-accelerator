@@ -98,7 +98,7 @@ def test_search_breaks_ties_by_section_id_and_returns_at_most_two_hits():
 
 @pytest.mark.parametrize("query", ["pet boarding", "what is it?"], ids=["no_shared_term", "only_stopwords"])
 def test_search_returns_an_empty_list_when_no_chunk_shares_a_term(query):
-    # Witness s41 search keeps zero scores (rules.py:144).
+    # Witness s41 search keeps zero scores: `if pair[0] > 0` -> `if pair[0] >= 0` (rules.py:144).
     assert search_policy(query) == "[]"
 
 
@@ -115,8 +115,8 @@ def test_grader_drops_a_retrieved_chunk_that_matches_the_query_only_in_its_text(
 
 
 def test_grader_skips_a_result_that_is_not_json_and_keeps_retrieval_order():
-    # A tool error reaches the grader as plain text; ToolNode(handle_tool_errors=True) reports it.
-    # Witness s41 grader stops at invalid json (rules.py:158).
+    # A tool error reaches the grader as plain text, as ToolNode(handle_tool_errors=True) reports it.
+    # Witness s41 grader stops at invalid json: `continue` -> `return relevant` (rules.py:158).
     results = ["Error: search failed", search_policy("alcohol"), search_policy("hotel")]
 
     assert relevant_chunks("alcohol hotel", results) == [_hit("EXP-3.4"), _hit("TRV-4.2")]
@@ -149,7 +149,7 @@ def test_grader_ignores_json_that_is_not_a_list_of_known_sections():
 )
 def test_rewrite_drops_stopwords_and_maps_everyday_words_to_policy_terms(question, rewritten):
     # Witness s41 rewrite no synonyms: `SYNONYMS.get(term, term) for term` -> `term for term` (rules.py:168).
-    # Witness s41 rewrite keeps stopwords: `STOPWORDS - "a and are be can do"` -> `"a and are be do"` (rules.py:92).
+    # Witness s41 rewrite keeps can: STOPWORDS `"a an and are be can do"` -> `"a an and are be do"` (rules.py:92).
     assert rewrite_query(question) == rewritten
 
 
