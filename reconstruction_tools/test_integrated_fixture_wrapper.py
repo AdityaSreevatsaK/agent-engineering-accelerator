@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
 from reconstruction_tools.run_integrated_offline_safe import (
     CAPTURE,
