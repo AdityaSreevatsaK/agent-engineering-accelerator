@@ -47,3 +47,9 @@ The original `examples/expense/scorers.py` string `a referral approves nothing` 
 5. Only after those checks, consider promoting verified reconstruction commits; leave `master` untouched meanwhile.
 
 Diagnostic helper: `python reconstruction_tools/audit_original_example_test_counts.py`. This reports counts and exits successfully even when gaps are found; it is **not** a release gate.
+
+## November 10 second-video correction
+
+The new `tests-unit-test_triage.py - video(2).webm` explicitly displays **Unix (LF)** in Notepad++, not CRLF. This supersedes the earlier triage editor-convention assumption. Its recorded status is 444 lines / 19,847 characters. Direct frame comparison of the routing test at original lines 210–219 recovered the parameterised `ids` field, three witness comments and a blank separator, adding five lines and 439 characters. The candidate is now **444 displayed lines / 19,839 LF characters**, leaving **8 characters** unresolved. The recorded video has been inspected directly; no arbitrary text was added to force the remaining character count. The expense video explicitly displays Windows CRLF, which remains correct in the existing count checker. Helpdesk and policy RAG are Unix LF.
+
+Original screenshot anchor: triage video at approximately 3.5 seconds, original lines 209–219.
