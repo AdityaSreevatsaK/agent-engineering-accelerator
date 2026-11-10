@@ -173,7 +173,7 @@ def audit_all(*, root: Path = ROOT) -> dict[str, dict[str, int]]:
     for name, filename in DIRECT_COPIES.items():
         archive = root / "reconstruction_drafts" / filename
         if root == ROOT:
-            validate_source(name)  # pins legacy SHA256 and its historical dimensions
+            validate_source(name.removeprefix("test_"))  # pins legacy SHA256 and its historical dimensions
         elif not archive.is_file():
             raise AssertionError(f"{name}: preserved provisional source draft missing")
         else:
