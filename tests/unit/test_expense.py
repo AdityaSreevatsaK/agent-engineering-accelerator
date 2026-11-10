@@ -196,8 +196,10 @@ def test_alcohol_is_never_reimbursed_and_takes_precedence_over_the_receipt_rule(
 
 
 def test_alcohol_is_paid_when_the_alcohol_rule_is_inactive():
-    result = _review(_claim(_line("alcohol", 120.0)), ALL_RULES - {"alcohol"})
-    assert result == {"decision": "approve", "claimed_usd": 120.0, "approved_usd": 120.0, "adjustments": []}
+    # Witness s17 alcohol ignores rule: drop `and "alcohol" in rules` (rules.py:193).
+    result = _review(_claim(_line("alcohol", 60.0)), ALL_RULES - {"alcohol"})
+
+    assert result == {"decision": "approve", "claimed_usd": 60.0, "approved_usd": 60.0, "adjustments": []}
 
 
 # review: per diem rule
