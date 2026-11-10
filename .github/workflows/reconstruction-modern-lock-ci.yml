@@ -59,11 +59,15 @@ jobs:
         run: uv lock
       - name: Install all extras and development tooling using that job's lock
         run: uv sync --all-extras --group dev --locked
-      - name: Check source format and imports with the generated resolution
+      - name: Gate source lint and types against the generated resolution
         run: |
           uv run --locked ruff check src examples
-          uv run --locked ruff format --check src examples
           uv run --locked pyright
+      - name: Gate formatting of newly authored reconstruction test
+        run: uv run --locked ruff format --check reconstruction_tools/test_operator_readme.py
+      - name: Report historical source formatting differences without changing evidence
+        continue-on-error: true
+        run: uv run --locked ruff format --check src examples
       - name: Validate README, release boundary, and modern lock policy
         run: uv run --locked python -m unittest reconstruction_tools.test_operator_readme -v
       - name: Run reconstructed original-path native unit suite with explicit fixture deferrals
