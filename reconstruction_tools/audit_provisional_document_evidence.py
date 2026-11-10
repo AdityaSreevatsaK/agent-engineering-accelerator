@@ -34,10 +34,10 @@ def audit_acceptance(content: str) -> None:
     )
     start = content.index("## 1. Confirmed decisions")
     end = content.index("## 2. Agreed scope")
-    decisions = re.findall(r"^\\| D(\\d{1,2}) \\|", content[start:end], flags=re.MULTILINE)
+    decisions = re.findall(r"^\| D(\d{1,2}) \|", content[start:end], flags=re.MULTILINE)
     if decisions != [str(i) for i in range(1, 23)]:
         raise AssertionError("The 22 historically recorded decision rows must be preserved in order")
-    commands = re.findall(r"^\\| \\x60aea (init|run|compare|report|check|export)\\x60", content, flags=re.MULTILINE)
+    commands = re.findall(r"^\| \x60aea (init|run|compare|report|check|export)\x60", content, flags=re.MULTILINE)
     if commands != ["init", "run", "compare", "report", "check", "export"]:
         raise AssertionError("The recorded CLI table must retain all six rows in order")
     for evidence in ("--max-p-value", "Fisher", "not re-run", "tests/unit/test_judge_pairwise.py"):
