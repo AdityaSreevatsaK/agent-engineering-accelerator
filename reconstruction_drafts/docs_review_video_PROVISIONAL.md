@@ -2,7 +2,7 @@
 
 > **Provisional video transcription, not byte-for-byte original.** This document recovers the visible headings, boundaries and core factual findings of `docs/review.md.webm`. Original line numbering and some passages remain to be verified. Preserve as a reconstruction draft until the full video/source comparison is complete.
 
-The original review focuses on AEA dependencies, data handling, redaction guarantees, metrics retention and security risks. As shown in the recording, the 2.1.0 LangGraph streaming, subgraph and message collection paths and the three 2.1.0 demo agents (triage, policy RAG, helpdesk) were not reviewed in the original scope; see CHANGELOG.
+The original review focuses on AEA dependencies, data handling, redaction guarantees, metric storage, retention and security risks. The recording confirms the original section order: 1 Dependencies; 2 Data stored; 2a Metric storage; 3 Redaction guarantees; 4 Retention; 5 Security notes; 6 Residual risks; 7 Known limits. As shown in the recording, the 2.1.0 LangGraph streaming, subgraph and message collection paths and the three 2.1.0 demo agents (triage, policy RAG, helpdesk) were not reviewed in the original scope; see CHANGELOG.
 
 Scope: `pyproject.toml`, `.gitignore`, `README.md`, `src/agent_accelerator/run.py`, `tracing.py`, `scorers.py`, `adapters/__init__.py`, `dataset.py`, `cli.py`, `stats.py`, `run_metrics.py`, `tool_metrics.py`, `trace_summary.py`, and (for 2.2.0) `config.py` and post-2.1.0 changes to `adapters/langgraph.py` and `adapters/strands.py`. Claims outside the reviewed files are marked unverified.
 
@@ -77,9 +77,24 @@ Not protected:
 - Custom tool/check names or identifiers that themselves encode sensitive content.
 - Custom agent/network behaviour, arbitrary user source code, untrusted report exports.
 
-## 4. Security notes
+## 4. Retention
 
-The recording's **Security notes** section (approximately source lines 113–126) identifies the following concrete trust boundaries:
+The recorded **Retention** section (approximately lines 98–112) states that AEA does not automatically remove run directories; `JsonlSpanExporter` opens `traces.jsonl` in append mode.
+
+| Artefact | Content by default? | With `--capture-content`? | Retention responsibility |
+| --- | --- | --- | --- |
+| `runs/<timestamp>/log.json` | No, scrubbed | Yes, full prompts, answers, messages and tool payloads | User manually deletes run directory |
+| `runs/<timestamp>/traces.jsonl` | No, redacted spans | Yes, full framework attributes | User manually deletes run directory |
+| `runs/<timestamp>/report.md` | No raw payloads; derived from log and traces | No (the original review says the report format does not include payloads) | User manually deletes run directory |
+| `baselines/<name>.json` | Depends on whether copied from scrubbed or captured run | May contain full captured content | User; not git-ignored, may be committed |
+| `comparison*.md` | Metrics, pass/fail, no content by default | No additional capture setting | User; ignored by default |
+| Custom `--runs-dir` outside default patterns | Same as run artefacts | Same as run artefacts | User; may not match git-ignore patterns |
+
+The video recommends deleting an entire run directory (for example, `rm -rf runs/<run-id>`) and choosing a project retention period. There is no built-in clean command. The recorded `.gitignore` excludes `runs/`, `runs-*/` and `comparison*.md`; baselines are committed by design and should contain only intentionally shareable scrubbed logs.
+
+## 5. Security notes
+
+The recording's **Security notes** section (approximately source lines 113–128) identifies the following concrete trust boundaries:
 
 - Agent references (`--agent module:function`), scorer references (`--scorer module:function`) and LangGraph `--input-map`/`--output-map` references are imported and **executed** in the current Python process. They are trusted code, not sandboxed plug-ins. Only run references you trust.
 - An explicitly supplied `--config FILE` is a TOML document containing import references for `adapter`, `agent`, `input_map` and `output_map`. Configuration is not silently auto-discovered. CLI flags override the file. Missing/invalid TOML, non-UTF-8 input, unknown keys and invalid reference values produce configuration errors before run-directory creation.
@@ -88,21 +103,6 @@ The recording's **Security notes** section (approximately source lines 113–126
 - `tracing.py:configure_tracing` sets process-wide environment variables, so other components within that process can inherit those settings.
 - The reviewed files do not load provider credentials themselves; framework clients may use environment credentials (for example, AWS credentials for Bedrock). This is not evidence that a custom user agent is credential-safe.
 - The CLI failure hint directing users to rerun with `--capture-content` is only an operator suggestion, not an automatic capture or upload.
-
-## 5. Retention
-
-The recorded **Retention** section (approximately lines 98–111) states that AEA does not automatically remove run directories; `JsonlSpanExporter` opens `traces.jsonl` in append mode.
-
-| Artefact | Content by default? | With `--capture-content`? | Retention responsibility |
-| --- | --- | --- | --- |
-| `runs/<timestamp>/log.json` | No, scrubbed | Yes, full prompts, answers, messages and tool payloads | User manually deletes run directory |
-| `runs/<timestamp>/traces.jsonl` | No, redacted spans | Yes, full framework attributes | User manually deletes run directory |
-| `runs/<timestamp>/report.md` | No raw payloads, derived from log and traces | Report still derives from the captured data | User manually deletes run directory |
-| `baselines/<name>.json` | Depends on whether copied from scrubbed or captured run | May contain full captured content | User; not git-ignored, may be committed |
-| `comparison*.md` | Metrics, pass/fail, no content by default | No additional capture setting | User; ignored by default |
-| Custom `--runs-dir` outside default patterns | Same as run artefacts | Same as run artefacts | User; may not match git-ignore patterns |
-
-The video recommends deleting an entire run directory (for example, `rm -rf runs/<run-id>`) and choosing a project retention period. There is no built-in clean command. The recorded `.gitignore` excludes `runs/`, `runs-*/` and `comparison*.md`; baselines are committed by design and should contain only intentionally shareable scrubbed logs.
 
 ## 6. Residual risks
 
@@ -117,4 +117,14 @@ The video recommends deleting an entire run directory (for example, `rm -rf runs
 
 See [README Known limitations](../README.md#known-limitations); not repeated here.
 
-> **Fidelity boundary:** This is a semantic, evidence-backed partial reconstruction for internal review; original punctuation, rows and section 4/5 details need further direct comparison against the recording.
+> **Fidelity boundary:** This is a semantic, evidence-backed partial reconstruction for internal review. A complete 20-second screen recording was inspected on 10 November 2026, and the original section 4/5 order, six-row retention table, security notes and residual-risk categories were rechecked. Original punctuation and exact formatting remain unverified; no byte-identity claim is made.
+## Video-review amendments (10 November 2026; not historical source text)
+
+The complete uploaded recording `docs-review.md.webm` was readable this time. Visible screen anchors independently confirm the original Markdown section order and these details:
+
+- At ~10–12 seconds, original section **2a** says per-epoch tool-use counts and judge metadata persist after redaction, while confidence intervals, pass@k, Fisher/McNemar p-values, aggregate tool metrics and trace summaries are post-run report-only calculations.
+- At ~16–18 seconds, original section **3** says retained metadata includes check names, statuses, sample IDs, dataset and reference paths, and explicitly warns that interrupt values are retained in captured runs; unexpected tool names and framework trace attributes have their own leakage boundaries.
+- At ~16–18 seconds, section **4** clearly precedes section **5** (the earlier provisional draft had those two sections reversed). The six-row retention table lists `log.json`, `traces.jsonl`, `report.md`, `baselines/<name>.json`, `comparison*.md` and custom run paths. The historical report row explicitly says that `report.md` does **not** include payloads even when the source run captured content.
+- At ~18–20 seconds, section **5** confirms custom scorer/agent/map imports are trusted Python code, configuration is explicitly provided rather than silently loaded, process-wide tracing variables are inherited, and negative price values are accepted. Section **6** separately warns about untrusted scorer code, config references, hashes/digests, sensitive names, `aea init --force` and HTML/PDF exports.
+
+The video is a view of text in VS Code. It does not provide an authenticated exact Markdown byte stream; this draft remains outside the original historical document path.
