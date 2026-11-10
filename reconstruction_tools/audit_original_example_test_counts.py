@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
     "tests/unit/test_helpdesk.py": (454, 20015, "LF"),
     "tests/unit/test_policy_rag.py": (416, 18377, "LF"),
-    "tests/unit/test_triage.py": (444, 19847, "CRLF"),
+    "tests/unit/test_triage.py": (444, 19847, "LF"),
     "tests/unit/test_expense.py": (656, 29737, "CRLF"),
 }
 
