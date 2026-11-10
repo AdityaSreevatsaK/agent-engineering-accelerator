@@ -5,6 +5,7 @@ generates CI-only Inspect fixture bytes using the existing native generator,
 checks for collisions with real files, and removes generated data afterwards.
 It never claims to recover the original fixture or original baselines.
 """
+
 from __future__ import annotations
 
 import shutil
