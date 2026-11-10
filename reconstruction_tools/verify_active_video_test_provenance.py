@@ -181,7 +181,7 @@ def audit_all(*, root: Path = ROOT) -> dict[str, dict[str, int]]:
             import hashlib
             from reconstruction_tools.verify_original_video_test_candidates import SOURCES
             original = archive.read_text(encoding="utf-8")
-            if hashlib.sha256(original.encode("utf-8")).hexdigest() != SOURCES[name]["sha256"]:
+            if hashlib.sha256(original.encode("utf-8")).hexdigest() != SOURCES[name.removeprefix("test_")]["sha256"]:
                 raise AssertionError(f"{name}: preserved provisional video candidate changed")
     assemble_langgraph_fragments(root=root)
     return results
