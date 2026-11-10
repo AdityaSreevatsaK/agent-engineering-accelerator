@@ -46,7 +46,7 @@ class ReconstructedReadmeTests(unittest.TestCase):
             "uv run --locked aea run examples/triage/dataset.jsonl",
             "uv run --locked aea check",
             "capture-content",
-            "not a sandbox",
+            "AEA is **not** a sandbox",
         ):
             self.assertIn(phrase.lower(), self.text.lower())
 
