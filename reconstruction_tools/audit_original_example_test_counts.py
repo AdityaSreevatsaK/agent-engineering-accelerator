@@ -32,6 +32,19 @@ def editor_counts(raw: bytes, newline: str) -> tuple[int, int]:
     return lines, characters
 
 
+def observed_line_endings(raw: bytes) -> str:
+    """Report actual checked-out bytes without assuming an editor convention.
+
+    Git checkout attributes may translate line endings in a working tree.
+    This is an informational provenance signal, never source authentication.
+    """
+    crlf = raw.count(b"\r\n")
+    bare_lf = raw.count(b"\n") - crlf
+    bare_cr = raw.count(b"\r") - crlf
+    kinds = [name for name, count in (("CRLF", crlf), ("LF", bare_lf), ("CR", bare_cr)) if count]
+    return "+".join(kinds) if kinds else "none"
+
+
 def main() -> int:
     print("AEA historical video source-count audit (informational only)")
     gaps = 0
@@ -41,12 +54,16 @@ def main() -> int:
             print(f"MISSING {filename}")
             gaps += 1
             continue
-        current_lines, current_chars = editor_counts(path.read_bytes(), newline)
+        raw = path.read_bytes()
+        current_lines, current_chars = editor_counts(raw, newline)
+        actual_eol = observed_line_endings(raw)
         dl, dc = original_lines - current_lines, original_chars - current_chars
+        eol_note = "" if actual_eol == newline else " (checkout bytes differ from recording)"
         print(
             f"{filename}: original={original_lines} lines/{original_chars} chars "
             f"candidate={current_lines} lines/{current_chars} chars "
-            f"gap={dl:+d} lines/{dc:+d} chars [{newline} editor convention]"
+            f"gap={dl:+d} lines/{dc:+d} chars "
+            f"[recorded {newline}; checked-out {actual_eol}{eol_note}]"
         )
         gaps += (dl != 0 or dc != 0)
     print(f"Files needing manual source-fidelity review: {gaps}/{len(EXPECTED)}")
