@@ -311,9 +311,11 @@ def test_adapter_records_an_interrupted_admin_case_with_an_empty_answer_and_each
         {"name": "request_approval", "arguments": {"username": "bchen", "device_id": "LT-2001"}},
     ]
     assert state.metadata["tool_errors"] == [False, False]
-    assert [(m.function, m.text) for m in state.messages if hasattr(m, "function")] == [
+    assert [
+        (m.function, json.loads(m.text) if m.function == "request_approval" else m.text) for m in state.messages
+    ] == [
         ("transfer_to_actions", "Transferred to actions."),
-        ("request_approval", json.dumps(TICKET)),
+        ("request_approval", TICKET),
     ]
 
 
@@ -397,9 +399,11 @@ def test_golden_has_six_answers_five_labelled_and_none_for_an_interrupt_case():
     golden = _jsonl(GOLDEN)
     interrupt_cases = {case["id"] for case in _jsonl(DATASET) if case.get("expect_interrupt")}
 
+    assert interrupt_cases == ADMIN_CASES
     assert len(golden) == 6
-    assert [entry.get("label") for entry in golden].count("pass") == 5
-    assert not ({entry["id"] for entry in golden} & interrupt_cases)
+    assert sum("label" in entry for entry in golden) == 5
+    assert {entry["id"] for entry in golden} & interrupt_cases == set()
+    assert {entry["id"] for entry in golden} <= {case["id"] for case in _jsonl(DATASET)}
 
 
 # end-to-end with `aea run`
