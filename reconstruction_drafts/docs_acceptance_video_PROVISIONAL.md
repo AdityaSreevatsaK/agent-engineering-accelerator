@@ -103,7 +103,7 @@ The video states these are not decisions from `decisions.md`; they record implem
 
 ## 6. Test coverage (unit tests only; integration/E2E out of scope)
 
-The 8 November recording recovers the following individual table rows. The historical **Met** column is the original author's reported assessment at that time, **not** an independently established 2026 reconstruction release verdict.
+The original November recording, rechecked using the complete 10 November upload, shows the following historical unit-coverage rows at source lines approximately 114–134. The row content and order below are supported by visible video frames; exact original Markdown formatting is not independently authenticated. The historical **Met** column is the original author's reported assessment at that time, **not** an independently established 2026 reconstruction release verdict.
 
 | Module | Video-recorded status | Recorded evidence |
 | --- | --- | --- |
@@ -131,7 +131,7 @@ Recorded command guidance: `uv run pytest` (excluding slow subprocess tests), `u
 ## 7. Known not-met items (explicitly deferred or blocked)
 
 - CI workflow has not been executed on a remote: no remote available in original assessment.
-- Live-model repeatability measurement not conducted; latency/cost metrics remain informational, with no `--max-latency` or `--max-cost` gates.
+- Live-model repeatability measurement not conducted; latency/cost metrics remain informational, with no `--max-latency` or `--max-cost` gates. The recording also identifies an available but *uncalibrated* `--max-p-value` (Fisher test) gate.
 - Multi-turn cases not implemented; datasets hold a single input and target per case.
 - Generic framework adapter beyond Strands and LangGraph deferred.
 - LangGraph interrupt resume and deployed graphs unsupported; `interrupt()` ends the case without scripted resume.
@@ -144,8 +144,8 @@ The recording's original section 7 (approximately lines 137–147) distinguishes
 | Item | Recorded constraint | Stated mitigation or plan |
 | --- | --- | --- |
 | Remote CI | Historical local-only repository had no git remote; original workflow existed as a template but had never run remotely | Push to a remote, execute the workflow, and review resulting failures |
-| Live-model repeatability | D9 needs repeated live-model runs and provider access to measure variance | Latency and cost remain informational; no blocking `--max-latency` or `--max-cost` gates |
-| Multi-turn cases | The dataset schema represents a single input/target per case | Explicitly deferred beyond 2.2.0 |
+| Live-model repeatability | D9 needs repeated live-model runs and provider access to measure variance | Latency and cost remain informational; no blocking `--max-latency` or `--max-cost` gates; the `--max-p-value` (Fisher test) gate was available but not calibrated |
+| Multi-turn cases | The dataset schema represents a single input/target per case | Still deferred in 2.2.0; the documented scope is single-turn tool calling, policy, routing, RAG and supervisor agents |
 | Additional framework adapter | Only Strands and LangGraph supported; `adapters/__init__.py:load_factory` is a factory-loader, not a universal framework API | Deferred |
 | LangGraph interrupt resume and deployed graphs | `interrupt()` ends the evaluation case and `expect_interrupt` checks the stop; there is no scripted resume | Unsupported in 2.2.0 |
 | Configuration file coverage | `--config` covers only `adapter`, `agent`, `input_map` and `output_map` | Other options remain command-line flags |
@@ -161,3 +161,16 @@ The tool was considered feature-complete for its stated v2.0 scope: offline dete
 2.2.0 (`master` at `164abd0`, unreleased): section 2a additions were implemented and passed `scripts/ci.sh`; the prior decision and scope verdicts carried forward from 2.0.0; CI was still never run on a remote in that historical assessment.
 
 > **Fidelity boundary:** This is a semantic, evidence-backed partial reconstruction for internal review, not the exact historical Markdown or a new verification of 2026 runtime outcomes.
+## Video-review amendments (10 November 2026; not historical source text)
+
+The newly uploaded `docs-acceptance.md.webm` was readable and showed the original VS Code document from the opening title and decision matrix through the end-of-file summary. The recording covers approximately 26.4 seconds and the historical editor reaches source line 154; this is a visible line extent, **not** a cryptographic source hash.
+
+Key independently verified anchors:
+
+- At ~5–8 seconds, original lines 1–27 show the title, version/date caveat, status key and beginning of the 22-decision matrix. The historical assessment was performed against **2.0.0** on 19 October 2026, with evidence subsequently updated for 2.2.0; the decision verdict was **not rerun** for 2.2.0.
+- At ~11–18 seconds, original lines approximately 41–80 show the agreed scope and 2.1.0/2.2.0 additions, including real offline reference agents, metrics, generated reports, judge modes, LangGraph custom-state maps and interrupt handling.
+- At ~19–22 seconds, original lines 101–111 show exactly six CLI commands: `init`, `run`, `compare`, `report`, `check`, `export`. The original command table explicitly cites `cli.py:_apply_config`, `test_config.py` and `test_run_task.py` for `run`.
+- At ~21–25 seconds, original lines 112–135 show the unit-test-only coverage matrix, including dataset, scorers, compare, run, tracing, statistics, run metrics, tool metrics, trace summary, report, CLI, config, adapters, judge, export, judge double, readings and the six examples. The corresponding semantic rows in this draft have been checked against that footage; no additional historical modules are being invented.
+- At ~23–26 seconds, original lines 137–147 show six not-met/deferred rows. In particular, the original explicitly mentions the `--max-p-value` Fisher test gate as **available but uncalibrated**; that detail was absent from the earlier draft and is now restored above. Original lines 148–154 distinguish the carried-forward 2.0.0 verdict from 2.2.0 validation.
+
+**Remaining fidelity boundary:** This document is a reviewed *semantic transcription*, not the original byte-for-byte Markdown file. The video does not authenticate invisible bytes, whitespace, wrapped-line layout or historical Git revision. For that reason this draft is deliberately not copied to `docs/acceptance.md` and cannot be counted as an additional historically recovered path.
