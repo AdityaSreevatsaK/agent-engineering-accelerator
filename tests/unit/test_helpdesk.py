@@ -69,7 +69,12 @@ def _calls(messages):
 def _solve(factory, text):
     """Runs one case through the real LangGraph adapter solver, as `aea run` does."""
     state = TaskState(
-        model="test-model", sample_id="helpdesk", epoch=1, input=text, messages=[], output=ModelOutput(completion="")
+        model="test-model",
+        sample_id="helpdesk",
+        epoch=1,
+        input=text,
+        messages=[],
+        output=ModelOutput(completion=""),
     )
     return asyncio.run(langgraph_agent(f"examples.helpdesk.agent:{factory}")(state, None))
 
@@ -93,7 +98,8 @@ def _aea_run(tmp_path, factory, *extra):
     ids=["lt_1042", "lt_2001", "dt_3300"],
 )
 def test_check_device_status_returns_the_directory_entry_with_its_id(device_id, online, disk):
-    # Witness s42 device status drops the id (rules.py:82).
+    # Witness s42 device status drops the id: `{"device_id": device_id, **DEVICES[device_id]}` ->
+    # `{**DEVICES[device_id]}` (rules.py:82).
     status = json.loads(check_device_status(device_id))
 
     assert (status["device_id"], status["online"], status["disk_free_pct"]) == (device_id, online, disk)
@@ -111,13 +117,14 @@ def test_check_device_status_returns_the_directory_entry_with_its_id(device_id, 
     ids=["device", "password_user", "approval_user", "approval_device", "grant_device"],
 )
 def test_tools_reject_an_unknown_device_or_user_without_echoing_it(call, message):
-    # Witness s42 approval device unchecked (rules.py:92).
+    # Witness s42 approval device unchecked: drop `or device_id not in DEVICES` in request_approval (rules.py:92).
     with pytest.raises(ValueError, match=message):
         call()
 
 
 def test_password_reset_and_approval_return_their_records_for_a_known_user():
-    # Witness s42 approval ticket names (rules.py:94).
+    # Witness s42 approval ticket names: `f"APR-{device_id}-{username}"` -> `f"APR-{username}-{device_id}"`
+    # (rules.py:94).
     assert json.loads(reset_password("asmith")) == {
         "username": "asmith",
         "status": "reset",
@@ -130,7 +137,7 @@ def test_password_reset_and_approval_return_their_records_for_a_known_user():
 
 @pytest.mark.parametrize(("disk", "warned"), [(9, True), (10, False)], ids=["just_under_threshold", "at_threshold"])
 def test_low_disk_warning_is_given_only_below_10_percent_free(disk, warned):
-    # Witness s42 low disk boundary (rules.py:189).
+    # Witness s42 low disk boundary: `status["disk_free_pct"] < LOW_DISK_PCT` -> `<= LOW_DISK_PCT` (rules.py:189).
     output = json.dumps(
         {"device_id": "DT-3300", "online": True, "last_seen": "t", "os": "Ubuntu", "disk_free_pct": disk}
     )
@@ -164,7 +171,10 @@ def test_low_disk_warning_is_given_only_below_10_percent_free(disk, warned):
     ids=["online_low_disk", "offline", "unknown_device", "no_device_id"],
 )
 def test_device_questions_go_to_diagnostics_which_reports_the_status_or_the_tool_error(text, reply, calls):
-    # Witness s42 tool errors ok and device routed to actions (agent.py:105 and rules.py:167).
+    # Witness s42 tool errors ok: `ok = message.status != "error"` -> `ok = True` (agent.py:105); the unknown
+    # device's error text is then parsed as a status.
+    # Witness s42 device routed to actions: `ToolRequest("transfer_to_diagnostics", {})` ->
+    # `ToolRequest("transfer_to_actions", {})` (rules.py:167); actions then asks for a user name.
     messages = _invoke(build_agent, text)["messages"]
 
     assert (messages[-1].content, _calls(messages)) == (reply, calls)
@@ -190,7 +200,7 @@ def test_device_questions_go_to_diagnostics_which_reports_the_status_or_the_tool
     ids=["known_user", "unknown_user", "no_user"],
 )
 def test_password_requests_go_to_actions_which_resets_or_reports_the_unknown_user(text, reply, calls):
-    # Witness s42 password reset ignores failure (rules.py).
+    # Witness s42 password reset ignores failure: `if not done["reset_password"].ok:` -> `if False:` (rules.py:204).
     messages = _invoke(build_agent, text)["messages"]
 
     assert (messages[-1].content, _calls(messages)) == (reply, calls)
@@ -204,7 +214,8 @@ def test_password_requests_go_to_actions_which_resets_or_reports_the_unknown_use
     ids=["meeting_room", "expenses"],
 )
 def test_request_that_is_not_it_support_is_declined_by_the_supervisor_with_no_tool_call(text):
-    # Witness s42 out of scope routed (rules.py:166).
+    # Witness s42 out of scope routed: `if kind == "device" and "route_diagnostics" in rules:` ->
+    # `if kind != "password" and "route_diagnostics" in rules:` (rules.py:166); the request goes to diagnostics.
     messages = _invoke(build_agent, text)["messages"]
 
     assert [(type(m).__name__, m.content) for m in messages] == [
@@ -216,7 +227,8 @@ def test_request_that_is_not_it_support_is_declined_by_the_supervisor_with_no_to
 # the approval gate
 
 def test_gated_agent_pauses_after_request_approval_with_the_ticket_and_never_grants():
-    # Witness s42 interrupt payload drops ticket (agent.py:147).
+    # Witness s42 interrupt payload drops ticket: `{"action": "grant_admin_access", **ticket}` ->
+    # `{"action": "grant_admin_access"}` (agent.py:147).
     agent = build_agent()
     config = _thread()
     result = agent.invoke({"messages": [HumanMessage(DOCKER)]}, config)
