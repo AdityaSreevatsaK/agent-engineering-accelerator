@@ -255,14 +255,16 @@ def test_text_that_is_not_an_answer_request_parses_to_none(text):
 # prompts and the model double
 
 def test_confident_prompt_is_the_good_prompt_with_always_search_replaced_by_confident():
-    # Witness s41 confident prompt drops not_covered (rules.py:118).
+    # Witness s41 confident prompt drops not_covered: `("confident", "cite", "not_covered")` ->
+    # `("confident", "cite")` (rules.py:113).
     assert active_rules(PROMPT) == {"always_search", "cite", "not_covered"}
     assert active_rules(PROMPT_CONFIDENT) == {"confident", "cite", "not_covered"}
     assert PROMPT_CONFIDENT.replace(RULE_SENTENCES["confident"], RULE_SENTENCES["always_search"]) == PROMPT
 
 
 def test_model_double_behaviour_follows_the_system_prompt_it_is_given():
-    # Witness s41 model ignores prompt (agent.py:49).
+    # Witness s41 model ignores prompt: `system_prompt = next(str(m.content) for m in messages if isinstance(m,
+    # SystemMessage))` -> `system_prompt = PROMPT` (agent.py:49).
     def reply(prompt):
         return SimulatedPolicyModel().invoke([SystemMessage(prompt), HumanMessage(HOTEL_LEEDS)])
 
@@ -385,6 +387,8 @@ def test_dataset_run_passes_with_the_good_prompt_and_fails_only_the_hotel_cases_
     tmp_path, factory, failing
 ):
     # A subprocess, as in test_expense.py: the tracer provider can only be set once per process.
+    # Witness s41 e2e build_agent confident: `_build(SimulatedPolicyModel(), PROMPT)` ->
+    # `_build(SimulatedPolicyModel(), PROMPT_CONFIDENT)` (agent.py:124).
     command = [sys.executable, "-m", "agent_accelerator.cli", "run", str(DATASET), "--adapter", "langgraph"]
     command += ["--agent", f"examples.policy_rag.agent:{factory}", "--runs-dir", str(tmp_path)]
     env = {**os.environ, "PYTHONUTF8": "1"}
