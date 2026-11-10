@@ -7,8 +7,8 @@ release signoff.
 
 from __future__ import annotations
 
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 from reconstruction_tools.audit_release_evidence import inspect
 
