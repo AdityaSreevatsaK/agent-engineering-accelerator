@@ -36,16 +36,16 @@ class VideoTestProvenanceTests(unittest.TestCase):
         # so its editor-display convention counts one additional line.
         self.assertEqual(report["test_langgraph_adapter"]["lines_delta"], 1)
         self.assertEqual(report["test_langgraph_adapter"]["chars_delta"], -25)
-        self.assertEqual(report["test_triage"]["lines_delta"], -5)
-        self.assertEqual(report["test_triage"]["chars_delta"], -447)
-        self.assertEqual(report["test_expense"]["lines_delta"], -2)
-        self.assertEqual(report["test_expense"]["chars_delta"], -84)
+        self.assertEqual(report["test_triage"]["lines_delta"], 0)
+        self.assertEqual(report["test_triage"]["chars_delta"], -8)
+        self.assertEqual(report["test_expense"]["lines_delta"], 0)
+        self.assertEqual(report["test_expense"]["chars_delta"], 2)
         self.assertEqual(report["test_helpdesk"]["test_functions"], 19)
-        self.assertEqual(report["test_helpdesk"]["lines_delta"], -4)
-        self.assertEqual(report["test_helpdesk"]["chars_delta"], -75)
+        self.assertEqual(report["test_helpdesk"]["lines_delta"], 0)
+        self.assertEqual(report["test_helpdesk"]["chars_delta"], -55)
         self.assertEqual(report["test_policy_rag"]["test_functions"], 25)
-        self.assertEqual(report["test_policy_rag"]["lines_delta"], -14)
-        self.assertEqual(report["test_policy_rag"]["chars_delta"], -182)
+        self.assertEqual(report["test_policy_rag"]["lines_delta"], 0)
+        self.assertEqual(report["test_policy_rag"]["chars_delta"], -67)
 
     def test_unreviewed_change_in_active_candidate_rejected(self):
         name = "test_policy_rag"
@@ -60,7 +60,7 @@ class VideoTestProvenanceTests(unittest.TestCase):
                 path = self.root / "reconstruction_drafts" / filename
                 original = path.read_text(encoding="utf-8")
                 path.write_text(original + "# archive changed\n", encoding="utf-8")
-                with self.assertRaisesRegex(AssertionError, "active test changed"):
+                with self.assertRaisesRegex(AssertionError, "preserved provisional video candidate changed"):
                     audit_all(root=self.root)
                 path.write_text(original, encoding="utf-8")
 

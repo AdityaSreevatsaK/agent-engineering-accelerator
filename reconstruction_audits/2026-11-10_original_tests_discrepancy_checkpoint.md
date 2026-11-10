@@ -47,3 +47,30 @@ The original `examples/expense/scorers.py` string `a referral approves nothing` 
 5. Only after those checks, consider promoting verified reconstruction commits; leave `master` untouched meanwhile.
 
 Diagnostic helper: `python reconstruction_tools/audit_original_example_test_counts.py`. This reports counts and exits successfully even when gaps are found; it is **not** a release gate.
+
+## November 10 second-video correction
+
+The new `tests-unit-test_triage.py - video(2).webm` explicitly displays **Unix (LF)** in Notepad++, not CRLF. This supersedes the earlier triage editor-convention assumption. Its recorded status is 444 lines / 19,847 characters. Direct frame comparison of the routing test at original lines 210–219 recovered the parameterised `ids` field, three witness comments and a blank separator, adding five lines and 439 characters. The candidate is now **444 displayed lines / 19,839 LF characters**, leaving **8 characters** unresolved. The recorded video has been inspected directly; no arbitrary text was added to force the remaining character count. The expense video explicitly displays Windows CRLF, which remains correct in the existing count checker. Helpdesk and policy RAG are Unix LF.
+
+Original screenshot anchor: triage video at approximately 3.5 seconds, original lines 209–219.
+
+## November 10: four raw user recordings inspected
+
+These four recordings were mounted as real video bytes in this turn, decoded and visually inspected at their original 1920×1080 resolution. No text-recognition inference or fabricated source was used. This section supersedes the outdated measurements at the top of this checkpoint, which remain as a dated pre-recovery baseline.
+
+| Test file | Original editor lines | Recovered editor lines | Original character count | Recovered editor-equivalent count | Remaining character delta (original − recovered) |
+|---|---:|---:|---:|---:|---:|
+| `tests/unit/test_helpdesk.py` | 454 | 454 | 20,015 LF | 19,960 LF | +55 |
+| `tests/unit/test_policy_rag.py` | 416 | 416 | 18,377 LF | 18,310 LF | +67 |
+| `tests/unit/test_triage.py` | 444 | 444 | 19,847 LF | 19,839 LF | +8 |
+| `tests/unit/test_expense.py` | 656 | 656 | 29,737 CRLF | 29,739 CRLF-equivalent | −2 |
+
+**Actual video-verified fixes**:
+- Triage (approx. 3.5 s, lines 209–219): restored missing `ids` parameterisation, three regression witness comments and blank separator; `Unix (LF)` confirmed in editor status bar.
+- Expense (approx. 4.5 s, lines 198–205): restored original claim `60.0` in the alcohol-rule-inactive test (candidate had mistakenly used `120.0`), its original witness comment, and blank separator; `Windows (CR LF)` confirmed.
+- Policy RAG (approx. 3–8 s): recovered missing section spacing, multiline case IDs in the decision test, and trailing empty editor line; restored screenshot-visible details to previously shortened witness comments about zero-score filtering, invalid JSON, tool errors, and stopword handling.
+- Helpdesk (approx. 2.5–7 s): restored visible section spacing, returned supervisor assertion to a single original line, recovered the checkpoint explanatory comment and final empty editor line.
+
+**Do not equate matched line counts with verified byte identity.** Outstanding nonzero character discrepancies must be checked against original frame-level wording and code (possibly including comments/whitespace). The previous known expense scorer-vs-test expectation contradiction is still historical evidence and must not be silently 'corrected'.
+
+The new changes are intended for an isolated PR targeting the reconstruction integration branch, never `master`. Native tests, Ruff/Pyright, Windows/Linux and Python 3.11/3.12 CI are required before merging.
