@@ -14,7 +14,16 @@ The seven reproducible offline baselines below are generated from the *current r
 | `policy_rag/` | `examples.policy_rag.agent:build_agent` | `examples/policy_rag/dataset.jsonl` |
 | `helpdesk/` | `examples.helpdesk.agent:build_agent` | `examples/helpdesk/dataset.jsonl` |
 
-Each successful generation produces an Inspect evaluation log (`.json`), a derived `report.md`, redacted `traces.jsonl`, and the top-level `manifest.json` recording generator revision, dataset hashes, baseline log hashes and run characteristics. The generator uses `aea check --update-baseline` **without** `--capture-content` or paid model providers; it refuses to overwrite an existing baseline.
+**Known historical discrepancy (do not "fix" the original):** The video-verified
+`examples/orders/rules.py` replies **"Carol has spent 17.50 across 2 orders."**,
+whereas the screenshot-verified Orders dataset expects **"Carol spent 17.50 across 2 orders."**.
+The reconstructed Orders agent therefore passes **10/11**, with only `total_spend`
+failing. The generator explicitly records this documented mismatch in
+`manifest.json` and **rejects any additional failure**. All six other agent
+baselines must pass every case. We do not rewrite original evidence to obtain
+misleading green baseline counts.
+
+Each permitted generation produces an Inspect evaluation log (`.json`), a derived `report.md`, redacted `traces.jsonl`, and the top-level `manifest.json` recording generator revision, dataset hashes, baseline log hashes and run characteristics. The generator uses `aea check --update-baseline` **without** `--capture-content` or paid model providers; it refuses to overwrite an existing baseline.
 
 ## Generate all seven baselines
 
@@ -26,7 +35,7 @@ python -m reconstruction_tools.generate_fresh_baselines --dry-run
 python -m reconstruction_tools.generate_fresh_baselines
 ```
 
-The workflow **Fresh reconstructed AEA baseline bundle** also executes these commands on a GitHub Actions runner and uploads the generated `baselines-new/` directory as an artifact for review. The workflow does **not** commit run outputs or touch `master`.
+The workflow **AEA fresh reconstructed baseline bundle** also executes these commands on a GitHub Actions runner and uploads the generated `baselines-new/` directory as an artifact for review. The workflow does **not** commit run outputs or touch `master`.
 
 Generation is intentionally **non-destructive**: to regenerate, archive or move the existing generated subfolders and `manifest.json` first. Do not copy a new evaluation log into `baselines/` under an original historic filename and claim authenticity.
 
