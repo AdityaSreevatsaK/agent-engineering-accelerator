@@ -37,6 +37,8 @@ python -m reconstruction_tools.generate_fresh_baselines
 
 The workflow **AEA fresh reconstructed baseline bundle** also executes these commands on a GitHub Actions runner and uploads the generated `baselines-new/` directory as an artifact for review. The workflow does **not** commit run outputs or touch `master`.
 
+The tracked `baselines-new/.gitignore` deliberately prevents accidental `git add` of generated run directories or `manifest.json`. Review downloaded logs, traces and metadata for privacy before any explicit `git add -f`; being generated offline does not guarantee that all metadata is anonymous. The CI artifact remains the preferred distribution mechanism until a human review authorises a frozen reference bundle.
+
 Generation is intentionally **non-destructive**: to regenerate, archive or move the existing generated subfolders and `manifest.json` first. Do not copy a new evaluation log into `baselines/` under an original historic filename and claim authenticity.
 
 ## Important boundaries
