@@ -1,0 +1,70 @@
+name: AEA one-time safe reconstruction branch cleanup
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_manifest/branch_cleanup_2026-11-12.json
+      - reconstruction_tools/prune_obsolete_branches.py
+      - reconstruction_tools/test_prune_obsolete_branches.py
+      - .github/workflows/reconstruction-branch-cleanup.yml
+  push:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_manifest/branch_cleanup_2026-11-12.json
+      - reconstruction_tools/prune_obsolete_branches.py
+      - reconstruction_tools/test_prune_obsolete_branches.py
+      - .github/workflows/reconstruction-branch-cleanup.yml
+
+permissions:
+  contents: read
+
+jobs:
+  safety:
+    name: Verify pinned cleanup inventory and fail-closed protections
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate SHA-pinned inventory without network access
+        run: python -m reconstruction_tools.prune_obsolete_branches --validate-only
+      - name: Verify skip, merged-PR and ancestor logic
+        run: python -m unittest reconstruction_tools.test_prune_obsolete_branches -v
+
+  apply:
+    name: Delete only verified already-merged/ancestor branches
+    if: github.event_name == 'push' && github.ref == 'refs/heads/reconstruction/wip-checkpoint-2026-10-30' && github.repository == 'AdityaSreevatsaK/agent-engineering-accelerator'
+    needs: safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: aea-one-time-reconstruction-branch-cleanup
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check current GitHub PR and SHA leases without deletion
+        run: python -m reconstruction_tools.prune_obsolete_branches --report "${{ runner.temp }}/aea-prune-preflight.json"
+      - name: Apply verified branch cleanup and write audit report
+        run: python -m reconstruction_tools.prune_obsolete_branches --apply --report "${{ runner.temp }}/aea-prune-result.json"
+      - name: Preserve a downloadable audit of what was skipped or removed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-reconstruction-branch-cleanup-audit
+          path: |
+            ${{ runner.temp }}/aea-prune-preflight.json
+            ${{ runner.temp }}/aea-prune-result.json
+          if-no-files-found: warn
+          retention-days: 30
