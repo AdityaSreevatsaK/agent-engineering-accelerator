@@ -35,6 +35,10 @@ jobs:
         run: python -m reconstruction_tools.prune_obsolete_branches --validate-only
       - name: Verify skip, merged-PR and ancestor logic
         run: python -m unittest reconstruction_tools.test_prune_obsolete_branches -v
+      - name: Run live GitHub preflight without deletion (read-only token)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m reconstruction_tools.prune_obsolete_branches
 
   apply:
     name: Delete only verified already-merged/ancestor branches
