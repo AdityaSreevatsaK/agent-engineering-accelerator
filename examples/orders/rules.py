@@ -152,4 +152,4 @@ def _spend(email: str, results: list[ToolResult]) -> ToolRequest | str:
     orders = [json.loads(r.output) for r in results[1:] if r.ok]
     counted = [o for o in orders if o["status"] != "cancelled"]
     total = sum(o["total"] for o in counted)
-    return f"{customer['name']} has spent {total:.2f} across {len(counted)} orders."
+    return f"{customer['name']} spent {total:.2f} across {len(counted)} orders."
