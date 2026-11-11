@@ -1,0 +1,347 @@
+{
+  "schema": "aea-branch-cleanup-v1",
+  "repository": "AdityaSreevatsaK/agent-engineering-accelerator",
+  "integration_branch": "reconstruction/wip-checkpoint-2026-10-30",
+  "recovery_policy": "Original reconstruction source and historical evidence already merged stay accessible in Git history; preserve all unmerged review branches and open PR branches.",
+  "targets": [
+    {
+      "name": "reconstruction/automated-original-inventory-2026-11-07",
+      "sha": "4499dc1132e120de2b3d8887e08edc2d69f08953",
+      "reason": "merged_pr",
+      "pr_number": 45
+    },
+    {
+      "name": "reconstruction/baseline-freeze-path-safety-2026-11-06",
+      "sha": "4347b38a804701a42dc72aad34e33429ef33599f",
+      "reason": "merged_pr",
+      "pr_number": 29
+    },
+    {
+      "name": "reconstruction/broken-redacted-screenshot-2026-11-06",
+      "sha": "ba602d21ed388c56c74478e7c346b13633224f6b",
+      "reason": "merged_pr",
+      "pr_number": 26
+    },
+    {
+      "name": "reconstruction/calculator-agent-dataset-2026-11-06",
+      "sha": "34c277ac86e3667a16d0aa66dec6cffd1dc090de",
+      "reason": "merged_pr",
+      "pr_number": 25
+    },
+    {
+      "name": "reconstruction/capture-evidence-and-slow-marker-audit-2026-11-06",
+      "sha": "2a0245b48b35ef81df732d209a825b011820e978",
+      "reason": "merged_pr",
+      "pr_number": 27
+    },
+    {
+      "name": "reconstruction/cli-config-error-contract-2026-11-06",
+      "sha": "f01dafbac04401f8309c4493adf09a0d2b0ee876",
+      "reason": "merged_pr",
+      "pr_number": 24
+    },
+    {
+      "name": "reconstruction/compare-original-fixture-replay-2026-11-07",
+      "sha": "01ac593e6eeb35f8079a7bfe02a54a8cfa01d1ae",
+      "reason": "merged_pr",
+      "pr_number": 40
+    },
+    {
+      "name": "reconstruction/conformance-videos-2026-11-07",
+      "sha": "4152a825094f4ca39b6b0b9d94658a8fda964600",
+      "reason": "merged_pr",
+      "pr_number": 48
+    },
+    {
+      "name": "reconstruction/docs-acceptance-review-video-2026-11-08",
+      "sha": "84cbea583cb420bbdbaf87a23cfb463d1b661200",
+      "reason": "ancestor"
+    },
+    {
+      "name": "reconstruction/draft-test-provenance-2026-11-07",
+      "sha": "38fea1945f646f2592e9cbf9c9897351450657fd",
+      "reason": "merged_pr",
+      "pr_number": 37
+    },
+    {
+      "name": "reconstruction/expense-scorers-video-2026-11-07",
+      "sha": "8b84c96f04eed41058df9d0d2680cb68c0b4d584",
+      "reason": "merged_pr",
+      "pr_number": 46
+    },
+    {
+      "name": "reconstruction/fix-init-newline-fidelity-2026-11-05",
+      "sha": "6c2d328bf474aea60132297ad6924ab41226cd23",
+      "reason": "merged_pr",
+      "pr_number": 5
+    },
+    {
+      "name": "reconstruction/full-static-diagnostics-2026-11-06",
+      "sha": "c42cf062b07d8ab48c498832976d4e52d63b5e2c",
+      "reason": "merged_pr",
+      "pr_number": 21
+    },
+    {
+      "name": "reconstruction/helpdesk-four-original-files-2026-11-07",
+      "sha": "1d9a7a9266ba444995cd7fbac702f6429c0c0356",
+      "reason": "merged_pr",
+      "pr_number": 51
+    },
+    {
+      "name": "reconstruction/init-force-symlink-safety-2026-11-06",
+      "sha": "8b31dc862db03f5534bc5f68022677c39cd1b3e1",
+      "reason": "merged_pr",
+      "pr_number": 28
+    },
+    {
+      "name": "reconstruction/integrated-offline-suite-2026-11-05",
+      "sha": "1cbc44aeb8962007baed4a3da683393aa07871b0",
+      "reason": "merged_pr",
+      "pr_number": 17
+    },
+    {
+      "name": "reconstruction/inventory-reconciliation-2026-11-07",
+      "sha": "2b8ec1898d27022bddbdeb0279de27e2eb736af8",
+      "reason": "merged_pr",
+      "pr_number": 34
+    },
+    {
+      "name": "reconstruction/offline-redaction-privacy-e2e-2026-11-06",
+      "sha": "2d60880679063d1fb8071025b8d6650b4e61dc02",
+      "reason": "merged_pr",
+      "pr_number": 31
+    },
+    {
+      "name": "reconstruction/offline-regression-e2e-2026-11-06",
+      "sha": "cbfe799ddf8630b338fcc333d304e7a609e6b9f4",
+      "reason": "merged_pr",
+      "pr_number": 30
+    },
+    {
+      "name": "reconstruction/offline-template-e2e-2026-11-06",
+      "sha": "9726889e30d8d58abc07273a9ca6e208cc7768d7",
+      "reason": "merged_pr",
+      "pr_number": 22
+    },
+    {
+      "name": "reconstruction/orders-three-original-sources-2026-11-08",
+      "sha": "2fcd64af1df72cad303a2e3cf12718e8606bcce0",
+      "reason": "merged_pr",
+      "pr_number": 56
+    },
+    {
+      "name": "reconstruction/original-cli-check-replay-2026-11-07",
+      "sha": "b51ee7b2fc540709790ebfe5137483ef84c011a8",
+      "reason": "merged_pr",
+      "pr_number": 39
+    },
+    {
+      "name": "reconstruction/original-cli-extended-slow-replay-2026-11-07",
+      "sha": "624d871a5eacf779ef2443185df3cbe4ff4d78e0",
+      "reason": "merged_pr",
+      "pr_number": 38
+    },
+    {
+      "name": "reconstruction/original-cli-fast-replay-2026-11-07",
+      "sha": "11d2a6b6c93f1b1d62a1bce46faac2942f400145",
+      "reason": "merged_pr",
+      "pr_number": 35
+    },
+    {
+      "name": "reconstruction/original-cli-slow-replay-2026-11-07",
+      "sha": "11bac7c11630f0732acfd0efdfa7885fb35ed56d",
+      "reason": "merged_pr",
+      "pr_number": 36
+    },
+    {
+      "name": "reconstruction/original-run-metrics-video-2026-11-07",
+      "sha": "a4091f805c1b589446f232506c7598a26282b869",
+      "reason": "merged_pr",
+      "pr_number": 54
+    },
+    {
+      "name": "reconstruction/original-stats-video-2026-11-07",
+      "sha": "a11a27de1fc4b76684c690b20b90b88897b6f127",
+      "reason": "merged_pr",
+      "pr_number": 53
+    },
+    {
+      "name": "reconstruction/original-trace-summary-video-2026-11-08",
+      "sha": "1ac582fbd3721c4225e312a6daf55915e043e4c6",
+      "reason": "merged_pr",
+      "pr_number": 55
+    },
+    {
+      "name": "reconstruction/original-tracing-video-2026-11-08",
+      "sha": "1c565ec9db2f41a56758277dc16f4c67eb7bad59",
+      "reason": "merged_pr",
+      "pr_number": 57
+    },
+    {
+      "name": "reconstruction/original-triage-expense-slow-e2e-2026-11-07",
+      "sha": "c5cb4f40fd4ee28100a78e2fa00a1d6a9f7614a4",
+      "reason": "merged_pr",
+      "pr_number": 50
+    },
+    {
+      "name": "reconstruction/policy-rag-four-original-files-2026-11-07",
+      "sha": "4d272e57b8ba11d6d619838b82c53117f1cac368",
+      "reason": "merged_pr",
+      "pr_number": 52
+    },
+    {
+      "name": "reconstruction/remove-expense-scorer-import-workaround-2026-11-07",
+      "sha": "c41b42dcb790b2f321aefe9a09a81393b0b2ee37",
+      "reason": "merged_pr",
+      "pr_number": 47
+    },
+    {
+      "name": "reconstruction/restore-original-calculator-rules-2026-11-06",
+      "sha": "91b320a3d3529a6fc25e0cbad5c72e97d6fa6a26",
+      "reason": "merged_pr",
+      "pr_number": 32
+    },
+    {
+      "name": "reconstruction/restore-original-pairwise-cli-2026-11-06",
+      "sha": "96cc29cbde6d28805bd3983606ba0e935a81467c",
+      "reason": "merged_pr",
+      "pr_number": 23
+    },
+    {
+      "name": "reconstruction/static-safety-2026-11-06",
+      "sha": "5a93c5ff164688a039258ef8d1fe4d4aabdc3b36",
+      "reason": "merged_pr",
+      "pr_number": 20
+    },
+    {
+      "name": "reconstruction/test-langgraph-adapter-review",
+      "sha": "9be2199a744467406eed2e0dac283c33d48207db",
+      "reason": "ancestor"
+    },
+    {
+      "name": "reconstruction/triage-expense-agent-sources-2026-11-07",
+      "sha": "4c6562ec14286d344188b9853ea735224f43a4ab",
+      "reason": "merged_pr",
+      "pr_number": 41
+    },
+    {
+      "name": "reconstruction/triage-expense-datasets-video-2026-11-07",
+      "sha": "37cea67f025ebf42f1f17be2a2b32a18e8fcd5f8",
+      "reason": "merged_pr",
+      "pr_number": 43
+    },
+    {
+      "name": "reconstruction/triage-expense-golden-screenshots-2026-11-07",
+      "sha": "29050a7ebb77bb099dbd919d903913103a830f48",
+      "reason": "merged_pr",
+      "pr_number": 49
+    },
+    {
+      "name": "reconstruction/triage-expense-original-tests-video-2026-11-07",
+      "sha": "7a4ca7ca738bd074b300aa5a2b5601aac081a5f7",
+      "reason": "merged_pr",
+      "pr_number": 44
+    },
+    {
+      "name": "reconstruction/triage-expense-rules-video-2026-11-07",
+      "sha": "9000db2b12de5b9a9ee3a673d1f26bcdbd86bc49",
+      "reason": "merged_pr",
+      "pr_number": 42
+    },
+    {
+      "name": "reconstruction/verification-integration",
+      "sha": "ed5d5065e1cc80cfe1feb17a72fbd7d7731dddfc",
+      "reason": "ancestor"
+    },
+    {
+      "name": "reconstruction/verified-offline-tests-2026-11-05",
+      "sha": "2a94bc7617dacf12138d4eb025857b60c9a2f699",
+      "reason": "merged_pr",
+      "pr_number": 3
+    },
+    {
+      "name": "reconstruction/verify-adapters-2026-11-05",
+      "sha": "5ed7e121452665d41a3bc4a10815c347ab42ee37",
+      "reason": "merged_pr",
+      "pr_number": 15
+    },
+    {
+      "name": "reconstruction/verify-build-task-synthetic-2026-11-05",
+      "sha": "865f58e2ceab3df8e3c59092ac70e6d98c7bbb58",
+      "reason": "merged_pr",
+      "pr_number": 8
+    },
+    {
+      "name": "reconstruction/verify-cli-pairwise-2026-11-05",
+      "sha": "40da49fbae340cef3a598acb0874095202849995",
+      "reason": "merged_pr",
+      "pr_number": 7
+    },
+    {
+      "name": "reconstruction/verify-compare-no-fixtures-2026-11-05",
+      "sha": "be5b081a970982d587221d1c24e53975565e3609",
+      "reason": "merged_pr",
+      "pr_number": 16
+    },
+    {
+      "name": "reconstruction/verify-core-unit-2026-11-05",
+      "sha": "6d149510551c4aa7541efe8136f0ee07cf6e55c1",
+      "reason": "merged_pr",
+      "pr_number": 14
+    },
+    {
+      "name": "reconstruction/verify-export-2026-11-05",
+      "sha": "858cc0b77e87e2773e12ae3c1e9c65742fbb4960",
+      "reason": "merged_pr",
+      "pr_number": 10
+    },
+    {
+      "name": "reconstruction/verify-interrupt-readings-2026-11-05",
+      "sha": "ea2d00a2844cab12b5afbcf10d057548f0c95ded",
+      "reason": "merged_pr",
+      "pr_number": 6
+    },
+    {
+      "name": "reconstruction/verify-judge-core-2026-11-05",
+      "sha": "f0f1f9232d750019de1da7b1bb29d4ba489011c5",
+      "reason": "merged_pr",
+      "pr_number": 13
+    },
+    {
+      "name": "reconstruction/verify-judge-report-2026-11-05",
+      "sha": "57e1225d6086daba675f61c81e2bbc7d8cd5edbe",
+      "reason": "merged_pr",
+      "pr_number": 4
+    },
+    {
+      "name": "reconstruction/verify-pairwise-prefix-2026-11-06",
+      "sha": "5015ae92841041bebae0d0c4e9d96ff64fc93b86",
+      "reason": "merged_pr",
+      "pr_number": 19
+    },
+    {
+      "name": "reconstruction/verify-readings-2026-11-05",
+      "sha": "f338e2bde8ef8cf9352ec0857462c80068b2704f",
+      "reason": "merged_pr",
+      "pr_number": 11
+    },
+    {
+      "name": "reconstruction/verify-report-2026-11-05",
+      "sha": "ec26c8eadc731f6457ed2c41a536c8b2d803a768",
+      "reason": "merged_pr",
+      "pr_number": 12
+    },
+    {
+      "name": "reconstruction/verify-scrub-runtask-synthetic-2026-11-05",
+      "sha": "e4cac0aaba74c83135e09bf36c47b19994ba054c",
+      "reason": "merged_pr",
+      "pr_number": 9
+    },
+    {
+      "name": "reconstruction/verify-wheel-cli-2026-11-05",
+      "sha": "4e06b74befb59c1aaf8cd85d5b7db062eaedea1d",
+      "reason": "merged_pr",
+      "pr_number": 18
+    }
+  ]
+}
