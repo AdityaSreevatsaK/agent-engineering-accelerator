@@ -32,7 +32,7 @@ jobs:
       - name: Install reconstructed offline agent framework dependencies
         run: python -m pip install -e ".[langgraph,strands]"
       - name: Verify non-destructive baseline generation contract
-        run: python -m unittest reconstruction_tools.test_generate_fresh_baselines -v
+        run: python -m unittest reconstruction_tools.test_generate_fresh_baselines reconstruction_tools.test_orders_baseline_contract -v
       - name: Preflight generation without writing logs
         run: python -m reconstruction_tools.generate_fresh_baselines --dry-run
       - name: Generate fresh scrubbed baseline logs
