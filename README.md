@@ -2,7 +2,7 @@
 
 **Reconstructed engineering candidate • v2.2.0 interfaces • not production approved**
 
-> This README was written for the **reconstructed application** in November 2026. It is **not** a transcription of the historical original README, which was only a title in the recovered checkpoint. Historical source fidelity, missing baselines, security review and formal release acceptance are tracked separately. Do not treat a passing CI workflow as approval to publish client data or deploy to production.
+> This README was written for the **reconstructed application** in November 2026. It is **not a verified transcription of the original README**. The currently available `master` branch contains only a title, but that snapshot **does not establish what the full historical README originally contained**. Historical source fidelity, missing baselines, security review and formal release acceptance are tracked separately. Do not treat a passing CI workflow as approval to publish client data or deploy to production.
 
 AEA is a **local-first evaluation, regression and observability toolkit for existing AI agents**. It is not an agent-building framework or the separate Agentic Engineering Toolkit (AET) scaffolder.
 

@@ -28,7 +28,8 @@ class ReconstructedReadmeTests(unittest.TestCase):
         for phrase in (
             "not production approved",
             "not",
-            "historical original README",
+            "not a verified transcription of the original README",
+            "does not establish what the full historical README originally contained",
             "not",
             "lost historical",
             "not",
