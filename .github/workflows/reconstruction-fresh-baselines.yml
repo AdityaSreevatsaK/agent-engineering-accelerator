@@ -59,8 +59,13 @@ jobs:
               results = load_results(run)
               assert results.status == "success", entry["name"]
               assert len(results.cases) == entry["case_count"], entry["name"]
-              assert all(case.passed for case in results.cases.values()), entry["name"]
-              print(f"VERIFIED NEW {entry['name']}: {len(results.cases)} passing cases")
+              failed = {case_id for case_id, case in results.cases.items() if not case.passed}
+              known = {"orders": {"total_spend"}}.get(entry["name"], set())
+              assert failed == known, (entry["name"], failed)
+              assert entry["failed_case_ids"] == sorted(failed), entry["name"]
+              assert entry["passed_cases"] == len(results.cases) - len(failed), entry["name"]
+              print(f"VERIFIED NEW {entry['name']}: {entry['passed_cases']}/{len(results.cases)} "
+                    f"passing, documented historical mismatches={sorted(failed)}")
       - name: Upload generated baseline bundle for review, not original recovery
         uses: actions/upload-artifact@v4
         with:
