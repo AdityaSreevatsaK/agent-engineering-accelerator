@@ -155,6 +155,18 @@ def run(selected: tuple[Baseline, ...] = BASELINES, *, root: Path = ROOT,
                     f"{spec.name}: offline baseline failed with exit {process.returncode}; "
                     "no historical or existing baseline was overwritten"
                 )
+            # AEA's overall run status can be "success" even when a dataset
+            # check fails. Never freeze an already-failing example as a baseline.
+            from agent_accelerator.compare import load_results
+
+            results = load_results(target)
+            expected = dataset_count(root / spec.dataset)
+            passed = sum(bool(case.passed) for case in results.cases.values())
+            if results.status != "success" or len(results.cases) != expected or passed != expected:
+                raise RuntimeError(
+                    f"{spec.name}: refusing a failing baseline ({passed}/{expected} "
+                    "case checks passed); investigate the reconstructed example"
+                )
             records.append(manifest_entry(spec, target, root))
 
         manifest = {
