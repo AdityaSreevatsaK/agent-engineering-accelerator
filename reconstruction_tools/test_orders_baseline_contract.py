@@ -1,4 +1,4 @@
-"""Orders baseline regression contract, grounded in the reconstructed dataset."""
+"""Pin the known historical Orders source-vs-dataset conflict without rewriting either."""
 from __future__ import annotations
 
 import json
@@ -19,8 +19,9 @@ class OrdersBaselineContractTests(unittest.TestCase):
         for order_id in customer["order_ids"]:
             outputs.append(rules.ToolResult("get_order", True, rules.get_order(order_id)))
         answer = rules.next_step(case["input"], outputs)
-        self.assertEqual(answer, case["expected_output"])
-        self.assertEqual(answer, "Carol spent 17.50 across 2 orders.")
+        self.assertEqual(case["expected_output"], "Carol spent 17.50 across 2 orders.")
+        self.assertEqual(answer, "Carol has spent 17.50 across 2 orders.")
+        self.assertNotEqual(answer, case["expected_output"])  # video-documented original source conflict
 
     def test_still_excludes_cancelled_orders_without_changing_tools(self):
         email = "carol@example.com"
@@ -33,7 +34,7 @@ class OrdersBaselineContractTests(unittest.TestCase):
             outputs.append(rules.ToolResult("get_order", True, rules.get_order(order_id)))
         self.assertEqual(
             rules.next_step(f"How much did {email} spend?", outputs),
-            "Carol spent 17.50 across 2 orders.",
+            "Carol has spent 17.50 across 2 orders.",
         )
 
 
