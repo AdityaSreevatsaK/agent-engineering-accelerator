@@ -37,8 +37,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.10.0'
-      - name: Resolve local dependency lock
-        run: uv lock
+      - name: Verify committed dependency lock
+        run: uv lock --check
       - name: Install project and dev dependencies
         run: uv sync --all-extras --group dev --locked
       - name: Static checks
@@ -76,7 +76,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.10.0'
-      - run: uv lock
+      - run: uv lock --check
       - run: uv sync --all-extras --group dev --locked
       - run: uv run --locked python scripts/check_examples.py
 
@@ -102,7 +102,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.10.0'
-      - run: uv lock
+      - run: uv lock --check
       - run: uv sync --all-extras --group dev --locked
       - name: Assert the CLI detects a deliberately degraded agent
         run: uv run --locked python scripts/verify_regression_gate.py

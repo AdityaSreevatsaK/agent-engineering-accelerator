@@ -1,9 +1,9 @@
 # Development and CI
 
-Use Python 3.11 or 3.12 and `uv`.
+Use Python 3.11 or 3.12 and uv 0.10.0. The repository includes a reviewed `uv.lock`; resolve dependencies reproducibly via `uv lock --check` before syncing.
 
 ```sh
-uv lock
+uv lock --check
 uv sync --all-extras --group dev --locked
 uv run --locked ruff check src examples
 uv run --locked pyright

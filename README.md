@@ -24,12 +24,12 @@ From the project root:
 
 ```sh
 python -m pip install uv
-uv lock
+uv lock --check
 uv sync --python 3.11 --all-extras --group dev --locked
 uv run --locked aea --help
 ```
 
-The lock is generated from the current project dependencies. Use your team's own approved dependency-pinning process for releases.
+Dependencies are pinned in the committed `uv.lock`, generated with uv 0.10.0. CI checks it without resolving a different version. To update intentionally, run `uv lock --upgrade`, review the lockfile changes, then commit them together with any dependency updates.
 
 ## Quick start
 
