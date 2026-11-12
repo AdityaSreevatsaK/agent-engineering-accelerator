@@ -15,7 +15,6 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-
 BaselineValidator = Callable[[Path, Path, bool], None]
 
 
