@@ -1,0 +1,78 @@
+name: AEA final obsolete review branch cleanup
+
+on:
+  pull_request:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_manifest/branch_cleanup_2026-11-12_final.json
+      - reconstruction_tools/prune_remaining_review_branches.py
+      - reconstruction_tools/test_prune_remaining_review_branches.py
+      - .github/workflows/reconstruction-final-branch-cleanup.yml
+  push:
+    branches:
+      - reconstruction/wip-checkpoint-2026-10-30
+    paths:
+      - reconstruction_manifest/branch_cleanup_2026-11-12_final.json
+      - reconstruction_tools/prune_remaining_review_branches.py
+      - reconstruction_tools/test_prune_remaining_review_branches.py
+      - .github/workflows/reconstruction-final-branch-cleanup.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Verify final eight branch deletion decisions (no delete)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify pinned source/PR manifest without network
+        run: python -m reconstruction_tools.prune_remaining_review_branches --validate-only
+      - name: Unit-test fail-closed deletion decisions
+        run: python -m unittest reconstruction_tools.test_prune_remaining_review_branches -v
+      - name: Verify all eight candidates against live GitHub (read-only)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m reconstruction_tools.prune_remaining_review_branches --report "${{ runner.temp }}/aea-final-cleanup-preflight.json"
+      - name: Upload read-only preflight audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-final-branch-cleanup-PR-preflight
+          path: ${{ runner.temp }}/aea-final-cleanup-preflight.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  prune:
+    name: Delete only SHA-pinned superseded review branches
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/reconstruction/wip-checkpoint-2026-10-30' && github.repository == 'AdityaSreevatsaK/agent-engineering-accelerator'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: aea-final-obsolete-review-branch-cleanup
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply final SHA-pinned branch deletion after revalidation
+        run: python -m reconstruction_tools.prune_remaining_review_branches --apply --report "${{ runner.temp }}/aea-final-cleanup-result.json"
+      - name: Preserve exact deletion/skip audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-final-branch-cleanup-results
+          path: ${{ runner.temp }}/aea-final-cleanup-result.json
+          if-no-files-found: warn
+          retention-days: 30
