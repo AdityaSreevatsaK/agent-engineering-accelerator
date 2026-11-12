@@ -1,0 +1,77 @@
+name: AEA CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit tests and quick smoke / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    env:
+      PYTHONUTF8: '1'
+      AWS_EC2_METADATA_DISABLED: 'true'
+      AWS_ACCESS_KEY_ID: ''
+      AWS_SECRET_ACCESS_KEY: ''
+      AWS_SESSION_TOKEN: ''
+      OPENAI_API_KEY: ''
+      AZURE_OPENAI_API_KEY: ''
+      ANTHROPIC_API_KEY: ''
+      GOOGLE_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - name: Resolve local dependency lock
+        run: uv lock
+      - name: Install project and dev dependencies
+        run: uv sync --all-extras --group dev --locked
+      - name: Static checks
+        run: |
+          uv run --locked ruff check src examples
+          uv run --locked pyright
+      - name: Offline unit tests
+        run: uv run --locked python scripts/run_checks.py
+      - name: Real CLI smoke with local models
+        run: uv run --locked python scripts/check_examples.py --quick
+
+  examples:
+    name: Complete offline example suite
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PYTHONUTF8: '1'
+      AWS_EC2_METADATA_DISABLED: 'true'
+      AWS_ACCESS_KEY_ID: ''
+      AWS_SECRET_ACCESS_KEY: ''
+      AWS_SESSION_TOKEN: ''
+      OPENAI_API_KEY: ''
+      AZURE_OPENAI_API_KEY: ''
+      ANTHROPIC_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv lock
+      - run: uv sync --all-extras --group dev --locked
+      - run: uv run --locked python scripts/check_examples.py
