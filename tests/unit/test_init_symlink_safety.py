@@ -1,4 +1,4 @@
-"""New security-hardening tests, distinct from historical v2.2.0 source tests.
+"""Security tests for initialisation through symlinks.
 
 The --force scaffolder must not follow symlinks to outside the target folder.
 Windows setups without symlink privileges skip only the symlink-specific cases.

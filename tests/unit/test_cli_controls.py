@@ -1,9 +1,4 @@
-"""Offline replay of source-recorded CLI argument and configuration contracts.
-
-These tests exercise the real recovered CLI without the original calculator
-fixtures or cloud credentials. Original historical test_cli.py remains preserved
-separately as a reconstruction candidate rather than being rewritten here.
-"""
+"""Verify command-line flags, configuration precedence and input validation."""
 
 import sys
 from pathlib import Path
@@ -188,7 +183,7 @@ def test_nearby_config_is_not_implicitly_loaded(seen, tmp_path, monkeypatch, com
     ids=["unknown_key", "invalid_utf8"],
 )
 def test_config_errors_are_reported_before_any_run(seen, tmp_path, capsys, command, content, error_text):
-    """Replay the historical CLI early-config failure boundary offline."""
+    """Ensure invalid configuration is rejected before agent execution."""
     config = tmp_path / "aea.toml"
     config.write_bytes(content)
     args = command_args(command, tmp_path, "--config", str(config), "--agent", "flag:factory")
@@ -240,8 +235,8 @@ def test_freeze_refuses_unsafe_target_before_agent_start(seen, tmp_path, capsys,
 
 
 @pytest.mark.parametrize("command", ["compare", "check"])
-def test_threshold_flags_default_to_historical_values(command, tmp_path):
-    """Parser defaults are a self-contained original CLI contract."""
+def test_threshold_flags_have_expected_defaults(command, tmp_path):
+    """Parser defaults are part of the public CLI contract."""
     args = (
         ["compare", "baseline", "current"]
         if command == "compare"
@@ -269,7 +264,7 @@ def test_threshold_flags_default_to_historical_values(command, tmp_path):
 def test_bad_config_is_rejected_before_check_baseline_validation(
     seen, tmp_path, capsys, check_flags
 ):
-    """Recorded CLI contract: config errors take priority over baseline errors."""
+    """Invalid configuration takes priority over baseline validation."""
     config = tmp_path / "aea.toml"
     config.write_text('model = "gpt"\n', encoding="utf-8")
     args = [

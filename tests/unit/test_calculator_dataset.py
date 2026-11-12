@@ -1,8 +1,4 @@
-"""Tests for the ten original calculator cases recovered from user screenshot.
-
-The calculator rule engine and historical capture fixtures are still missing.
-These tests validate the actual AEA JSONL loader and saved expectations only.
-"""
+"""Validate the calculator example dataset and its expected outcomes."""
 from pathlib import Path
 
 from agent_accelerator.dataset import dataset_sha256, load_dataset
@@ -16,7 +12,7 @@ EXPECTED_IDS = (
 )
 
 
-def test_recorded_calculator_dataset_loads_as_ten_unique_aea_cases():
+def test_calculator_dataset_loads_as_ten_unique_aea_cases():
     cases = load_dataset(DATASET)
     assert len(cases) == 10
     assert tuple(c.id for c in cases) == EXPECTED_IDS
@@ -52,7 +48,7 @@ def test_no_tool_chat_and_division_by_zero_keep_distinct_check_types():
     assert division.expected_tool_calls[0].arguments == {"a": 5, "b": 0, "op": "div"}
 
 
-def test_json_schema_and_large_subtraction_use_recorded_subset_tool_matching():
+def test_json_schema_and_large_subtraction_use_subset_tool_matching():
     cases = {c.id: c for c in load_dataset(DATASET)}
     schema = cases["json_output"].expected_json_schema
     assert schema["type"] == "object"
