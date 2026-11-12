@@ -21,7 +21,7 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 | P1 | One expense scorer/test parameterisation has contradictory expectations | The check runner explicitly deselects one case rather than certifying that behaviour | Reconcile the rule, scorer and expected contract with a new test |
 | P1 | Trace redaction is not universal anonymisation | Span names, case IDs, timing and tool names remain; opt-in captured logs intentionally carry data | Keep documented boundaries, review filenames and identifiers before client pilots |
 | P2 | Model, judge and framework compatibility are not tested against live providers | Local deterministic doubles cannot establish model stability, latency, spend or rate-limit behaviour | Undertake a controlled non-CI integration pilot with approved credentials |
-| P2 | No validated multi-team onboarding data | CI success is not equivalent to engineering productivity or adoption | Pilot on two existing client-team agent workflows; measure setup time and regression usefulness |
+| P2 | No validated multi-team onboarding data | CI success is not equivalent to engineering productivity or adoption | Follow the two-team [adoption pilot](PILOT.md), collect baseline productivity measurements and independent engineering sign-off |
 
 ## Verified safeguards
 
