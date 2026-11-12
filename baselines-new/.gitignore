@@ -1,5 +1,0 @@
-# Generated offline baseline logs, reports, traces and manifests are review-only artifacts.
-# Keep README and this protection tracked; force-add a reviewed bundle only deliberately.
-/*
-!/README.md
-!/.gitignore
