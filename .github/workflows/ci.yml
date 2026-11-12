@@ -45,6 +45,8 @@ jobs:
         run: |
           uv run --locked ruff check src examples
           uv run --locked pyright
+      - name: Source-tree hygiene
+        run: uv run --locked python scripts/check_repository_hygiene.py
       - name: Offline unit tests
         run: uv run --locked python scripts/run_checks.py
       - name: Real CLI smoke with local models
