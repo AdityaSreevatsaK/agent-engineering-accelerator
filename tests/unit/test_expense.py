@@ -450,7 +450,7 @@ def test_every_dataset_reply_from_the_rule_engine_is_grounded(prompt):
         (CLAIM, _reply(approved=50.0, adjustments=[_adj(1, 108.0, 0.0)]), None),
         (CLAIM, _reply(decision="refer", approved=0.0), None),
         (UNCONVERTIBLE, {"decision": "refer", "approved_usd": 0.0, "reason": "x"}, None),
-        (CLAIM, _reply(decision="refer", approved=158.0), "a referral approves something"),
+        (CLAIM, _reply(decision="refer", approved=158.0), "a referral approves nothing"),
         (CLAIM, {"decision": "refer", "reason": "x"}, "a referral approves nothing"),
         (
             CLAIM,
