@@ -8,13 +8,12 @@ evaluation. Arbitrary external processes are not controlled by the lock.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from contextlib import contextmanager
 import os
-from pathlib import Path
 import shutil
 import tempfile
-from typing import Iterator
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from pathlib import Path
 
 
 BaselineValidator = Callable[[Path, Path, bool], None]
