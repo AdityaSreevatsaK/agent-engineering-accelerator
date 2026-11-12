@@ -196,10 +196,14 @@ def _check(args: argparse.Namespace) -> int:
         print(f"ERROR run did not succeed: {run_dir.as_posix()}")
         return EXIT_ERROR
     if args.update_baseline:
-        if baseline.exists():
-            shutil.rmtree(baseline)
-        shutil.copytree(run_dir, baseline)
+        from agent_accelerator.baseline import freeze_run_as_baseline
+
+        previous = freeze_run_as_baseline(
+            run_dir, baseline, args.runs_dir, args.capture_content, _validate_baseline_target
+        )
         print(f"BASELINE frozen: {baseline.as_posix()} from {run_dir.as_posix()}")
+        if previous is not None:
+            print(f"BASELINE previous version retained: {previous.as_posix()}")
         return EXIT_OK
 
     regressed, text = _comparison(baseline, run_dir, args)
