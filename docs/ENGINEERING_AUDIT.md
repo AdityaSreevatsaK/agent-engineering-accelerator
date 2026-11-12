@@ -11,14 +11,14 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 | Priority | Finding | Evidence and impact | Disposition |
 | --- | --- | --- | --- |
 | P0 | Baseline updates previously removed an existing destination after a separate pre-run check | `cli._check` could erase intervening files or leave no baseline after a copy failure | Addressed with staged validation, cooperative writer lock, retained prior snapshot and rollback tests |
-| P1 | Unit test suite selected 38 of 44 available unit-test files | The module allowlist omitted statistics, comparison and pairwise judgements; six files had no coverage in routine CI | Expand to 43 of 44, record fixed-log-dependent case exclusions and fail CI for unlisted modules |
-| P1 | No conformance gate in the streamlined CI | Non-standard LangGraph state, tool calls and interrupts may regress without a direct integration check | Add local conformance suite to all four matrix lanes |
+| P1 | The original streamlined suite missed six test modules | Comparison, statistics, token metrics and pairwise judging lacked routine coverage | Resolved: 43 of 44 modules are actively selected; the remaining fixed-reference CLI module and 11 case groups are explicitly classified, not silently ignored |
+| P1 | No conformance gate in the streamlined CI | Non-standard LangGraph state, tool calls and interrupts could regress without integration coverage | Resolved: dedicated local conformance suite runs on Windows/Linux Python 3.11 and 3.12 |
 | P1 | Deterministic Orders example had one inconsistent expected sentence | The program calculated the correct total but only reported 10/11 passing cases | Corrected dataset and added end-to-end tool-plan assertion |
 | P1 | Fixed log assertions need an unavailable reference capture and baseline archive | Blindly inventing those fixtures would make results meaningless | Keep fixed-fixture-only checks explicitly deferred; replace them with new, independently verified synthetic tests where practical |
 | P1 | Dependency resolution previously changed on every CI run | Dynamically resolving packages can introduce different versions despite green CI on the prior commit | Resolved: commit a multi-platform `uv.lock`, validate it with `uv lock --check` and require locked installs on every CI lane |
 | P1 | The installer and packaged CLI are not independently exercised by the streamlined CI | Source checkout imports can pass while a built distribution is incomplete | Added an isolated wheel-install and CLI smoke gate |
 | P1 | Positive-case smoke does not prove regression detection | Seven passing model doubles do not verify detection of a deliberately broken agent from an approved baseline | Added a good-to-broken Orders CLI check as a separate CI release gate |
-| P1 | One expense scorer/test parameterisation has contradictory expectations | The check runner explicitly deselects one case rather than certifying that behaviour | Reconcile the rule, scorer and expected contract with a new test |
+| P1 | Expense scorer/test referral expectations disagreed | One case was previously deselected even though referrals must approve no money | Resolved: corrected the test expectation and restored the omitted case to routine CI without changing scorer behaviour |
 | P1 | Trace redaction is not universal anonymisation | Span names, case IDs, timing and tool names remain; opt-in captured logs intentionally carry data | Keep documented boundaries, review filenames and identifiers before client pilots |
 | P2 | Model, judge and framework compatibility are not tested against live providers | Local deterministic doubles cannot establish model stability, latency, spend or rate-limit behaviour | Undertake a controlled non-CI integration pilot with approved credentials |
 | P2 | No validated multi-team onboarding data | CI success is not equivalent to engineering productivity or adoption | Follow the two-team [adoption pilot](PILOT.md), collect baseline productivity measurements and independent engineering sign-off |
@@ -28,8 +28,16 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 - Run logs default to redacted Inspect content, and arbitrary custom OpenTelemetry span payloads are minimised unless capture is requested.
 - Local evaluation examples require no cloud keys or billable model calls in CI.
 - Previous baseline snapshots remain available as explicit on-disk backups rather than being silently deleted.
-- Expected failure detection should be confirmed with a broken-agent run before describing the toolkit as release-ready.
+- The broken-refund-policy CLI gate confirms that the deliberately faulty agent generates exit code 1 and an actionable comparison report while leaving its baseline untouched. This does not establish performance against live providers.
 - Code, dataset, scoring function and custom mappings are **trusted executable Python**, not sandboxed user input.
+
+## Verified local release gates (12 November 2026)
+
+The audited CI revision passed **6/6 jobs**, including Windows and Linux with Python 3.11 and 3.12, locked dependency installation, the complete local example suite, deliberate-regression detection, and a fresh-environment wheel installation.
+
+The Ubuntu Python 3.11 evidence showed **2,444 passing unit tests, 34 deselected cases and 13 passing non-slow LangGraph conformance tests**. One conformance test is intentionally marked slow; a fixed-reference CLI module is also excluded and documented in the runner. These figures describe the tested revision, not a claim that every available test or provider scenario is verified.
+
+**Engineering verdict:** viable for an internal pilot using approved synthetic/local data. **Not yet approved** for confidential production workloads or a default-branch release. Outstanding approvals require a security/data-retention assessment, a live-provider validation plan and independent delivery-team pilot evidence.
 
 ## Acceptance criteria for the next release candidate
 
