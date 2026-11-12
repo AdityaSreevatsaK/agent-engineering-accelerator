@@ -19,7 +19,7 @@ SCENARIOS = (
         ["--adapter", "langgraph", "--agent", "examples.calculator.langgraph_agent:build_agent"],
     ),
     (
-        "orders-strands", "examples/orders/dataset.jsonl", "passed=10/11",
+        "orders-strands", "examples/orders/dataset.jsonl", "passed=11/11",
         ["--adapter", "strands", "--agent", "examples.orders.agent:build_agent"],
     ),
     (
