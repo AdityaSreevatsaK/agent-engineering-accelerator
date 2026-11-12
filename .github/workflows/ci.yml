@@ -49,6 +49,8 @@ jobs:
         run: uv run --locked python scripts/check_repository_hygiene.py
       - name: Offline unit tests
         run: uv run --locked python scripts/run_checks.py
+      - name: LangGraph conformance cases
+        run: uv run --locked python -m pytest -q -m "not slow" tests/conformance
       - name: Real CLI smoke with local models
         run: uv run --locked python scripts/check_examples.py --quick
 
