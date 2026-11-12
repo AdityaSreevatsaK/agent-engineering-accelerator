@@ -29,17 +29,53 @@ _OPENINFERENCE_HIDE = (
 
 _REDACTED = "[REDACTED]"
 _EXCEPTION_TEXT = ("exception.message", "exception.stacktrace")
+# The summary parser reads these six diagnostic fields. Everything else on a
+# custom span might contain a prompt, tool arguments, output or customer data.
+# Sample IDs, tool names and span names themselves are NOT anonymised, so users
+# must still avoid sensitive identifiers in those fields.
+_TRACE_SUMMARY_ATTRIBUTES = frozenset(
+    (
+        "eval.sample_id",
+        "eval.epoch",
+        "gen_ai.operation.name",
+        "openinference.span.kind",
+        "gen_ai.tool.name",
+        "tool.name",
+    )
+)
 
 
 def _redact_errors(span: dict[str, Any]) -> dict[str, Any]:
-    """Frameworks record exception messages and tracebacks, which can quote user data; keep only the type."""
+    """In default mode, keep trace-summary fields but remove arbitrary payload attributes.
+
+    Framework environment flags alone cannot protect spans emitted by custom
+    agents, tools or OpenTelemetry instrumentation. Non-exception events and
+    links are also not reliable safe data sources.
+    """
     if span.get("status", {}).get("description"):
         span["status"]["description"] = _REDACTED
+    span["attributes"] = {
+        key: value
+        for key, value in (span.get("attributes") or {}).items()
+        if key in _TRACE_SUMMARY_ATTRIBUTES
+    }
     for event in span.get("events", []):
-        attributes = event.get("attributes", {})
-        for key in _EXCEPTION_TEXT:
-            if key in attributes:
-                attributes[key] = _REDACTED
+        if event.get("name") == "exception":
+            attributes = event.get("attributes") or {}
+            safe = {"exception.type": attributes["exception.type"]} if "exception.type" in attributes else {}
+            for key in _EXCEPTION_TEXT:
+                if key in attributes:
+                    safe[key] = _REDACTED
+            event["attributes"] = safe
+        else:
+            # A custom event name may itself contain a user prompt.
+            event["name"] = _REDACTED
+            event["attributes"] = {}
+    span["links"] = []
+    # Resource and scope attributes are not needed for report summaries and
+    # may include custom account, tenant or environment identifiers.
+    span.pop("resource", None)
+    span.pop("instrumentation_scope", None)
     return span
 
 
