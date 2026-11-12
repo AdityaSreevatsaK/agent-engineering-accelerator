@@ -60,7 +60,7 @@ A run normally creates a JSON evaluation log, `traces.jsonl` and `report.md`. CL
 
 `examples/` includes calculator (Strands and LangGraph), orders (Strands), expense, triage, policy RAG and helpdesk (LangGraph). They use local deterministic model doubles; cloud calls are not required for CI.
 
-Known dataset issue: the orders example currently has a wording disagreement in one expected answer. The other six sample applications have demonstrated fully passing offline runs; do not treat this as a guarantee for live providers.
+All seven offline example scenarios have matching expected outputs under the deterministic model doubles. This does not guarantee behaviour or repeatability with live model providers.
 
 ## Quality checks
 

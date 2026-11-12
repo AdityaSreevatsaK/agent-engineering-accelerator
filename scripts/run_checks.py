@@ -19,6 +19,7 @@ TEST_MODULES = (
     "test_build_task.py",
     "test_calculator_dataset.py",
     "test_calculator_rules.py",
+    "test_orders_contract.py",
     "test_calculator_log_sample.py",
     "test_cli_controls.py",
     "test_cli_pairwise.py",
