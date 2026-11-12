@@ -82,14 +82,6 @@ DEFERRED_CASES = (
     "tests/unit/test_compare_statistics.py::test_statistics_block_is_the_last_section_before_the_glossary_and_appears_once",
 )
 
-# The referral case contains contradictory scorer and expected-message wording.
-KNOWN_MISMATCH = (
-    "tests/unit/test_expense.py::"
-    "test_ungrounded_names_the_first_amount_not_traceable_to_the_claim"
-    "[referral_approves_something]"
-)
-
-
 def main() -> int:
     unit_dir = ROOT / "tests" / "unit"
     listed = set(TEST_MODULES) | set(EXCLUDED_MODULES)
@@ -113,7 +105,6 @@ def main() -> int:
         try:
             command = [
                 sys.executable, "-m", "pytest", "-q", "-m", "not slow",
-                "--deselect", KNOWN_MISMATCH,
                 *(arg for case in DEFERRED_CASES for arg in ("--deselect", case)),
                 *(f"tests/unit/{name}" for name in TEST_MODULES),
             ]
