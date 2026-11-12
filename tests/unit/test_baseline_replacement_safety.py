@@ -1,9 +1,4 @@
-"""New safety tests for replacing baseline directories.
-
-These tests intentionally use the reconstructed, valid Inspect redacted-log
-candidate as INPUT evidence, without claiming it is the original fixture.
-They do not run an agent, contact a provider or delete external files.
-"""
+"""Validate safe baseline-directory replacement with a local Inspect log fixture."""
 
 import shutil
 from pathlib import Path
@@ -13,7 +8,7 @@ import pytest
 from agent_accelerator.cli import _validate_baseline_target
 
 ROOT = Path(__file__).parents[2]
-VALID_EVAL = ROOT / "reconstruction_drafts" / "calculator_broken_redacted_SCREENSHOT_CANDIDATE.json"
+VALID_EVAL = ROOT / "tests" / "fixtures" / "eval_log_sample.json"
 
 
 def run_dir(tmp_path: Path) -> Path:

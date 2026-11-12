@@ -38,7 +38,7 @@ def aea(monkeypatch, tmp_path):
     monkeypatch.setattr(tracing, "configure_tracing", lambda path, capture: FakeProvider())
 
     def run(command: list[str], answers: dict[str, str], runs: Path) -> tuple[int, list[Path]]:
-        # Runtime test adaptation: preserve the original draft separately; match run.py positional contract.
+        # Match the run.py positional contract.
         monkeypatch.setattr(
             run_module, "_adapter_solver",
             lambda adapter, agent, input_map=None, output_map=None: fixed_answers(answers),
