@@ -17,4 +17,4 @@ Before using customer data, verify data classification, access control, retentio
 
 ## Known limitations
 
-Baseline replacement has a concurrent filesystem change window between validation and replacement. Use a dedicated baseline directory and do not update it from multiple processes. Default trace redaction minimises fields but is not a comprehensive anonymisation boundary.
+Baseline updates use an exclusive local lock, a validated staging directory and a retained prior-version backup. They do not guarantee coordination with external processes that ignore the lock. A lock left after a crash must be investigated and cleared manually. Prior backups are not automatically purged; secure or delete them according to your retention policy. Default trace redaction minimises fields but is not a comprehensive anonymisation boundary.
