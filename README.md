@@ -67,6 +67,9 @@ All seven offline example scenarios have matching expected outputs under the det
 ```sh
 uv run --locked python scripts/run_checks.py
 uv run --locked python scripts/check_examples.py
+uv run --locked python scripts/verify_regression_gate.py
+uv build --wheel
+uv run --locked python scripts/check_distribution.py
 ```
 
 CI runs supported operating-system and Python combinations without provider credentials or billable model calls.
