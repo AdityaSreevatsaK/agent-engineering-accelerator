@@ -2,7 +2,7 @@
 # Offline local checks for AEA. Run from the repository root.
 set -euo pipefail
 export PYTHONUTF8=1
-uv lock
+uv lock --check
 uv sync --all-extras --group dev --locked
 uv run --locked ruff check src examples
 uv run --locked pyright
