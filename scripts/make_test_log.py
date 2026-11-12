@@ -38,7 +38,7 @@ def make_capture(target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     inputs = (
         ("subtract_nine_four", "What is 9 minus 4?"),
-        ("sum_two_three", "What is 2 plus 3?"),
+        ("add", "What is 2 plus 3?"),
         ("calculator_prompt", "You are a calculator. What is 9 minus 4?"),
         ("multiply", "What is 5 times 1?"),
         ("divide", "What is 10 divided by 2?"),
