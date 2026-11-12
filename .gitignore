@@ -8,3 +8,8 @@ spikes/
 runs-*/
 comparison*.md
 .idea/
+
+# Locally saved baseline versions and temporary update artefacts
+**/.*.aea-backup-*/
+**/.*.aea-stage-*/
+**/.*.aea-update.lock

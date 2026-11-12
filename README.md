@@ -52,7 +52,7 @@ uv run --locked aea check examples/calculator/dataset.jsonl --adapter strands --
 uv run --locked aea check examples/calculator/dataset.jsonl --adapter strands --agent examples.calculator.agent:build_agent --baseline local-baseline --runs-dir runs
 ```
 
-Use a dedicated baseline directory. The update operation replaces a validated existing run directory, so avoid concurrent writes or storing unrelated files there.
+Use a dedicated baseline directory. An update keeps the previous version in a uniquely named hidden backup folder beside the baseline. A lock prevents simultaneous AEA writers. Restore a prior version manually if needed; do not remove a lock unless you have confirmed no update is running.
 
 A run normally creates a JSON evaluation log, `traces.jsonl` and `report.md`. CLI exit codes: `0` success, `1` detected regression, `2` command or run error.
 

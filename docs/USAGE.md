@@ -14,7 +14,7 @@ Use one JSON object per line with a unique `id` and an `input`. Optional expecta
 
 `aea run DATASET --agent module:factory --adapter strands`: evaluate an agent.
 
-`aea check DATASET ... --baseline PATH --update-baseline`: create or update a baseline after validating the target path. **Do not point it at a directory containing other user files.**
+`aea check DATASET ... --baseline PATH --update-baseline`: create or update a baseline after validating the target path. An update retains the previous baseline at a sibling `.NAME.aea-backup-*/previous` path and rejects unrelated files. Backups are not deleted automatically. Do not point this command at unrelated user data or run concurrent writers.
 
 `aea check DATASET ... --baseline PATH`: compare the latest evaluation with the saved baseline.
 

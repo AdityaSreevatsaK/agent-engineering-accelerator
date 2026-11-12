@@ -16,6 +16,7 @@ CAPTURE = ROOT / "tests" / "fixtures" / "calculator_capture_content.json"
 TEST_MODULES = (
     "test_adapters.py",
     "test_baseline_replacement_safety.py",
+    "test_baseline_transaction.py",
     "test_build_task.py",
     "test_calculator_dataset.py",
     "test_calculator_rules.py",
