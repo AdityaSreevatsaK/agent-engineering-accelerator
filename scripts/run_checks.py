@@ -59,11 +59,32 @@ TEST_MODULES = (
     "test_triage.py",
 )
 
-# Only the integrated CLI contract suite depends on a separate, fixed baseline
-# archive that is not distributed with this project. All other test modules must
-# be explicitly listed for offline execution.
-EXCLUDED_MODULES = {
-    "test_cli.py": "requires a baseline archive that is not distributed",
+# Run independent CLI parser/configuration contracts without requiring archived
+# comparison logs. Other tests in the same module depend on unavailable fixed
+# reference archives; they must not be represented as passing coverage.
+PARTIAL_MODULE_CASES = {
+    "test_cli.py": (
+        "test_run_scorer_option_defaults_to_none",
+        "test_run_flags_have_the_documented_defaults_in_run_and_check",
+        "test_threshold_flags_have_the_documented_defaults_in_compare_and_check",
+        "test_max_p_value_strictly_between_zero_and_one_is_parsed_as_a_float",
+        "test_max_p_value_outside_the_open_unit_interval_is_a_usage_error",
+        "test_check_update_baseline_defaults_off",
+        "test_check_without_baseline_flag_is_a_usage_error",
+        "test_config_fills_every_run_setting_left_off_the_command_line",
+        "test_a_flag_on_the_command_line_beats_the_same_setting_in_the_config",
+        "test_adapter_set_neither_by_flag_nor_config_is_strands_with_no_maps",
+        "test_agent_set_neither_by_flag_nor_config_is_a_usage_error_before_running",
+        "test_without_config_every_run_setting_comes_from_its_flag",
+        "test_maps_without_langgraph_are_a_usage_error_whether_they_come_from_config_or_flags",
+        "test_config_error_exits_two_before_the_runs_dir_exists_and_before_baseline_validation",
+        "test_an_aea_toml_in_the_working_directory_is_ignored_without_config",
+        "test_config_directory_is_not_added_to_the_import_path",
+        "test_config_path_reaches_build_task_as_given_in_posix_form_not_resolved",
+        "test_example_config_alone_supplies_a_runnable_setting_set",
+        "test_commands_that_do_not_run_an_agent_have_no_config_flag",
+        "test_adapter_flag_outside_strands_and_langgraph_is_still_rejected_by_the_parser",
+    ),
 }
 
 # These particular assertions require a second, immutable full-run sample log.
@@ -84,15 +105,19 @@ DEFERRED_CASES = (
 
 def main() -> int:
     unit_dir = ROOT / "tests" / "unit"
-    listed = set(TEST_MODULES) | set(EXCLUDED_MODULES)
+    listed = set(TEST_MODULES) | set(PARTIAL_MODULE_CASES)
     actual = {path.name for path in unit_dir.glob("test_*.py")}
     if actual != listed:
         raise RuntimeError(
             f"Offline test inventory differs: unlisted={sorted(actual - listed)} "
             f"missing={sorted(listed - actual)}"
         )
-    for name, reason in EXCLUDED_MODULES.items():
-        print(f"EXCLUDED MODULE: {name}: {reason}", flush=True)
+    for name, selected_cases in PARTIAL_MODULE_CASES.items():
+        print(
+            f"PARTIALLY COVERED MODULE: {name}, {len(selected_cases)} selected test groups; "
+            "fixed-reference integration cases remain deferred",
+            flush=True,
+        )
     print(f"DEFERRED CASE GROUPS: {len(DEFERRED_CASES)}", flush=True)
     if CAPTURE.exists() or CAPTURE.is_symlink():
         raise FileExistsError(f"Refusing to overwrite local data: {CAPTURE}")
@@ -107,6 +132,11 @@ def main() -> int:
                 sys.executable, "-m", "pytest", "-q", "-m", "not slow",
                 *(arg for case in DEFERRED_CASES for arg in ("--deselect", case)),
                 *(f"tests/unit/{name}" for name in TEST_MODULES),
+                *(
+                    f"tests/unit/{module}::{case}"
+                    for module, selected_cases in PARTIAL_MODULE_CASES.items()
+                    for case in selected_cases
+                ),
             ]
             return subprocess.call(command, cwd=ROOT)
         finally:
