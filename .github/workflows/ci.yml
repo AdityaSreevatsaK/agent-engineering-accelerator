@@ -106,6 +106,8 @@ jobs:
       - run: uv sync --all-extras --group dev --locked
       - name: Assert the CLI detects a deliberately degraded agent
         run: uv run --locked python scripts/verify_regression_gate.py
+      - name: Privacy redaction CLI contract
+        run: uv run --locked python scripts/check_privacy_e2e.py
       - name: Build a distributable wheel
         run: uv build --wheel
       - name: Verify the installed package in a fresh environment

@@ -13,3 +13,7 @@ comparison*.md
 **/.*.aea-backup-*/
 **/.*.aea-stage-*/
 **/.*.aea-update.lock
+
+# Local demonstration outputs (review before sharing)
+demo-output/
+demo-outputs/
