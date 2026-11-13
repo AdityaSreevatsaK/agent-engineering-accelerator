@@ -75,10 +75,21 @@ uv run --locked python scripts/check_distribution.py
 
 CI runs supported operating-system and Python combinations without provider credentials or billable model calls.
 
+## Leadership demonstration
+
+Generate a self-contained [local demonstration](docs/DEMO.md) using synthetic
+orders and a deliberately defective refund-policy agent:
+
+```sh
+uv run --locked python scripts/leadership_demo.py --output-dir demo-output
+```
+
+The command preserves the passing baseline and produces an HTML regression report.
+
 ## Security and limitations
 
 Default redaction does **not** guarantee anonymity: case IDs, tool names, span names, timing, paths and derived metrics may remain. `--capture-content` deliberately retains inputs, outputs and tool payloads. Only run trusted agent factories and scorers, since they execute Python code in the current environment.
 
 AEA is a testing toolkit, **not** an agent sandbox, hosting service or cross-provider abstraction. Live model repeatability, deployed LangGraph execution, end-to-end data-retention controls and production adoption are outside the current offline guarantees. Formal client data/security review is required before production use.
 
-See [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
+See [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [security review](docs/SECURITY_REVIEW.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
