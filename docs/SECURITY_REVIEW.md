@@ -18,9 +18,9 @@
 
 ## Runnable privacy contract
 
-`@sh
+```sh
 uv run --locked python scripts/check_privacy_e2e.py
-`@
+```
 
 The check puts a synthetic private marker in a temporary JSONL dataset, invokes
 the public CLI with **Strands and LangGraph**, and fails if that marker appears

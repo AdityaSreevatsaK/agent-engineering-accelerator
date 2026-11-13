@@ -5,11 +5,11 @@ detects a controlled regression with a readable failure explanation.
 
 ## Run locally
 
-`@sh
+```sh
 uv lock --check
 uv sync --all-extras --group dev --locked
 uv run --locked python scripts/leadership_demo.py --output-dir demo-output
-`@
+```
 
 The script refuses to overwrite an existing destination. Choose another folder
 for a repeat demonstration. Open `demo-output/DEMO.md` for the generated summary
