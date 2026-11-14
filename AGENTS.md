@@ -67,7 +67,7 @@ When starting an unfamiliar task, read the narrowest relevant implementation, bu
 13. `scripts/run_checks.py`, `scripts/check_examples.py`, `scripts/verify_regression_gate.py`: test acceptance.
 14. `scripts/check_privacy_e2e.py`, `scripts/check_distribution.py`: privacy/package gates.
 15. `.github/workflows/ci.yml`: required automated verification matrix.
-16. `docs/ENGINEERING_AUDIT.md`, `docs/SECURITY_REVIEW.md`, `docs/PILOT.md`: explicit limitations and adoption evidence.
+16. `docs/ENGINEERING_AUDIT.md`, `docs/SECURITY_REVIEW.md`, `docs/RELEASE_READINESS.md`, `docs/PILOT.md`: explicit limitations, independent hardening evidence and adoption requirements.
 17. `docs/DEMO.md` and `scripts/leadership_demo.py`: local leadership demonstration.
 
 **Do not infer a capability solely from a README statement.** Verify the corresponding runtime path and tests, especially where optional agents, model providers, metrics, data handling or security are involved.
