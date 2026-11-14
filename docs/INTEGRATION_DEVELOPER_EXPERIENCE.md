@@ -24,6 +24,12 @@ Neither integration imports AEA's implementation packages. Both use controlled l
 | P2, safety | An `aea check --update-baseline` action creates files and backups, and default redaction retains some identifying metadata | All walkthroughs keep baselines under ignored `runs/`; explain backup retention and non-anonymous metadata before internal use |
 | P2, proof | Project-authored demonstrations cannot demonstrate independent developer productivity or two-team adoption | Keep [the independent pilot evidence template](PILOT_EVIDENCE_TEMPLATE.md) blank and [issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) open |
 
+## Local import-only preflight (new)
+
+The public `aea doctor DATASET --config aea.toml` command now checks case schema, configuration selection and imported factory/mapping references from the application's current working directory **before** any agent evaluation. It does not construct or run the graph, call the model or create run directories. Because Python imports execute module-level code, operators must use trusted modules and should not assume zero file-system side effects.
+
+A missing LangGraph input or output map is surfaced as an advisory because some valid graphs use the default messages channel; actual graph-state support is only known during execution. Run the dedicated synthetic integration checks to verify behaviour. See [onboarding](ONBOARDING.md).
+
 ## Reproducible start-to-finish pathway
 
 1. Run `uv sync --all-extras --group dev --locked` at the AEA root, then activate the virtual environment.
