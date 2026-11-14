@@ -35,8 +35,9 @@ def test_reference_validation_rejects_malformed_syntax(reference):
 
 
 def test_missing_application_module_error_explains_working_directory():
-    with pytest.raises(ValueError, match="working directory and module path"):
+    with pytest.raises(ModuleNotFoundError, match="working directory and module path") as error:
         load_factory("this_aea_module_does_not_exist:build_agent")
+    assert error.value.name == "this_aea_module_does_not_exist"
 
 
 def test_missing_dependency_inside_existing_module_is_not_misreported(monkeypatch):
