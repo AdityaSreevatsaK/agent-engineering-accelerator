@@ -39,7 +39,7 @@ Neither integration imports AEA's implementation packages. Both use controlled l
 
 - Test the configured onboarding flow in fresh CI after introducing the TOML files, without paid models.
 - Run the integration acceptance matrix after future AEA packaging or adapter changes.
-- Add targeted tests for missing LangGraph mapping hooks and unimportable factory references if those become frequent onboarding issues.
+- Reference syntax and missing-module errors are now checked with focused unit tests; missing LangGraph mapping hooks on custom-state graphs remain a separate preflight/diagnostic improvement candidate.
 - Exercise the partially selected CLI integration cases, marked-slow pathways and independent dependency/security review separately.
 - Only a real team and an authorised security reviewer can supply actual rollout and confidential data approval evidence.
 

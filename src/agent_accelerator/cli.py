@@ -481,6 +481,19 @@ def _apply_config(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
         args.adapter = "strands"
     if args.agent is None:
         parser.error("--agent is required (flag or config)")
+    # Syntax-check selected references before allocating a run directory,
+    # including flags that override a valid TOML value. No user code is imported.
+    from agent_accelerator.adapters import validate_factory_reference
+
+    for key in ("agent", "input_map", "output_map", "scorer"):
+        references = args.scorer if key == "scorer" else [getattr(args, key)]
+        for ref in references:
+            if ref is None:
+                continue
+            try:
+                validate_factory_reference(ref)
+            except ValueError as exc:
+                raise ConfigError(f"--{key.replace('_', '-')}: {exc}") from None
 
 
 def main(argv: list[str] | None = None) -> int:
