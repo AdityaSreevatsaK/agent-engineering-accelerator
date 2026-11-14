@@ -18,6 +18,45 @@ from pathlib import Path
 BaselineValidator = Callable[[Path, Path, bool], None]
 
 
+def retained_backup_paths(baseline: Path) -> list[Path]:
+    """Read-only inventory of previous AEA baselines; never follows symlinks or deletes files.
+
+    An incomplete or unexpected backup folder is left untouched for review.
+    Only directories containing a real "previous" folder are reported.
+    """
+    if any(path.is_symlink() for path in (baseline, *baseline.parents)):
+        raise ValueError(f"baseline path traverses a symlink: {baseline}")
+    parent = baseline.parent
+    if not parent.is_dir():
+        return []
+    prefix = f".{baseline.name}.aea-backup-"
+    found: list[Path] = []
+    for candidate in parent.iterdir():
+        if not candidate.name.startswith(prefix):
+            continue
+        if candidate.is_symlink():
+            raise ValueError(f"backup directory is a symlink; refusing to inspect it: {candidate}")
+        if not candidate.is_dir():
+            continue
+        previous = candidate / "previous"
+        if previous.is_symlink():
+            raise ValueError(f"prior baseline is a symlink; refusing to inspect it: {previous}")
+        if previous.is_dir():
+            found.append(previous)
+    return sorted(found)
+
+
+def _private_staged_files(root: Path) -> None:
+    """Restrict new baseline file permissions on POSIX; Windows needs reviewed ACLs."""
+    if os.name == "nt":
+        return
+    for entry in root.rglob("*"):
+        if entry.is_symlink():
+            raise ValueError(f"staged baseline contains a linked path: {entry}")
+        entry.chmod(0o700 if entry.is_dir() else 0o600)
+    root.chmod(0o700)
+
+
 @contextmanager
 def _update_lock(target: Path) -> Iterator[None]:
     """Fail closed if another writer has reserved this baseline.
@@ -69,6 +108,9 @@ def freeze_run_as_baseline(
             staged = Path(workspace) / "next"
             shutil.copytree(run_dir, staged)
             validate(staged, runs_dir, capture_content)
+            # Source run folders can be world-readable under a permissive umask.
+            # Before promotion, lock down the new snapshot without touching the source.
+            _private_staged_files(staged)
             previous: Path | None = None
             backup_root: Path | None = None
             if baseline.exists():
