@@ -18,3 +18,5 @@ comparison*.md
 demo-output/
 demo-outputs/
 \n# Synthetic adoption rehearsal outputs (review before sharing)\npilot-rehearsal-output/\npilot-outputs/\n
+# Optional locally retained standalone integration evidence
+integration-evidence/
