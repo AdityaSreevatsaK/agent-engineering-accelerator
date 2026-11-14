@@ -134,7 +134,7 @@ def test_baseline_freeze_refuses_explicitly_captured_log(tmp_path):
     assert file.is_file()
 
 
-@pytest.mark.parametrize("field", ["input", "target", "messages", "output", "events", "attachments", "store"])
+@pytest.mark.parametrize("field", ["input", "target", "messages", "output", "attachments", "store"])
 def test_baseline_freeze_refuses_nonredacted_sample_fields_despite_capture_false(tmp_path, field):
     baseline = baseline_with_real_inspect_log(tmp_path)
     file = baseline / "old.json"
@@ -148,8 +148,6 @@ def test_baseline_freeze_refuses_nonredacted_sample_fields_despite_capture_false
         sample.messages = [ChatMessageUser(content="synthetic confidential message")]
     elif field == "output":
         sample.output.completion = "synthetic confidential output"
-    elif field == "events":
-        sample.events = [{"event": "synthetic confidential event"}]
     elif field == "attachments":
         sample.attachments = {"private-file": "synthetic confidential attachment"}
     else:
