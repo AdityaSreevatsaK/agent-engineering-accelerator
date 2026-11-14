@@ -14,9 +14,15 @@
 | Core runtime | Inspect AI, OpenTelemetry SDK, Pydantic, JSON Schema, fsspec and a compatibility-pinned agent-client-protocol |
 | Supported Python | 3.11+ declared; CI explicitly checks 3.11 and 3.12 only |
 | Licence verification | The lock does not establish licence permissions or transitive licence compatibility; review needed |
-| Vulnerability status | **Unknown until a dated advisory scan completes.** SHA-256 hashes and a green CI do not prove absence of known CVEs |
+| Public advisory scan | [CI #43627751480](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) scanned **116** exported Python package entries and reported **0 known advisories**. This is narrower than the 127 locked registry entries and is not full security clearance. |
 
 Inventory counts describe **locked variants and optional dependency groups**, not necessarily the number of packages installed for every runtime/platform combination.
+
+## Observed advisory result and remaining coverage
+
+In [the PR #124 CI scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480), the pinned public auditor reported **116 scanned entries, zero published advisory records returned and zero affected packages** for its exported all-extras runtime requirements view on Ubuntu Python 3.11. The scan produced the `aea-public-advisory-scan` artefact with the JSON and Markdown result. The lockfile separately contains **127** PyPI registry entries: platform markers, optional selection and export treatment mean these are not interchangeable package populations. Do not infer that the unscanned variants, future advisories, licences or malicious releases are cleared.
+
+The scan's status is `no_known_findings_in_scanned_set`, **not** `security_approved`. A formal independent vulnerability, licence and policy review is still required.
 
 ## Reproducible assessment
 
