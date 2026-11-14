@@ -56,7 +56,8 @@ def test_default_traces_do_not_store_arbitrary_span_attributes_or_events(tmp_pat
     assert custom_event["attributes"] == {}
     assert not root.get("resource")
     assert not root.get("instrumentation_scope")
-    tool = next(s for s in spans if s["name"] == "synthetic-tool")
+    assert all(s["name"] in {"eval_case", "[REDACTED]"} for s in spans)
+    tool = next(s for s in spans if s["attributes"].get("gen_ai.tool.name") == "search")
     exception = next(event for event in tool["events"] if event["name"] == "exception")
     assert exception["attributes"]["exception.type"] == "ValueError"
     assert exception["attributes"]["exception.message"] == "[REDACTED]"
@@ -81,6 +82,7 @@ def test_explicit_capture_still_retains_attributes_and_custom_events(tmp_path: P
     assert SENTINEL in raw
     spans = [json.loads(x) for x in raw.splitlines()]
     assert any("custom.request_input" in s.get("attributes", {}) for s in spans)
+    assert any(s["name"] == "synthetic-tool" for s in spans)
     assert any(
         SENTINEL in event.get("name", "")
         for span in spans

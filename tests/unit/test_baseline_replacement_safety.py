@@ -4,6 +4,8 @@ import shutil
 from pathlib import Path
 
 import pytest
+from inspect_ai.log import read_eval_log, write_eval_log
+from inspect_ai.model import ChatMessageUser
 
 from agent_accelerator.cli import _validate_baseline_target
 
@@ -118,3 +120,40 @@ def test_baseline_freeze_still_refuses_capture_content(tmp_path):
     baseline = tmp_path / "baseline"
     with pytest.raises(ValueError, match="--capture-content"):
         _validate_baseline_target(baseline, run_dir(tmp_path), True)
+
+
+def test_baseline_freeze_refuses_explicitly_captured_log(tmp_path):
+    baseline = baseline_with_real_inspect_log(tmp_path)
+    file = baseline / "old.json"
+    log = read_eval_log(file)
+    log.eval.metadata = {**(log.eval.metadata or {}), "capture_content": True}
+    write_eval_log(log, location=file)
+
+    with pytest.raises(ValueError, match="records captured content"):
+        _validate_baseline_target(baseline, run_dir(tmp_path), False)
+    assert file.is_file()
+
+
+@pytest.mark.parametrize("field", ["input", "target", "messages", "output", "attachments", "store"])
+def test_baseline_freeze_refuses_nonredacted_sample_fields_despite_capture_false(tmp_path, field):
+    baseline = baseline_with_real_inspect_log(tmp_path)
+    file = baseline / "old.json"
+    log = read_eval_log(file)
+    sample = log.samples[0]
+    if field == "input":
+        sample.input = "synthetic confidential question"
+    elif field == "target":
+        sample.target = "synthetic confidential answer"
+    elif field == "messages":
+        sample.messages = [ChatMessageUser(content="synthetic confidential message")]
+    elif field == "output":
+        sample.output.completion = "synthetic confidential output"
+    elif field == "attachments":
+        sample.attachments = {"private-file": "synthetic confidential attachment"}
+    else:
+        sample.store = {"secret": "synthetic confidential store"}
+    write_eval_log(log, location=file)
+
+    with pytest.raises(ValueError, match="contains unredacted sample content"):
+        _validate_baseline_target(baseline, run_dir(tmp_path), False)
+    assert file.is_file()

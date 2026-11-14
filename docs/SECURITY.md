@@ -4,8 +4,8 @@ AEA runs locally and executes user-supplied Python agent factories, input/output
 
 ## Data protection
 
-- **Default runs:** Inspect log prompts, outputs and tool-message payloads are redacted. Arbitrary non-numeric custom-scorer values are replaced with a failing category to prevent output text leaking via score values. Standard Inspect categories and numeric grades are retained. The trace exporter also removes arbitrary custom span attributes and non-exception event payloads.
-- **Remaining identifiers:** Case IDs, tool names, span names, model identifiers, relative paths, timings and numerical metrics may still identify an individual or client.
+- **Default runs:** Inspect log prompts, outputs and tool-message payloads are redacted. Arbitrary non-numeric custom-scorer values are replaced with a failing category to prevent output text leaking via score values. Standard Inspect categories and numeric grades are retained. The trace exporter also removes arbitrary custom span attributes, non-exception event payloads and all non-root span names. Its fixed `eval_case` root name is preserved for trace grouping. Tool names and case IDs remain visible and require safe naming.
+- **Remaining identifiers:** Case IDs, tool names, model identifiers, relative paths, timings and numerical metrics may still identify an individual or client; non-root span names are redacted in default trace exports. Explicit capture retains full span names.
 - **Explicit capture:** `--capture-content` stores raw evaluation content. Keep such data in an approved restricted location, apply your retention policy and never commit it.
 - **Export:** Markdown, HTML and PDF reports are files you control. Inspect their content and permissions before sharing.
 - **Credentials:** Configure provider credentials through the hosting environment or approved secrets management, never in code or datasets.
@@ -17,4 +17,4 @@ Before using customer data, verify data classification, access control, retentio
 
 ## Known limitations
 
-Baseline updates use an exclusive local lock, a validated staging directory and a retained prior-version backup. They do not guarantee coordination with external processes that ignore the lock. A lock left after a crash must be investigated and cleared manually. Prior backups are not automatically purged; secure or delete them according to your retention policy. Default trace redaction minimises fields but is not a comprehensive anonymisation boundary.
+Baseline updates use an exclusive local lock, a validated staging directory and a retained prior-version backup. They do not guarantee coordination with external processes that ignore the lock. A lock left after a crash must be investigated and cleared manually. Prior backups are not automatically purged; secure or delete them according to your retention policy. Baseline updates reject logs explicitly marked as captured or containing sample input, target, messages, output text, events, attachments or store content. This is a focused safety check, not proof that all metadata or custom score fields are anonymous. Default trace redaction minimises fields but is not a comprehensive anonymisation boundary.

@@ -52,6 +52,11 @@ def _redact_errors(span: dict[str, Any]) -> dict[str, Any]:
     agents, tools or OpenTelemetry instrumentation. Non-exception events and
     links are also not reliable safe data sources.
     """
+    # Framework and user-authored spans can use arbitrary strings, including
+    # prompts or case-specific identifiers, as their names. Only AEA's own
+    # fixed root name is required to join traces to run cases.
+    if span.get("name") != "eval_case":
+        span["name"] = _REDACTED
     if span.get("status", {}).get("description"):
         span["status"]["description"] = _REDACTED
     span["attributes"] = {
