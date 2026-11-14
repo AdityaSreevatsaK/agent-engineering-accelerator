@@ -64,10 +64,10 @@ When starting an unfamiliar task, read the narrowest relevant implementation, bu
 10. `src/agent_accelerator/baseline.py`: safe baseline update and retention.
 11. `src/agent_accelerator/tracing.py` and `trace_summary.py`: trace collection and minimisation.
 12. `src/agent_accelerator/judge.py` and `judge_double.py`: optional judge modes.
-13. `scripts/run_checks.py`, `scripts/check_examples.py`, `scripts/verify_regression_gate.py`: test acceptance.
+13. `scripts/run_checks.py` (`--slow` for all marked-slow tests), `scripts/check_examples.py`, `scripts/verify_regression_gate.py`: test acceptance.
 14. `scripts/check_privacy_e2e.py`, `scripts/check_distribution.py`: privacy/package gates.
 15. `.github/workflows/ci.yml`: required automated verification matrix.
-16. `docs/ENGINEERING_AUDIT.md`, `docs/SECURITY_REVIEW.md`, `docs/RELEASE_READINESS.md`, `docs/PILOT.md`: explicit limitations, independent hardening evidence and adoption requirements.
+16. `docs/ENGINEERING_AUDIT.md`, `docs/SECURITY_REVIEW.md`, `docs/RELEASE_READINESS.md`, `docs/RELEASE_CANDIDATE_CHECKLIST.md`, `docs/PILOT.md`: limitations, tested release gates, authorised approvals and adoption requirements.
 17. `docs/DEMO.md` and `scripts/leadership_demo.py`: local leadership demonstration.
 18. `scripts/pilot_rehearsal.py` and `docs/PILOT_EVIDENCE_TEMPLATE.md`: offline two-adapter technical rehearsal and unfilled independent-team evidence worksheet. A rehearsal is never proof of adoption.
 19. `integrations/` and `scripts/validate_independent_integrations.py`: two self-contained synthetic application projects with their own current working directories, real Strands/LangGraph loops and deliberately defective factories; no independent adoption claimed.
@@ -212,7 +212,7 @@ Examples are **illustrative engineering contracts**, not evidence that those sce
 - `tests/conformance/`: local LangGraph conformance cases, including non-standard state and tool/interrupt handling.
 - `tests/fixtures/`: minimal synthetic test assets.
 - `tests/conftest.py`: test fixture definitions and slow-test selection.
-- `scripts/run_checks.py`: controlled offline unit selection, temporary synthetic fixture generation, explicit exclusions and inventory completeness check.
+- `scripts/run_checks.py`: complete module inventory, disposable synthetic calculator fixture generation, separate non-slow/slow test selection and protected cleanup.
 - `scripts/make_test_log.py`: generate a disposable Inspect AI log in the format expected by selected unit tests.
 - `scripts/check_examples.py`: seven full deterministic CLI smoke scenarios; `--quick` for short jobs.
 - `scripts/verify_regression_gate.py`: approved baseline, matching agent, intentionally broken agent, and baseline-integrity assertions.
@@ -710,29 +710,26 @@ uv build --wheel
 uv run --locked python scripts/check_distribution.py
 ```
 
-The distribution smoke expects a single wheel in `dist/`; do not leave multiple competing build artefacts there. It creates a disposable environment and verifies the import location, package metadata, CLI entry point, bundled templates, generated starter and escaped HTML output.
+The distribution smoke expects a single wheel in `dist/`; do not leave multiple competing build artefacts there. It creates a disposable environment and verifies the import location, package metadata, CLI entry point including `aea backups`, bundled templates, generated starter, non-destructive backup discovery and escaped HTML output.
 
 ---
 
 ## 15. Exactly how quality gates work
 
-### 15.1 Routine unit gate
+### 15.1 Complete offline unit and marked-slow integration gates
 
 ```sh
 uv run --locked python scripts/run_checks.py
+uv run --locked python scripts/run_checks.py --slow
 ```
 
-The script creates a disposable synthetic calculator Inspect log and runs the selected offline unit tests. It checks that every unit-test file is either fully included or explicitly classified. It protects the fixture path against pre-existing files and refuses to delete changed fixture content.
+The quick command includes every unit-test module's non-slow cases, including those in `tests/unit/test_cli.py`. The slow command includes **all marked-slow unit cases** and marked-slow LangGraph conformance, from CLI subprocess tests to token pricing and domain-specific end-to-end cases. The CI release-check job runs the slow command. Regular conformance cases run separately on all four OS/Python lanes.
 
-The current project contains a very large collection of parametrised unit tests. **Do not equate a total passing count with proof that every test in the repository ran.** Inspect the runner and pytest summary for deselections.
+`scripts/run_checks.py` generates a disposable synthetic calculator Inspect capture plus independently produced current-agent CLI success and intentionally defective logs. These are *new test inputs*, not copies of unavailable original source data. Before writing, the runner rejects existing fixture paths; after running, it checks file digests and refuses to delete changed content. Every unit-test file must be present in the explicit inventory.
 
-Known test limitations:
+**Do not equate green CI with universal coverage.** Inspect selected/deselected counts on the quick, slow and conformance lanes, and keep real cloud-provider scenarios out of CI. Comparison/statistics cases likewise use independently asserted synthetic oracles; missing original archives have not been restored.
 
-- The independent CLI parser/configuration test groups in `tests/unit/test_cli.py` are selected, but its full integration contract suite is not included because some fixed-reference comparison inputs are absent.
-- All comparison/statistics groups are now active using synthetic test oracles. The unavailable archived comparison fixture was not restored.
-- The default pytest configuration excludes tests marked `slow`; inspect their purpose before expanding CI time or enabling live execution.
-
-Do not manufacture undocumented reference fixtures simply to turn the test count green. Prefer adding independently checkable synthetic tests with a stated oracle.
+For future release decisions, follow [the release-candidate checklist](docs/RELEASE_CANDIDATE_CHECKLIST.md) and confirm the same immutable `dev` SHA passes all six CI jobs.
 
 ### 15.2 Framework conformance
 

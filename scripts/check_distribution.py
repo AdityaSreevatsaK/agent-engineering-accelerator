@@ -11,7 +11,7 @@ from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ("agent.py", "dataset.jsonl")
-COMMANDS = ("init", "run", "check", "compare", "report", "export")
+COMMANDS = ("init", "run", "check", "compare", "report", "export", "backups")
 
 
 def run(*argv: str, cwd: Path, timeout: int = 240) -> str:
@@ -70,6 +70,20 @@ def main() -> None:
         if any(item not in help_text for item in COMMANDS):
             raise AssertionError("Installed CLI help is missing documented commands")
 
+        # Verify the shipped backup-inventory command is read-only, including
+        # a folder that happens to contain an unrelated operator-owned file.
+        candidate = temp / "approved-baseline"
+        first = run(str(aea), "backups", str(candidate), cwd=temp)
+        if "No retained AEA baseline backups found" not in first or candidate.exists():
+            raise AssertionError("Installed CLI backup inventory changed a missing destination")
+        prior = temp / ".approved-baseline.aea-backup-synthetic" / "previous"
+        prior.mkdir(parents=True)
+        marker = prior / "operator-notes.txt"
+        marker.write_text("retain exactly", encoding="utf-8")
+        found = run(str(aea), "backups", str(candidate), cwd=temp)
+        if prior.as_posix() not in found or marker.read_text(encoding="utf-8") != "retain exactly":
+            raise AssertionError("Installed CLI backup inventory failed to preserve retained data")
+
         starter = temp / "new_agent"
         run(str(aea), "init", str(starter), cwd=temp)
         for name in TEMPLATES:
@@ -84,7 +98,7 @@ def main() -> None:
         if "<script>" in output or "&lt;script&gt;" not in output:
             raise AssertionError("Installed CLI HTML exporter failed to escape source text")
 
-        print("PASS: built wheel files, isolated install, CLI help/init, and HTML export escaping")
+        print("PASS: built wheel, isolated install, CLI help/init/backups, and HTML export escaping")
 
 
 if __name__ == "__main__":

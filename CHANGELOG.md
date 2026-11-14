@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased (development branch, 2026-11-14)
+
+These engineering changes are present on `dev` and are **not** proof of a published package, production approval, or independent team adoption.
+
+- Regression gates now validate finite thresholds and errored epochs; JSON Schema expectations are validated before agent execution. Comparison/statistics checks use independently specified synthetic cases instead of missing fixed-reference logs.
+- Default Inspect log scrubbing removes arbitrary custom score values; default OpenTelemetry exports suppress dynamic span names and custom payload attributes. Baseline replacement refuses clearly unredacted or explicitly captured Inspect logs. Identifiers and other metadata still require data governance review.
+- Multi-epoch provider-reported token totals and estimated total evaluation cost are distinct from normalised single-pass estimates; missing usage is not silently assumed to be zero.
+- Baseline updates preserve existing versions, use cooperative locks and rollback; newly frozen copies use owner-only POSIX file modes. New `aea backups BASELINE` inventories retained copies without deleting them. Windows ACLs and retention policy remain outstanding.
+- Module/function reference validation fails before creating runs for malformed agent, mapping and scorer references, with clearer working-directory diagnostics and preserved import-error compatibility.
+- Two self-contained synthetic Strands and LangGraph integrations exercise separate application directories, local `aea.toml` settings, deliberate defects, baseline integrity and regression detection. A separate repeatable pilot rehearsal and blank independent-team evidence worksheet are included.
+- Full CLI integration acceptance now uses fresh, disposable synthetic reference logs with two declared injected failures. Non-slow CLI tests join the complete unit matrix; the release checks run marked-slow CLI and framework integration tests. The explicit release acceptance gate now exercises all marked-slow unit modules and the slow LangGraph CLI conformance case (74 passes on the 14 November CI).
+- Fresh wheel validation exercises the installed `aea` CLI, templates, HTML escaping and read-only backup discovery. See [technical release-candidate checklist](docs/RELEASE_CANDIDATE_CHECKLIST.md).
+
 ## 2.2.0 (2026-10-25)
 
 - `--config FILE` on `aea run` and `aea check`: a flat TOML file with `adapter`, `agent`, `input_map` and `output_map`. Explicit only (no auto-discovery); a command-line flag wins over the file, the file over the default; refs still import from the current directory. An unknown key, a non-string value, an unknown adapter, a ref without `:`, invalid TOML, a non-UTF-8 file or an unreadable path exits 2 before a run directory is created. `examples/triage/aea.toml` and `examples/expense/aea.toml` added.
