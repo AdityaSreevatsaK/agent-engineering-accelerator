@@ -116,6 +116,17 @@ jobs:
         run: uv run --locked python scripts/pilot_rehearsal.py --output-dir "${{ runner.temp }}/aea-pilot-rehearsal" --repeats 1
       - name: Validate separate application integrations from their own directories
         run: uv run --locked python scripts/validate_independent_integrations.py --repeats 1
+      - name: Benchmark public CLI runtime on standalone synthetic applications
+        run: uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 2 --output-dir "${{ runner.temp }}/aea-benchmark"
+      - name: Retain synthetic-only benchmarking summaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-synthetic-benchmark
+          path: |
+            ${{ runner.temp }}/aea-benchmark/evidence.json
+            ${{ runner.temp }}/aea-benchmark/BENCHMARK.md
+          retention-days: 14
+          if-no-files-found: error
       - name: Build a distributable wheel
         run: uv build --wheel
       - name: Verify the installed package in a fresh environment

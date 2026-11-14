@@ -30,6 +30,10 @@ uses synthetic data and no cloud model credentials.
    the proposed two-team pilot. Claim productivity gains only when independently
    measured.
 
+## Optional measured runtime exhibit
+
+Run `uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 3 --output-dir benchmark-evidence` and show the generated `BENCHMARK.md`. It measures local subprocess wall time and controlled regression detection for two self-authored synthetic integrations. **No developer-hours saved or external-team adoption are established** by this measurement. See the [benchmark protocol](BENCHMARKING.md).
+
 ## Evidence and limitations
 
 The demo proves deterministic local baseline and regression behaviour, not live
