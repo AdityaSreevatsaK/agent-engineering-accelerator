@@ -9,6 +9,7 @@ uv run --locked ruff check src examples
 uv run --locked pyright
 uv run --locked python scripts/run_checks.py
 uv run --locked python scripts/check_examples.py
+uv run --locked python scripts/validate_independent_integrations.py --repeats 1
 ```
 
 The offline test runner executes all standalone test modules and a selected set of CLI parser/configuration tests from the fixed-reference CLI integration module. The seven snapshot-dependent comparison/statistics groups have now been replaced with independently constructed synthetic cases, so none of those groups are excluded. The fixed-reference CLI integration module remains partially selected, and its unselected tests are not claimed as passing. A new test file must be classified before CI can pass. The calculator, triage, expense, policy RAG and helpdesk examples provide deterministic smoke coverage.
