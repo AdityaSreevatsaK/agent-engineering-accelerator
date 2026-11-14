@@ -6,7 +6,7 @@ Provide `module:function` through `--agent`, or in a TOML configuration. The fun
 
 ## Datasets
 
-Use one JSON object per line with a unique `id` and an `input`. Optional expectations include `expected_output`, `output_contains`, `output_not_contains`, `expected_json_schema`, `expected_tool_calls`, `expected_tools`, `forbidden_tools`, `tool_order`, `expected_tool_args` and `expect_interrupt`.
+Use one JSON object per line with a unique `id` and an `input`. Optional expectations include `expected_output`, `output_contains`, `output_not_contains`, `expected_json_schema`, `expected_tool_calls`, `expected_tools`, `forbidden_tools`, `tool_order`, `expected_tool_args` and `expect_interrupt`. Invalid `expected_json_schema` definitions fail during dataset validation, before agent execution.
 
 ## Commands
 

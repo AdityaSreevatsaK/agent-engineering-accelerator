@@ -366,7 +366,7 @@ This is a schema illustration, not a claim that the supplied example agent produ
 
 ### 7.3 Validation invariants
 
-- Use `load_dataset(path)`; do not bypass Pydantic validation.
+- Use `load_dataset(path)`; do not bypass Pydantic validation. Any `expected_json_schema` must be a valid JSON Schema and is checked before agent execution, not after provider calls.
 - Report malformed case data with the file and line number.
 - Reject duplicate IDs.
 - Keep backward compatibility with dataset-format version 1 unless a deliberate version upgrade is agreed.
