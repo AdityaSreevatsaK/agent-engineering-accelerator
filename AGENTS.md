@@ -724,7 +724,7 @@ The current project contains a very large collection of parametrised unit tests.
 Known test limitations:
 
 - The independent CLI parser/configuration test groups in `tests/unit/test_cli.py` are selected, but its full integration contract suite is not included because some fixed-reference comparison inputs are absent.
-- Seven fixed-reference case groups in the comparison and statistics test modules are explicitly deferred for the same reason.
+- All comparison/statistics groups are now active using synthetic test oracles. The unavailable archived comparison fixture was not restored.
 - The default pytest configuration excludes tests marked `slow`; inspect their purpose before expanding CI time or enabling live execution.
 
 Do not manufacture undocumented reference fixtures simply to turn the test count green. Prefer adding independently checkable synthetic tests with a stated oracle.
@@ -958,7 +958,7 @@ These are tested technical capabilities, not production clearance.
 ### 19.2 Current explicit gaps
 
 - Full legacy CLI integration test group is not entirely active without its fixed reference assets; selected independent contracts run, and the runner documents remaining gaps.
-- Seven fixed-reference comparison/statistics case groups remain explicitly deferred; four independent comparison tests were restored using disposable synthetic logs.
+- Comparison/statistics groups have no explicit exclusions after synthetic replacements. The standalone CLI module is still only partially selected; do not claim its full suite passed.
 - Slow tests are not part of the standard quick gate.
 - Live model/provider compatibility, availability, network errors, cost and rate limits have not been validated in the offline matrix.
 - Real customer-data retention and access controls need independent approval.
