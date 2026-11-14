@@ -87,18 +87,10 @@ PARTIAL_MODULE_CASES = {
     ),
 }
 
-# Remaining deferred groups require original, immutable reference runs or fixed
-# provenance data unavailable in the repository. Independent synthetic tests run.
-# Avoid fabricating source evidence merely to satisfy snapshot assertions.
-DEFERRED_CASES = (
-    "tests/unit/test_compare.py::test_capture_fixture_loads_as_ten_successful_cases",
-    "tests/unit/test_compare.py::test_broken_fixture_has_the_two_specified_failures_and_explanations",
-    "tests/unit/test_compare.py::test_broken_fixture_regresses_against_capture_with_default_thresholds",
-    "tests/unit/test_compare.py::test_load_results_reads_capture_content_from_fixture_metadata",
-    "tests/unit/test_compare.py::test_cli_compare_exit_code_ignores_capture_warning",
-    "tests/unit/test_compare_statistics.py::test_demo_statistics_match_hand_derived_values",
-    "tests/unit/test_compare_statistics.py::test_statistics_block_is_the_last_section_before_the_glossary_and_appears_once",
-)
+# No comparison/statistics test groups remain excluded: their replacement assertions
+# use independently constructed synthetic runs. Fixed-reference CLI integration tests
+# are still partially selected until their fixtures can be independently reproduced.
+DEFERRED_CASES: tuple[str, ...] = ()
 
 def main() -> int:
     unit_dir = ROOT / "tests" / "unit"
