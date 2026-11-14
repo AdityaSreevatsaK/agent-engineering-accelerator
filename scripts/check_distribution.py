@@ -118,7 +118,7 @@ def main() -> None:
         if "<script>" in output or "&lt;script&gt;" not in output:
             raise AssertionError("Installed CLI HTML exporter failed to escape source text")
 
-        print("PASS: built wheel, isolated install, CLI help/init/backups, and HTML export escaping")
+        print("PASS: built wheel, isolated install, CLI help/init/doctor/backups, and HTML export escaping")
 
 
 if __name__ == "__main__":
