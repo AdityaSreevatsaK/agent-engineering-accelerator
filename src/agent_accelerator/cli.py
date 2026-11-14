@@ -6,6 +6,7 @@ Exit codes: 0 success, 1 regression detected, 2 usage or run error.
 import argparse
 import keyword
 import shutil
+from math import isfinite
 import sys
 from importlib.resources import files
 from pathlib import Path
@@ -348,12 +349,12 @@ def _add_run_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_threshold_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--max-new-failures", type=int, default=0)
-    parser.add_argument("--max-pass-rate-drop", type=float, default=0.0, help="fraction, e.g. 0.05")
-    parser.add_argument("--max-error-rate-increase", type=float, default=0.0, help="fraction, e.g. 0.05")
+    parser.add_argument("--max-new-failures", type=_nonnegative_int, default=0)
+    parser.add_argument("--max-pass-rate-drop", type=_rate, default=0.0, help="fraction, e.g. 0.05")
+    parser.add_argument("--max-error-rate-increase", type=_rate, default=0.0, help="fraction, e.g. 0.05")
     parser.add_argument(
         "--min-case-pass-rate",
-        type=float,
+        type=_positive_rate,
         default=1.0,
         help="share of epochs a case must pass to count as passing, e.g. 0.8 (default 1.0: every epoch)",
     )
@@ -363,6 +364,35 @@ def _add_threshold_args(parser: argparse.ArgumentParser) -> None:
         metavar="ALPHA",
         help="regress when a case's or the pooled pass rate fell with one-sided Fisher p <= ALPHA, e.g. 0.05",
     )
+
+
+def _nonnegative_int(value: str) -> int:
+    """Non-negative case count for regression gates."""
+    try:
+        count = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"must be a non-negative integer, got {value!r}") from None
+    if count < 0:
+        raise argparse.ArgumentTypeError(f"must be a non-negative integer, got {value!r}")
+    return count
+
+
+def _rate(value: str) -> float:
+    """Finite proportion in [0, 1]; NaN must not silently disable a regression gate."""
+    try:
+        rate = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"must be a number between 0 and 1, got {value!r}") from None
+    if not isfinite(rate) or not 0 <= rate <= 1:
+        raise argparse.ArgumentTypeError(f"must be a finite number between 0 and 1, got {value!r}")
+    return rate
+
+
+def _positive_rate(value: str) -> float:
+    rate = _rate(value)
+    if rate == 0:
+        raise argparse.ArgumentTypeError("must be greater than 0 and at most 1")
+    return rate
 
 
 def _alpha(value: str) -> float:
