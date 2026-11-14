@@ -6,9 +6,9 @@ Exit codes: 0 success, 1 regression detected, 2 usage or run error.
 import argparse
 import keyword
 import shutil
-from math import isfinite
 import sys
 from importlib.resources import files
+from math import isfinite
 from pathlib import Path
 from typing import TYPE_CHECKING
 
