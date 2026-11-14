@@ -41,6 +41,7 @@ These are technical test results. They do not establish universal compatibility,
 | --- | --- | --- |
 | P1, approval | Formal security review, sensitive identifier classification and file access/retention policy | Required before handling confidential customer data |
 | P2, validation | Live Strands/LangGraph provider execution, errors, latency, usage and spending | Needs approved credentials and authorised provider-specific tests outside the no-cost CI |
+| P2, reporting | Reported token totals and estimated cost describe a normalised single dataset pass using per-epoch averages, not the full spend of all epochs | Clarify the user-facing label and add an optional measured full-run cost metric before relying on it for billing or capacity decisions |
 | P2, coverage | Seven fixed-reference comparison/statistics test groups remain deferred; full CLI archived-log integration tests and marked-slow tests are not in the regular matrix | Do not claim complete test coverage; create independent new oracles and exercise slow paths selectively |
 | P2, operations | Backup folders need an owner-defined retention process; stale cooperative locks require investigation; external writers do not observe AEA's lock | Define operational procedures before team-wide use |
 | P2, privacy | Case IDs, tool/span/model names, paths and certain numerical metadata may identify workloads; `--capture-content` intentionally retains raw content | Require data classification and reviewed output-sharing policy |
