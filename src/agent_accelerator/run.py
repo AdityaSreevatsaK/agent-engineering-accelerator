@@ -9,7 +9,7 @@ from inspect_ai import Task, eval
 from inspect_ai.dataset import MemoryDataset, Sample
 from inspect_ai.log import EvalError, EvalLog, read_eval_log, write_eval_log
 from inspect_ai.model import ModelOutput
-from inspect_ai.scorer import Score, Scorer
+from inspect_ai.scorer import CORRECT, INCORRECT, NOANSWER, PARTIAL, Score, Scorer
 
 from agent_accelerator.config import ADAPTERS
 from agent_accelerator.dataset import DATASET_FORMAT_VERSION, case_to_metadata, dataset_sha256, load_dataset
@@ -166,6 +166,11 @@ def scrub(log: EvalLog) -> EvalLog:
 
 
 def _scrub_score(score: Score, scorer: str) -> None:
+    # A third-party scorer may put the generated answer in its score value.
+    # Preserve standard Inspect categories and numeric grades, but never persist
+    # arbitrary string or structured values in default redacted logs.
+    if not isinstance(score.value, (int, float)) and score.value not in (CORRECT, INCORRECT, PARTIAL, NOANSWER):
+        score.value = INCORRECT
     score.answer = None
     score.history = []  # earlier edits keep their own answers and explanations
     # case_checks and judge redact their own explanations; a custom scorer's other fields may quote output.

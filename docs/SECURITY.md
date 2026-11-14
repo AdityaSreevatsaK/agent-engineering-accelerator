@@ -4,7 +4,7 @@ AEA runs locally and executes user-supplied Python agent factories, input/output
 
 ## Data protection
 
-- **Default runs:** Inspect log prompts, outputs and tool-message payloads are redacted. The trace exporter also removes arbitrary custom span attributes and non-exception event payloads.
+- **Default runs:** Inspect log prompts, outputs and tool-message payloads are redacted. Arbitrary non-numeric custom-scorer values are replaced with a failing category to prevent output text leaking via score values. Standard Inspect categories and numeric grades are retained. The trace exporter also removes arbitrary custom span attributes and non-exception event payloads.
 - **Remaining identifiers:** Case IDs, tool names, span names, model identifiers, relative paths, timings and numerical metrics may still identify an individual or client.
 - **Explicit capture:** `--capture-content` stores raw evaluation content. Keep such data in an approved restricted location, apply your retention policy and never commit it.
 - **Export:** Markdown, HTML and PDF reports are files you control. Inspect their content and permissions before sharing.
