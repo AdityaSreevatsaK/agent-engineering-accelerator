@@ -52,7 +52,7 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
-markers = ["slow: starts aea run subprocesses; scripts/ci.sh runs these"]
+markers = ["slow: offline subprocess and integration checks; run with scripts/run_checks.py --slow"]
 addopts = "-m 'not slow'"
 
 [tool.pyright]
