@@ -103,7 +103,7 @@ The locked package source/hash inventory can be checked without external APIs:
 uv run --locked python scripts/dependency_inventory.py
 ```
 
-This does **not** scan published vulnerability advisories or verify licences. Follow the security review's approved live-scan procedure for those separate gates.
+This command does **not** scan published vulnerability advisories or verify licences. The separate observational [PR #124 public-advisory scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) returned zero known findings for 116 exported packages; [security review](docs/DEPENDENCY_SECURITY_REVIEW.md) explains the unscanned variants and pending approvals.
 
 ## Leadership demonstration
 
