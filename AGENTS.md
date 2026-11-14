@@ -602,7 +602,7 @@ Judge configuration and files are validated before the evaluation as far as prac
 - Sample question/input and target answer.
 - Agent messages and output text.
 - Structured events, attachments and state stores.
-- Unsafe arbitrary scorer explanations and metadata.
+- Unsafe arbitrary scorer explanations, metadata and free-form score values; standard categories and numeric grades are retained.
 - Error text and tracebacks that might quote prompts.
 - Duplicate content carried in scorer reductions.
 
