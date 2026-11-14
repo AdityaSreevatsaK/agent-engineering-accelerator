@@ -11,7 +11,7 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 | Priority | Finding | Evidence and impact | Disposition |
 | --- | --- | --- | --- |
 | P0 | Baseline updates previously removed an existing destination after a separate pre-run check | `cli._check` could erase intervening files or leave no baseline after a copy failure | Addressed with staged validation, cooperative writer lock, retained prior snapshot and rollback tests |
-| P1 | The original streamlined suite missed six test modules | Comparison, statistics, token metrics and pairwise judging lacked routine coverage | Resolved for routine coverage: the full standalone test inventory plus 20 selected CLI parser/configuration test groups; fixed-reference CLI integration tests remain partially selected; all comparison/statistics groups now have runnable synthetic replacements |
+| P1 | Earlier CI did not exercise the complete CLI and slow integration suites | Only selected parser/config tests ran from `test_cli.py`, and other marked-slow paths were omitted | The full CLI module now uses fresh synthetic calculator fixtures; non-slow tests run in all four matrix lanes, and a distinct release gate runs every marked-slow unit/conformance case; original missing archives are not represented as restored |
 | P1 | No conformance gate in the streamlined CI | Non-standard LangGraph state, tool calls and interrupts could regress without integration coverage | Resolved: dedicated local conformance suite runs on Windows/Linux Python 3.11 and 3.12 |
 | P1 | Deterministic Orders example had one inconsistent expected sentence | The program calculated the correct total but only reported 10/11 passing cases | Corrected dataset and added end-to-end tool-plan assertion |
 | P1 | Fixed log assertions need an unavailable reference capture and baseline archive | Blindly inventing those fixtures would make results meaningless | Replaced all seven remaining fixed-reference comparison/statistics groups with synthetic verification without implying the missing archive was restored |
@@ -31,11 +31,11 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 - The broken-refund-policy CLI gate confirms that the deliberately faulty agent generates exit code 1 and an actionable comparison report while leaving its baseline untouched. This does not establish performance against live providers.
 - Code, dataset, scoring function and custom mappings are **trusted executable Python**, not sandboxed user input.
 
-## Verified local release gates (12 November 2026)
+## Verified local release gates (14 November 2026)
 
 The audited CI revision passed **6/6 jobs**, including Windows and Linux with Python 3.11 and 3.12, locked dependency installation, the complete local example suite, deliberate-regression detection, and a fresh-environment wheel installation.
 
-The Ubuntu Python 3.11 evidence showed **2,444 passing unit tests, 34 deselected cases and 13 passing non-slow LangGraph conformance tests**. One conformance test is intentionally marked slow; a fixed-reference CLI module is also excluded and documented in the runner. These figures describe the tested revision, not a claim that every available test or provider scenario is verified.
+The [PR #119 verification](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43590375757) recorded **2,646 passing non-slow unit tests**, 13 passing non-slow conformance tests, and **54 passing slow CLI/conformance cases**. The newly expanded slow gate additionally selects all marked-slow unit test modules, including token-price and domain-example end-to-end paths, and must pass fresh CI before closure. The original archived calculator logs were not recovered: their missing inputs are replaced with explicitly constructed synthetic references. These figures are evidence for that commit, not coverage of live providers.
 
 **Engineering verdict:** viable for an internal pilot using approved synthetic/local data. **Not yet approved** for confidential production workloads or a default-branch release. Outstanding approvals require a security/data-retention assessment, a live-provider validation plan and independent delivery-team pilot evidence.
 
@@ -56,4 +56,4 @@ The [14 November 2026 release-readiness assessment](RELEASE_READINESS.md) record
 
 ## Known limits
 
-The snapshot backups are append-only and need retention management. A cooperative lock does not coordinate arbitrary third-party writers. Existing comparator statistics are informative unless threshold options explicitly activate gates. The sample Orders and Expense data are illustrative, not client-domain acceptance tests.
+The snapshot backups are append-only and need retention management. Review the [release candidate checklist](RELEASE_CANDIDATE_CHECKLIST.md) before requesting any promotion. A cooperative lock does not coordinate arbitrary third-party writers. Existing comparator statistics are informative unless threshold options explicitly activate gates. The sample Orders and Expense data are illustrative, not client-domain acceptance tests.
