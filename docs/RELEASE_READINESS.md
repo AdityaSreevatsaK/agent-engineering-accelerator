@@ -23,6 +23,9 @@ CI runs execute on Windows and Linux with Python 3.11 and 3.12. Two additional j
 | P2 | Normalised one-pass cost could be mistaken for total multi-epoch spend | [PR #108](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/108), [6/6 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43576640025): separately report observed summed epoch tokens and estimate full-evaluation cost only with complete usage |
 | P2 | Seven comparison/statistics test groups still depended on unavailable fixed run data | [PR #109](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/109), [6/6 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43576857425): replace all seven with independently checkable synthetic tests; no missing source data was recreated |
 | P2 | No repeatable dual-framework baseline/regression onboarding rehearsal | [PR #110](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/110), [6/6 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43577524707): validate separate Strands and LangGraph baselines, unchanged comparisons, deliberate faults and baseline hashes; this is not team adoption |
+| P1 | Arbitrary trace span names were retained in default output and captured Inspect logs could be accepted as previous baselines | [PR #115](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/115), [6/6 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43587901379): mask dynamic span names and refuse obvious captured/unredacted previous logs before replacement |
+| P2 | Malformed or misspelt module/function references had poor diagnostics | [PR #116](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/116), [6/6 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43588405693): fail before allocating run directories for invalid shapes, preserve ImportError compatibility and differentiate missing dependencies |
+| P2 | Newly frozen baseline permissions depended on source directory modes, and retained backups lacked a discovery command | [PR #117](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/117), [6/6 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43588708832): owner-only POSIX snapshots plus read-only `aea backups`; retention and Windows ACL approval remain manual |
 
 These changes preserve the `aea` CLI's published exit-code contract and do not introduce paid model-provider calls into CI.
 
@@ -31,6 +34,7 @@ These changes preserve the `aea` CLI's published exit-code contract and do not i
 - Offline Strands and LangGraph examples, with separate local LangGraph conformance checks.
 - Deterministic regression detection against a retained baseline, including a deliberately defective Orders agent.
 - Existing guarded baseline update, backup preservation and rollback scenarios under fault injection.
+- Newly introduced security checks for dynamic trace-name masking, explicit capture rejection in baseline updates, and non-destructive retained backup listing.
 - Synthetic privacy sentinel checks for both supported adapters, with default payload minimisation.
 - Built-wheel installation and CLI smoke checks in a disposable environment.
 - Windows/Linux Python 3.11/3.12 CI for each merged hardening change.

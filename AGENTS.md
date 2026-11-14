@@ -264,7 +264,7 @@ uv run --locked aea check examples/calculator/dataset.jsonl \
   --update-baseline
 ```
 
-The baseline directory must be dedicated to AEA. Update mode rejects opt-in content capture, symlink traversal, unrelated files and unsafe overlapping run directories. It stages and validates the candidate, coordinates with other AEA writers using a local exclusive lock, and retains the earlier version in a sibling backup directory. Backups require an explicit retention process.
+The baseline directory must be dedicated to AEA. Update mode rejects opt-in content capture, existing logs containing obvious raw sample content, symlink traversal, unrelated files and unsafe overlapping run directories. It stages and validates the candidate, coordinates with other AEA writers using a local exclusive lock, and retains the earlier version in a sibling backup directory. On POSIX, newly staged baseline directories/files are restricted to owner-only modes; on Windows, NTFS ACL protection requires a separate review. Backups require an explicit retention process. Use `uv run --locked aea backups local-baseline` to list retained versions without opening, modifying or deleting them.
 
 ### 6.4 `aea check`: compare with a baseline
 
@@ -308,6 +308,8 @@ uv run --locked aea export RUN_DIRECTORY/report.md --format html --output report
 | `2` | Usage, validation, execution or another command error |
 
 Do not change these codes without explicit compatibility approval and regression tests. CI depends on them.
+
+The CLI checks `module:function` structure for the selected agent, mapper and extra scorer references before creating an evaluation directory. Missing application modules retain an `ImportError` with a working-directory hint; missing dependencies within user modules remain distinct. Valid application imports and factories are trusted Python, not sandboxes. Default traces remove arbitrary non-root span names, but case IDs and tool/model names may still reveal context.
 
 ---
 

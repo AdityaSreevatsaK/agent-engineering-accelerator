@@ -11,7 +11,7 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 | Priority | Finding | Evidence and impact | Disposition |
 | --- | --- | --- | --- |
 | P0 | Baseline updates previously removed an existing destination after a separate pre-run check | `cli._check` could erase intervening files or leave no baseline after a copy failure | Addressed with staged validation, cooperative writer lock, retained prior snapshot and rollback tests |
-| P1 | The original streamlined suite missed six test modules | Comparison, statistics, token metrics and pairwise judging lacked routine coverage | Resolved for routine coverage: 43 complete modules plus 20 independent CLI test groups; fixed-reference CLI integration tests remain partially selected; all comparison/statistics groups now have runnable synthetic replacements |
+| P1 | The original streamlined suite missed six test modules | Comparison, statistics, token metrics and pairwise judging lacked routine coverage | Resolved for routine coverage: the full standalone test inventory plus 20 selected CLI parser/configuration test groups; fixed-reference CLI integration tests remain partially selected; all comparison/statistics groups now have runnable synthetic replacements |
 | P1 | No conformance gate in the streamlined CI | Non-standard LangGraph state, tool calls and interrupts could regress without integration coverage | Resolved: dedicated local conformance suite runs on Windows/Linux Python 3.11 and 3.12 |
 | P1 | Deterministic Orders example had one inconsistent expected sentence | The program calculated the correct total but only reported 10/11 passing cases | Corrected dataset and added end-to-end tool-plan assertion |
 | P1 | Fixed log assertions need an unavailable reference capture and baseline archive | Blindly inventing those fixtures would make results meaningless | Replaced all seven remaining fixed-reference comparison/statistics groups with synthetic verification without implying the missing archive was restored |
@@ -19,15 +19,15 @@ AEA has functional Strands and LangGraph adapters, a deterministic seven-scenari
 | P1 | The installer and packaged CLI are not independently exercised by the streamlined CI | Source checkout imports can pass while a built distribution is incomplete | Added an isolated wheel-install and CLI smoke gate |
 | P1 | Positive-case smoke does not prove regression detection | Seven passing model doubles do not verify detection of a deliberately broken agent from an approved baseline | Added a good-to-broken Orders CLI check as a separate CI release gate |
 | P1 | Expense scorer/test referral expectations disagreed | One case was previously deselected even though referrals must approve no money | Resolved: corrected the test expectation and restored the omitted case to routine CI without changing scorer behaviour |
-| P1 | Trace redaction is not universal anonymisation | Span names, case IDs, timing and tool names remain; opt-in captured logs intentionally carry data | Keep documented boundaries, review filenames and identifiers before client pilots |
+| P1 | Trace redaction is not universal anonymisation | Dynamic non-root span names are now masked by default; case IDs, tool names, timing and metadata remain. Opt-in capture still persists raw content | Keep documented boundaries, review identifiers and file access before client pilots |
 | P2 | Model, judge and framework compatibility are not tested against live providers | Local deterministic doubles cannot establish model stability, latency, spend or rate-limit behaviour | Undertake a controlled non-CI integration pilot with approved credentials |
 | P2 | No validated multi-team onboarding data | CI success is not equivalent to engineering productivity or adoption | Follow the two-team [adoption pilot](PILOT.md), collect baseline productivity measurements and independent engineering sign-off |
 
 ## Verified safeguards
 
-- Run logs default to redacted Inspect content, and arbitrary custom OpenTelemetry span payloads are minimised unless capture is requested.
+- Run logs default to redacted Inspect content; arbitrary custom OpenTelemetry payloads and non-root span names are minimised unless capture is requested.
 - Local evaluation examples require no cloud keys or billable model calls in CI.
-- Previous baseline snapshots remain available as explicit on-disk backups rather than being silently deleted.
+- Baseline update validation refuses explicit content capture and non-redacted sample payloads. New POSIX baseline copies use owner-only modes; previous versions are retained, and `aea backups` can inventory them without deletion. Windows permissions require an explicit ACL review.
 - The broken-refund-policy CLI gate confirms that the deliberately faulty agent generates exit code 1 and an actionable comparison report while leaving its baseline untouched. This does not establish performance against live providers.
 - Code, dataset, scoring function and custom mappings are **trusted executable Python**, not sandboxed user input.
 
@@ -52,7 +52,7 @@ The Ubuntu Python 3.11 evidence showed **2,444 passing unit tests, 34 deselected
 
 ## Current release recommendation
 
-The [14 November 2026 release-readiness assessment](RELEASE_READINESS.md) records the additional hardening PRs, their six-job CI evidence, reduced test deferrals and remaining approvals. Those verified changes support a controlled internal pilot using approved synthetic data, not production clearance or automatic promotion of `master`.
+The [14 November 2026 release-readiness assessment](RELEASE_READINESS.md) records the hardening PRs, their six-job CI evidence, reduced test exclusions and remaining approvals. [PR #115](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/115) tightened trace/baseline privacy, [PR #116](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/116) improved invalid-reference handling, and [PR #117](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/117) added private POSIX copies and a read-only backup inventory. Those verified changes support a controlled internal pilot using approved synthetic data, not production clearance or automatic promotion of `master`.
 
 ## Known limits
 
