@@ -56,6 +56,16 @@ Use a dedicated baseline directory. An update keeps the previous version in a un
 
 A run normally creates a JSON evaluation log, `traces.jsonl` and `report.md`. CLI exit codes: `0` success, `1` detected regression, `2` command or run error.
 
+## Validate onboarding before running an agent
+
+Use the `doctor` preflight to validate your JSONL dataset, TOML settings and importable `module:function` references before starting an evaluation:
+
+```sh
+uv run --locked aea doctor integrations/equipment_strands/dataset.jsonl --adapter strands --agent integrations.equipment_strands.agent:build_agent
+```
+
+Run it from the repository root as shown, or enter `integrations/equipment_strands` and use `aea doctor dataset.jsonl --config aea.toml`. It does not invoke factories, evaluate cases or create run outputs. **Module imports execute trusted application Python**, and may create normal Python caches or have module-defined side effects. This is not a sandbox or a guarantee that provider credentials and custom LangGraph mappings are valid. See [the native Windows/Linux onboarding guide](docs/ONBOARDING.md), [operational controls](docs/OPERATIONAL_READINESS.md) and [adoption evidence protocol](docs/ADOPTION_EVIDENCE.md).
+
 ## Example agents
 
 `examples/` includes calculator (Strands and LangGraph), orders (Strands), expense, triage, policy RAG and helpdesk (LangGraph). They use local deterministic model doubles; cloud calls are not required for CI.
