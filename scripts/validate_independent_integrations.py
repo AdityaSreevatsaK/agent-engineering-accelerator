@@ -17,13 +17,8 @@ from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = (
-    ("equipment-strands", "strands", ROOT / "integrations" / "equipment_strands", []),
-    (
-        "vendor-langgraph",
-        "langgraph",
-        ROOT / "integrations" / "vendor_langgraph",
-        ["--input-map", "agent:to_request", "--output-map", "agent:read_decision"],
-    ),
+    ("equipment-strands", "strands", ROOT / "integrations" / "equipment_strands"),
+    ("vendor-langgraph", "langgraph", ROOT / "integrations" / "vendor_langgraph"),
 )
 CREDENTIALS = (
     "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN",
@@ -32,12 +27,12 @@ CREDENTIALS = (
 
 
 def call_cli(
-    app_dir: Path, adapter: str, flags: list[str], factory: str, baseline: Path, runs: Path, update: bool
+    app_dir: Path, factory: str, baseline: Path, runs: Path, update: bool
 ) -> subprocess.CompletedProcess[str]:
     command = [
         sys.executable, "-m", "agent_accelerator.cli",
-        "check", "dataset.jsonl", "--adapter", adapter, "--agent", f"agent:{factory}",
-        *flags, "--baseline", str(baseline), "--runs-dir", str(runs), "--max-samples", "1",
+        "check", "dataset.jsonl", "--config", "aea.toml", "--agent", f"agent:{factory}",
+        "--baseline", str(baseline), "--runs-dir", str(runs), "--max-samples", "1",
     ]
     if update:
         command.append("--update-baseline")
@@ -92,24 +87,24 @@ def run_validation(output: Path, repeats: int = 1) -> dict[str, object]:
         "calls_to_paid_providers": False,
         "applications": {},
     }
-    for name, adapter, app_dir, flags in SCENARIOS:
+    for name, adapter, app_dir in SCENARIOS:
         count = validate_dataset(app_dir / "dataset.jsonl")
         scenario_dir = output / name
         baseline = scenario_dir / "baseline"
         runs = scenario_dir / "runs"
-        frozen = call_cli(app_dir, adapter, flags, "build_agent", baseline, runs / "freeze", True)
+        frozen = call_cli(app_dir, "build_agent", baseline, runs / "freeze", True)
         require(f"{name} freeze", frozen, 0, f"passed={count}/{count}", "BASELINE frozen:")
         initial = fingerprints(baseline)
         if len(list(baseline.glob("*.json"))) != 1 or "report.md" not in initial:
             raise AssertionError(f"{name}: incomplete frozen baseline")
         for attempt in range(1, repeats + 1):
             same_dir = runs / f"unchanged-{attempt}"
-            same = call_cli(app_dir, adapter, flags, "build_agent", baseline, same_dir, False)
+            same = call_cli(app_dir, "build_agent", baseline, same_dir, False)
             require(f"{name} repeat {attempt}", same, 0, f"passed={count}/{count}", "OK: baseline")
             if "**OK**" not in comparison_path(same_dir).read_text(encoding="utf-8"):
                 raise AssertionError(f"{name}: passing comparison did not render an OK verdict")
         broken_dir = runs / "fault-injection"
-        broken = call_cli(app_dir, adapter, flags, "build_broken_agent", baseline, broken_dir, False)
+        broken = call_cli(app_dir, "build_broken_agent", baseline, broken_dir, False)
         require(f"{name} regression", broken, 1, "REGRESSION: baseline")
         report = comparison_path(broken_dir).read_text(encoding="utf-8")
         if "## Newly failing" not in report or not any(
