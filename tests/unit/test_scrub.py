@@ -4,7 +4,7 @@ from pathlib import Path
 
 from inspect_ai.log import EvalError, EvalSampleReductions, EvalSampleScore, read_eval_log, write_eval_log
 from inspect_ai.model import ModelOutput
-from inspect_ai.scorer import Score, ScoreEdit
+from inspect_ai.scorer import CORRECT, INCORRECT, NOANSWER, PARTIAL, Score, ScoreEdit
 from inspect_ai.solver import TaskState
 
 from agent_accelerator.compare import load_results
@@ -375,3 +375,31 @@ def test_scrub_keeps_the_case_checks_output_digest_but_no_output_text(tmp_path):
 
     assert digests == {f"{number:016x}" for number in range(10)}
     assert output not in scrubbed.model_dump_json()
+
+
+@pytest.mark.parametrize("raw_value", [SECRET, {"answer": SECRET}, [SECRET]])
+def test_scrub_redacts_arbitrary_custom_scorer_values_in_samples_and_reductions(raw_value):
+    """Untrusted custom scorers can return sensitive output as their Score.value."""
+    log = read_capture()
+    sample_id = log.samples[0].id
+    log.samples[0].scores[CUSTOM] = Score(value=raw_value)
+    log.reductions.append(
+        EvalSampleReductions(
+            scorer=CUSTOM,
+            samples=[EvalSampleScore(value=raw_value, sample_id=sample_id)],
+        )
+    )
+
+    scrubbed = scrub(log)
+
+    assert scrubbed.samples[0].scores[CUSTOM].value == INCORRECT
+    assert next(r for r in scrubbed.reductions if r.scorer == CUSTOM).samples[0].value == INCORRECT
+    assert SECRET not in scrubbed.model_dump_json()
+
+
+@pytest.mark.parametrize("value", [CORRECT, INCORRECT, PARTIAL, NOANSWER, 0, 1, 0.5])
+def test_scrub_preserves_standard_grades_and_numeric_custom_scores(value):
+    log = read_capture()
+    log.samples[0].scores[CUSTOM] = Score(value=value)
+
+    assert scrub(log).samples[0].scores[CUSTOM].value == value
