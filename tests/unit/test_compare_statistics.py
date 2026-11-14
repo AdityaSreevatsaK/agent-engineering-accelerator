@@ -13,12 +13,10 @@ from agent_accelerator.compare import (
     Statistics,
     Thresholds,
     compare,
-    load_results,
 )
 from agent_accelerator.report import render_comparison
 from agent_accelerator.stats import Z_95, bootstrap_median_interval
 
-FIXTURES = Path(__file__).parents[1] / "fixtures"
 HEADER = "## Statistics (informational)"
 
 # Test parameters say `epochs`, not `runs`: tests/conftest.py marks any test with a `runs` argument as slow.
@@ -256,11 +254,11 @@ def test_statistics_never_add_regressions_or_warnings():
 
 
 def demo_comparison():
-    return compare(
-        load_results(FIXTURES / "calculator_capture_content.json"),
-        load_results(FIXTURES / "calculator_broken_redacted.json"),
-        Thresholds(),
-    )
+    """A ten-case paired experiment with two deliberately changed outcomes, no archived logs."""
+    case_ids = [f"c{i}" for i in range(10)]
+    baseline = run_of(**{case_id: {} for case_id in case_ids})
+    current = run_of(**{case_id: {"passed": case_id not in {"c2", "c7"}} for case_id in case_ids})
+    return compare(baseline, current, Thresholds())
 
 
 def statistics_block(text):
