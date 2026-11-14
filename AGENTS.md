@@ -218,6 +218,7 @@ Examples are **illustrative engineering contracts**, not evidence that those sce
 - `scripts/verify_regression_gate.py`: approved baseline, matching agent, intentionally broken agent, and baseline-integrity assertions.
 - `scripts/check_privacy_e2e.py`: synthetic sentinel against both adapters, with explicit-capture control.
 - `scripts/check_distribution.py`: isolated wheel installation and CLI-template/export checks.
+- `scripts/dependency_inventory.py` and `docs/DEPENDENCY_SECURITY_REVIEW.md`: offline locked source/hash inventory. SHA checks are not a CVE or licence clearance; run a dated external advisory and legal review separately.
 - `scripts/benchmark_agent_evaluations.py`: synthetic independent-app public-CLI wall-clock, clean rerun and planted regression measurement. Its JSON/Markdown are *technical observations*, never measured engineer productivity. The release CI uploads summary files only, not run logs or traces.
 - `tests/unit/test_resilience_adversarial.py` and `docs/RESILIENCE.md`: deterministic concurrent baseline update, data preservation, corrupt-log and partial-write tests, with clearly scoped failure models.
 - `scripts/leadership_demo.py`: generate a locally viewable, reproducible demonstration.
