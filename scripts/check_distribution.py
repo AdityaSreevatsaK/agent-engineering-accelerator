@@ -94,13 +94,13 @@ def main() -> None:
         # Strands or LangGraph extra and without generating evaluation artefacts.
         application = temp / "doctor_agent.py"
         application.write_text(
-            "def build_agent():\\n"
-            "    raise AssertionError('doctor must not call the factory')\\n",
+            "def build_agent():\n"
+            "    raise AssertionError('doctor must not call the factory')\n",
             encoding="utf-8",
         )
         cases = temp / "doctor_cases.jsonl"
         cases.write_text(
-            '{"id":"synthetic-1","input":"synthetic input","expected_output":"synthetic output"}\\n',
+            '{"id":"synthetic-1","input":"synthetic input","expected_output":"synthetic output"}\n',
             encoding="utf-8",
         )
         preflight = run(
