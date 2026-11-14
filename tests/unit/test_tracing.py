@@ -59,21 +59,28 @@ def test_jsonl_span_exporter_keeps_error_messages_when_redaction_is_disabled(tmp
     assert "secret text" in path.read_text(encoding="utf-8")
 
 
-def test_jsonl_span_exporter_leaves_spans_without_errors_unchanged(tmp_path):
+def test_jsonl_span_exporter_redacts_names_even_when_there_is_no_error(tmp_path):
     path = tmp_path / "spans.jsonl"
 
     export_span(
         path,
-        "ordinary-span",
+        "private-customer-name-in-span",
         redact_errors=True,
         record_error=False,
     )
 
     span = read_exported_spans(path)[0]
-    assert span["name"] == "ordinary-span"
+    assert span["name"] == "[REDACTED]"
+    assert "private-customer-name-in-span" not in path.read_text(encoding="utf-8")
     assert span["events"] == []
     assert span["status"]["status_code"] == "UNSET"
     assert "description" not in span["status"]
+
+
+def test_jsonl_span_exporter_preserves_only_a_known_root_name(tmp_path):
+    path = tmp_path / "spans.jsonl"
+    export_span(path, "eval_case", redact_errors=True, record_error=False)
+    assert read_exported_spans(path)[0]["name"] == "eval_case"
 
 
 def test_jsonl_span_exporter_appends_spans_from_multiple_instances(tmp_path):
