@@ -29,6 +29,7 @@ TEST_MODULES = (
     "test_config.py",
     "test_dataset.py",
     "test_export.py",
+    "test_factory_references.py",
     "test_expense.py",
     "test_helpdesk.py",
     "test_init.py",
