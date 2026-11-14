@@ -7,12 +7,12 @@
 | Risk | Current evidence | Remaining action |
 | --- | --- | --- |
 | Prompts, outputs and tool arguments in Inspect logs | The runtime scrubs sample input, target, messages, events, attachments and non-approved scorer metadata | Verify the end-to-end no-content contract using a synthetic sentinel on both adapters |
-| Sensitive exception text or custom tracing attributes | The default exporter minimises custom span attributes and sanitises exception messages | Trace identifiers, span names and tool names are not anonymised |
+| Sensitive exception text or custom tracing attributes | The default exporter minimises custom span attributes, sanitises exception messages and removes arbitrary non-root span names | Trace identifiers, case IDs and tool names are not anonymised |
 | Explicit `--capture-content` logs | Intentionally persists raw model input/output and tool content | Approved access control, storage location and retention process required before customer use |
 | Agent factories and custom scorers | Trusted imported Python executes in the user's process | Run only reviewed source within approved environments |
 | Secrets and cloud-provider calls | Offline examples use local deterministic doubles, and CI clears common provider credentials | Confirm no unexpected account access or billable calls during planned pilots |
 | HTML reports | Output escapes raw HTML; fresh-wheel export is tested | Review output access and distribution pathways |
-| Baseline replacement and retention | Cooperative update lock, revalidation, staged deployment, backups and rollback tests | Define backup encryption, permissions, retention and removal |
+| Baseline replacement and retention | Cooperative update lock, revalidation, staged deployment, backups, rollback tests and refusal of obvious unredacted sample payloads before replacement | Define backup encryption, permissions, retention and removal |
 | Dependencies | `uv.lock` committed, locked installation checked on Windows/Linux | Review dependency vulnerabilities and licences with organisation-approved scanning |
 | Operational failures | Tests cover controlled regressions, error statuses and conformance | Validate network failures and rate limits against approved providers |
 
