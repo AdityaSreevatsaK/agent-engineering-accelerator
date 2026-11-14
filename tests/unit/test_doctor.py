@@ -14,6 +14,7 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.chdir(tmp_path)
     monkeypatch.syspath_prepend(str(tmp_path))
     monkeypatch.setattr(sys, "path", list(sys.path))
+    monkeypatch.delitem(sys.modules, "doctor_example", raising=False)
     (tmp_path / "doctor_example.py").write_text(
         "def build_agent():\n"
         "    raise AssertionError('agent factory must never be executed during preflight')\n"
