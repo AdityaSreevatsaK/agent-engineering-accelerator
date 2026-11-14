@@ -1,20 +1,24 @@
-# AEA standalone integration validation
+# Standalone AEA integration examples
 
-Two deliberately **separate application projects** exercise only the published `aea` CLI. Neither imports any `agent_accelerator` implementation modules or imports the other application.
+Two applications exercise only AEA's installed **public CLI** from their own working directories. Neither imports AEA internals or the other application.
 
-| App | Framework | What it exercises | Controlled defect |
+| Application | Framework | Unique integration boundary | Deliberate defect |
 | --- | --- | --- | --- |
-| [Equipment warranty](equipment_strands/README.md) | AWS Strands | Real tool execution, two-step lookup, tool failures and tool-call assertions | Expired warranties incorrectly become covered |
-| [Supplier onboarding](vendor_langgraph/README.md) | LangGraph | Custom TypedDict state, routing decisions and both input/output mapping hooks | Sanctions screening silently bypassed |
+| [Equipment warranty](equipment_strands/README.md) | Strands | Two-tool Strands workflow including failed lookups | Expired warranty treated as covered |
+| [Supplier onboarding](vendor_langgraph/README.md) | LangGraph | Non-messages custom state with input/output mapping | Sanctions review bypassed |
 
-Both use synthetic records and deterministic model doubles, with no paid API requests, credentials, databases or network service required.
+Each has its own 12-case `dataset.jsonl` and **ready-to-run `aea.toml`**, avoiding the need to repeat long adapter and mapping options.
 
-From the AEA repository root, after `uv sync --all-extras --group dev --locked`:
+## Automated acceptance
+
+After `uv sync --all-extras --group dev --locked` from the AEA repository root:
 
 ```sh
 uv run --locked python scripts/validate_independent_integrations.py --repeats 2
 ```
 
-The command changes into each standalone application directory, freezes separate baselines, verifies identical runs, injects a defect, checks non-zero regression status and compares baseline file digests. An optional `--output-dir new-folder` retains evidence; do not select an existing folder. Inputs and model/tool payloads are redacted by default, but case names, paths and metadata still require review before sharing.
+The script runs from each application's directory, freezes a baseline, checks unchanged behaviour, introduces a defect and verifies both regression detection and unchanged baseline bytes. It uses synthetic data and local deterministic model doubles, with no provider credentials or billable calls. Pass `--output-dir new-path` to retain a report; an existing output directory will not be overwritten.
 
-**Scope boundary:** these applications were authored for validation, not contributed by unrelated teams. A successful local run is technical evidence only, not proof of adoption or a production security clearance.
+For direct CLI use and troubleshooting, follow the application-specific guides. The `--agent` flag overrides the factory in `aea.toml`; mapping functions remain configured.
+
+**Evidence boundary:** both integrations were authored as part of this validation. They are not independent external-team adoption, production provider tests, or security certification.
