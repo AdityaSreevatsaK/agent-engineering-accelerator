@@ -34,6 +34,8 @@
 
 **AEA's answer:** Provide a local-first CLI and Python library which accepts an agent factory plus JSONL evaluation cases, wraps the agent in an Inspect AI task, evaluates answer and tool contracts, records execution metrics and OpenTelemetry traces, optionally adds LLM-as-judge scoring, and compares new runs with an approved baseline.
 
+**Current self-service onboarding entry:** `aea doctor DATASET --config aea.toml` validates dataset cases, selected TOML/flags and trusted importable factory/mapping references without executing factories, scorer functions or evaluation. Imports *do* execute arbitrary top-level Python, so this is not a sandbox, and it cannot inspect live providers or graph state. Read `docs/ONBOARDING.md`, `docs/OPERATIONAL_READINESS.md` and `docs/ADOPTION_EVIDENCE.md` before recommending production deployment. Keep `tests/unit/test_doctor.py` and the installed-wheel smoke check in sync with CLI behaviour. Do not state a human productivity gain until independent pilot measurements exist.
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.
