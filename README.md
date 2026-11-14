@@ -75,6 +75,14 @@ uv run --locked python scripts/check_distribution.py
 
 CI runs supported operating-system and Python combinations without provider credentials or billable model calls.
 
+For a more realistic integration check, see [two standalone application projects](integrations/README.md). They exercise only the published CLI, with independent working directories, synthetic policy data and intentional regressions:
+
+```sh
+uv run --locked python scripts/validate_independent_integrations.py --repeats 2
+```
+
+These are self-authored test applications, not evidence of independent team adoption.
+
 ## Leadership demonstration
 
 Generate a self-contained [local demonstration](docs/DEMO.md) using synthetic
