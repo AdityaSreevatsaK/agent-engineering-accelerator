@@ -69,6 +69,7 @@ When starting an unfamiliar task, read the narrowest relevant implementation, bu
 15. `.github/workflows/ci.yml`: required automated verification matrix.
 16. `docs/ENGINEERING_AUDIT.md`, `docs/SECURITY_REVIEW.md`, `docs/RELEASE_READINESS.md`, `docs/PILOT.md`: explicit limitations, independent hardening evidence and adoption requirements.
 17. `docs/DEMO.md` and `scripts/leadership_demo.py`: local leadership demonstration.
+18. `scripts/pilot_rehearsal.py` and `docs/PILOT_EVIDENCE_TEMPLATE.md`: offline two-adapter technical rehearsal and unfilled independent-team evidence worksheet. A rehearsal is never proof of adoption.
 
 **Do not infer a capability solely from a README statement.** Verify the corresponding runtime path and tests, especially where optional agents, model providers, metrics, data handling or security are involved.
 
