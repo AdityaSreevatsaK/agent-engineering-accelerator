@@ -1,17 +1,19 @@
-# Supplier onboarding, standalone LangGraph integration
+# Supplier onboarding: standalone LangGraph app
 
-Synthetic supplier-registration and policy-screening workflow. It uses custom `TypedDict` state instead of LangGraph's standard `messages` channel. Accordingly, **both** mapping hooks are required for AEA.
+This is a self-contained synthetic supplier-compliance workflow using a compiled LangGraph with custom `TypedDict` state, policy screening and conditional routing. It evaluates 12 cases without a model-provider account.
 
-## Manual onboarding from an installed AEA environment
+## Get started
 
-At the AEA repository root, run `uv sync --all-extras --group dev --locked`, then activate `.venv\\Scripts\\Activate.ps1` on Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. From this application directory:
+From the AEA repository root, run `uv sync --all-extras --group dev --locked` and activate the environment: `.venv\\Scripts\\Activate.ps1` in Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. Then change into `integrations/vendor_langgraph`.
 
 ```sh
-aea check dataset.jsonl --adapter langgraph --agent agent:build_agent --input-map agent:to_request --output-map agent:read_decision --baseline runs/approved --runs-dir runs/evals --max-samples 1 --update-baseline
-aea check dataset.jsonl --adapter langgraph --agent agent:build_agent --input-map agent:to_request --output-map agent:read_decision --baseline runs/approved --runs-dir runs/evals --max-samples 1
-aea check dataset.jsonl --adapter langgraph --agent agent:build_broken_agent --input-map agent:to_request --output-map agent:read_decision --baseline runs/approved --runs-dir runs/evals --max-samples 1
+aea check dataset.jsonl --config aea.toml --baseline runs/approved --runs-dir runs/evals --max-samples 1 --update-baseline
+aea check dataset.jsonl --config aea.toml --baseline runs/approved --runs-dir runs/evals --max-samples 1
+aea check dataset.jsonl --config aea.toml --agent agent:build_broken_agent --baseline runs/approved --runs-dir runs/evals --max-samples 1
 ```
 
-Expected: 12/12 passes, then a matching comparison (exit 0), then a regression on vendors with sanctions holds (exit 1). This exercises a real compiled LangGraph state machine with conditional edges, without requiring cloud model services.
+The local `aea.toml` defines `adapter`, `agent`, `input_map` and `output_map`. The final command overrides only the agent factory, leaving the custom-state mappings intact.
 
-Common onboarding pitfall: without `--input-map`, the default AEA mapping expects a `messages` channel, which this application deliberately does not have. Without `--output-map`, the custom `response` field cannot be interpreted as a standard AIMessage. Never commit `runs/` or infer external-team productivity from this integration.
+**Expected results:** 12/12 initial passes; unchanged comparison exit 0; a defective policy that approves blocked suppliers is detected with exit 1.
+
+**Common onboarding issue:** the CLI resolves `agent:...` relative to the current working directory. This graph does not have a conventional `messages` channel, so both mapping hooks are mandatory. Avoid deleting them when adapting the configuration to another application. All records are synthetic. Do not commit `runs/` or infer independent team uptake from these checks.

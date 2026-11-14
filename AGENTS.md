@@ -71,6 +71,7 @@ When starting an unfamiliar task, read the narrowest relevant implementation, bu
 17. `docs/DEMO.md` and `scripts/leadership_demo.py`: local leadership demonstration.
 18. `scripts/pilot_rehearsal.py` and `docs/PILOT_EVIDENCE_TEMPLATE.md`: offline two-adapter technical rehearsal and unfilled independent-team evidence worksheet. A rehearsal is never proof of adoption.
 19. `integrations/` and `scripts/validate_independent_integrations.py`: two self-contained synthetic application projects with their own current working directories, real Strands/LangGraph loops and deliberately defective factories; no independent adoption claimed.
+20. `docs/INTEGRATION_DEVELOPER_EXPERIENCE.md`: external-style onboarding findings, local configuration guidance and evidence limitations; distinguish deterministic CI results from independent engineer outcomes.
 
 **Do not infer a capability solely from a README statement.** Verify the corresponding runtime path and tests, especially where optional agents, model providers, metrics, data handling or security are involved.
 

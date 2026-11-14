@@ -1,0 +1,3 @@
+# AEA adapter configuration for this independent application.
+adapter = "strands"
+agent = "agent:build_agent"

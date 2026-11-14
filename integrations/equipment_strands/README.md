@@ -1,17 +1,19 @@
-# Equipment warranty, standalone AWS Strands integration
+# Equipment warranty: standalone AWS Strands app
 
-Synthetic equipment-support agent with a two-step `find_equipment` → `check_warranty` tool workflow, unknown equipment handling, a 12-case JSONL evaluation dataset, and a deliberately defective factory.
+This is a self-contained synthetic equipment-support application. Its `agent.py` uses the real Strands execution and tool loop with a deterministic model double, plus `dataset.jsonl` (12 cases).
 
-## Manual onboarding from an installed AEA environment
+## Get started
 
-At the AEA repository root, install `uv sync --all-extras --group dev --locked`, then activate the environment: `.venv\\Scripts\\Activate.ps1` on Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. From this application directory:
+From the AEA repository root, run `uv sync --all-extras --group dev --locked` and activate the resulting virtual environment: `.venv\\Scripts\\Activate.ps1` in Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. Then change into `integrations/equipment_strands`.
 
 ```sh
-aea check dataset.jsonl --adapter strands --agent agent:build_agent --baseline runs/approved --runs-dir runs/evals --max-samples 1 --update-baseline
-aea check dataset.jsonl --adapter strands --agent agent:build_agent --baseline runs/approved --runs-dir runs/evals --max-samples 1
-aea check dataset.jsonl --adapter strands --agent agent:build_broken_agent --baseline runs/approved --runs-dir runs/evals --max-samples 1
+aea check dataset.jsonl --config aea.toml --baseline runs/approved --runs-dir runs/evals --max-samples 1 --update-baseline
+aea check dataset.jsonl --config aea.toml --baseline runs/approved --runs-dir runs/evals --max-samples 1
+aea check dataset.jsonl --config aea.toml --agent agent:build_broken_agent --baseline runs/approved --runs-dir runs/evals --max-samples 1
 ```
 
-Expected: 12/12 passing when the baseline is frozen, then a matching run (exit 0). The defective agent ignores warranty expiry, causing new failures for the expired equipment (exit 1). Inspect `runs/evals` and the comparison report; no application changes are needed to AEA.
+The local `aea.toml` selects the Strands adapter and `agent:build_agent`. The last command overrides the configured factory without modifying AEA or the application's baseline.
 
-All values are invented and the model is deterministic. This does not simulate live LLM reliability or demonstrate independent adoption. Never commit the `runs/` directory.
+**Expected results:** 12/12 passes on initial evaluation, 12/12 on the unchanged check (exit 0), and newly failing expired-warranty cases on the faulty variant (exit 1). Inspect the generated comparison report in `runs/evals`.
+
+**Important:** run `aea` from **this directory**, so Python can import `agent`. The default redaction does not guarantee that metadata is anonymous. The model and equipment records are synthetic; no cloud services or real adoption claims are involved. Do not commit `runs/`.

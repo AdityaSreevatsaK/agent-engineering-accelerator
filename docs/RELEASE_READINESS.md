@@ -36,6 +36,7 @@ These changes preserve the `aea` CLI's published exit-code contract and do not i
 - Windows/Linux Python 3.11/3.12 CI for each merged hardening change.
 - All eleven previously excluded comparison/statistics case groups are now covered by independent synthetic checks, including four earlier restored and seven newly replaced groups.
 - The two-adapter synthetic pilot rehearsal succeeds, but has not been executed by independent delivery teams.
+- Two separate synthetic applications validate the public CLI from independent working directories: 12/12 case baselines for each, unchanged checks, expected regression detection and unchanged approved baseline files ([6/6 CI evidence](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43586061939)). Ready-to-use local TOML configuration and an [integration developer experience audit](INTEGRATION_DEVELOPER_EXPERIENCE.md) make the onboarding procedure reproducible. These do not count as independent delivery-team usage.
 - Full reported multi-epoch token usage is distinguished from a normalised single-pass estimate; missing provider usage is not extrapolated.
 
 These are technical test results. They do not establish universal compatibility, security certification or user adoption.

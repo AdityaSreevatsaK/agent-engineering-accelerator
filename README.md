@@ -81,7 +81,7 @@ For a more realistic integration check, see [two standalone application projects
 uv run --locked python scripts/validate_independent_integrations.py --repeats 2
 ```
 
-These are self-authored test applications, not evidence of independent team adoption.
+These are self-authored test applications, not evidence of independent team adoption. See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
 
 ## Leadership demonstration
 
