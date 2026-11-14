@@ -5,7 +5,7 @@ from statistics import median
 from agent_accelerator import readings
 from agent_accelerator.compare import CaseResult, Comparison, MedianChange, RateInterval, RunResults, Statistics
 from agent_accelerator.judge import BASELINE_GAPS, INTERRUPTED, JudgedEpoch
-from agent_accelerator.run_metrics import run_metric_lines
+from agent_accelerator.run_metrics import recorded_run_usage, run_metric_lines
 from agent_accelerator.stats import cohen_kappa, pass_at_k, pass_hat_k, wilson_interval
 from agent_accelerator.tool_metrics import tool_use_lines
 from agent_accelerator.trace_summary import TraceSummary
@@ -47,6 +47,32 @@ def _cost_line(run: RunResults, input_price: float | None, output_price: float |
     return [f"- Estimated cost: ${cost:.4f} (at ${input_price:g}/${output_price:g} per million tokens)"]
 
 
+def _full_evaluation_usage_lines(
+    run: RunResults, input_price: float | None, output_price: float | None
+) -> list[str]:
+    """Show full multi-epoch costs only if every epoch reported both token counts."""
+    usage = recorded_run_usage(run)
+    if usage is None or usage.expected_epochs <= len(run.cases):
+        return []
+    ins = _count(usage.input_tokens)
+    outs = _count(usage.output_tokens)
+    lines = [
+        f"- Recorded usage across all epochs: {ins} input / {outs} output tokens "
+        f"(input reported {usage.input_epochs}/{usage.expected_epochs} epochs; "
+        f"output reported {usage.output_epochs}/{usage.expected_epochs} epochs)",
+    ]
+    if input_price is None or output_price is None:
+        return lines
+    if not usage.complete or usage.input_tokens is None or usage.output_tokens is None:
+        return [*lines, "- Estimated total evaluation cost: n/a (incomplete epoch usage; no extrapolation)"]
+    total_cost = (usage.input_tokens * input_price + usage.output_tokens * output_price) / 1_000_000
+    return [
+        *lines,
+        f"- Estimated total evaluation cost: ${total_cost:.4f} "
+        f"(at ${input_price:g}/${output_price:g} per million tokens; all epochs)",
+    ]
+
+
 def _failure_text(case: CaseResult) -> str:
     return "; ".join(case.failures.values())
 
@@ -81,6 +107,7 @@ def render_run(
         f"- Median latency: {_latency(run.median_latency_s)} (informational)",
         f"- Tokens: {tokens} (informational)",
         *_cost_line(run, input_price, output_price),
+        *_full_evaluation_usage_lines(run, input_price, output_price),
         f"- Dataset sha256: `{run.dataset_sha256}`",
         f"- Log: `{run.log_path.as_posix()}`",
         "",

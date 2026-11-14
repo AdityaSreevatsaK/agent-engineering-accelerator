@@ -67,6 +67,44 @@ def percentile(values: list[float], p: int) -> float:
     return ordered[rank - 1]
 
 
+@dataclass(frozen=True)
+class RecordedRunUsage:
+    """Provider-reported counts over actual recorded case-epochs, not extrapolated averages."""
+
+    input_tokens: int | None
+    output_tokens: int | None
+    input_epochs: int
+    output_epochs: int
+    expected_epochs: int
+
+    @property
+    def complete(self) -> bool:
+        return (
+            self.expected_epochs > 0
+            and self.input_epochs == self.expected_epochs
+            and self.output_epochs == self.expected_epochs
+        )
+
+
+def recorded_run_usage(run: "RunResults") -> RecordedRunUsage | None:
+    """Count usage directly from epochs; missing usage never silently counts as zero.
+
+    Return None for legacy/manual RunResults without epoch-level data.
+    """
+    epochs = _epochs(run)
+    if not epochs:
+        return None
+    ins = [e.input_tokens for e in epochs if e.input_tokens is not None]
+    outs = [e.output_tokens for e in epochs if e.output_tokens is not None]
+    return RecordedRunUsage(
+        input_tokens=sum(ins) if ins else None,
+        output_tokens=sum(outs) if outs else None,
+        input_epochs=len(ins),
+        output_epochs=len(outs),
+        expected_epochs=sum(c.runs for c in run.cases.values()),
+    )
+
+
 def estimated_cost(run: "RunResults", input_price: float | None, output_price: float | None) -> float | None:
     """USD for one pass over the dataset (per-epoch average tokens), as the report's Estimated cost line."""
     if input_price is None or output_price is None or run.input_tokens is None or run.output_tokens is None:

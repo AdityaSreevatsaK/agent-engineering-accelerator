@@ -1,5 +1,6 @@
 import copy
 import json
+from dataclasses import replace
 import math
 import os
 import subprocess
@@ -11,6 +12,7 @@ import pytest
 from agent_accelerator.cli import main
 from agent_accelerator.compare import CaseResult, RunResults, Thresholds, compare, load_results
 from agent_accelerator.report import render_comparison, render_run, validate_prices
+from agent_accelerator.run_metrics import EpochMetrics, recorded_run_usage
 
 REPO = Path(__file__).parents[2]
 DATASET = REPO / "examples" / "calculator" / "dataset.jsonl"
@@ -381,3 +383,70 @@ def test_report_with_prices_prints_estimated_cost(tmp_path, capsys):
     printed = capsys.readouterr().out
     assert "- Tokens: 2,000 in / 400 out per run (informational)" in printed
     assert "- Estimated cost: $0.0040 (at $1/$5 per million tokens)" in printed
+
+
+def multi_epoch_case(case_id, recorded, *, passed=True):
+    """Construct a case using explicit epoch usage, without relying on averaged totals."""
+    epochs = tuple(
+        EpochMetrics(
+            latency_s=None,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            failed_checks=(),
+            output_digest=None,
+        )
+        for input_tokens, output_tokens in recorded
+    )
+    input_values = [a for a, _ in recorded if a is not None]
+    output_values = [b for _, b in recorded if b is not None]
+    return replace(
+        tokens_case(case_id, passed=passed),
+        runs=len(epochs),
+        epochs=epochs,
+        input_tokens=round(sum(input_values) / len(input_values)) if input_values else None,
+        output_tokens=round(sum(output_values) / len(output_values)) if output_values else None,
+    )
+
+
+def test_full_evaluation_cost_uses_every_observed_epoch_without_averaging():
+    run = run_of(
+        multi_epoch_case("one", [(100, 10), (200, 20)]),
+        multi_epoch_case("two", [(300, 30), (400, 40)]),
+    )
+    usage = recorded_run_usage(run)
+    assert usage is not None
+    assert usage.complete is True
+    assert (usage.input_tokens, usage.output_tokens, usage.expected_epochs) == (1000, 100, 4)
+
+    report = render_run(run, input_price=1.0, output_price=5.0)
+    assert "- Estimated cost: $0.0008 (at $1/$5 per million tokens)" in report
+    assert "- Recorded usage across all epochs: 1,000 input / 100 output tokens " in report
+    assert "(input reported 4/4 epochs; output reported 4/4 epochs)" in report
+    assert "- Estimated total evaluation cost: $0.0015 (at $1/$5 per million tokens; all epochs)" in report
+
+
+def test_missing_epoch_usage_does_not_understate_total_evaluation_cost():
+    run = run_of(multi_epoch_case("one", [(100, 10), (200, None)]))
+
+    usage = recorded_run_usage(run)
+    assert usage is not None
+    assert usage.complete is False
+    assert (usage.input_epochs, usage.output_epochs) == (2, 1)
+
+    report = render_run(run, input_price=1.0, output_price=5.0)
+    assert "(input reported 2/2 epochs; output reported 1/2 epochs)" in report
+    assert "- Estimated total evaluation cost: n/a (incomplete epoch usage; no extrapolation)" in report
+
+
+def test_legacy_result_without_epoch_details_does_not_claim_observed_cost():
+    run = run_of(tokens_case("one", 100, 10))
+    assert recorded_run_usage(run) is None
+    assert "Recorded usage across all epochs" not in render_run(run, input_price=1.0, output_price=5.0)
+
+
+def test_full_evaluation_usage_is_visible_without_prices():
+    run = run_of(multi_epoch_case("one", [(100, 10), (200, 20)]))
+
+    report = render_run(run)
+    assert "- Recorded usage across all epochs: 300 input / 30 output tokens" in report
+    assert "Estimated total evaluation cost" not in report

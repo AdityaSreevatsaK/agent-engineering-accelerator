@@ -24,6 +24,8 @@ Use one JSON object per line with a unique `id` and an `input`. Optional expecta
 
 `aea export report.md --format html`: create a self-contained HTML report. PDF requires a local supported Chromium browser.
 
+For evaluations with multiple epochs, the existing estimated cost describes a normalised single pass through the cases. Reports additionally show summed provider-reported tokens across all epochs and an estimated total evaluation cost when every epoch supplies both token counts. Partial usage produces an explicit `n/a` total instead of silently treating missing usage as zero. These are estimates based on user-supplied USD prices, not billing records.
+
 Use `aea --help` and `aea COMMAND --help` for all flags.
 
 ## Local smoke checks
