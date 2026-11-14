@@ -82,7 +82,16 @@ For a more realistic integration check, see [two standalone application projects
 uv run --locked python scripts/validate_independent_integrations.py --repeats 2
 ```
 
-These are self-authored test applications, not evidence of independent team adoption. See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
+These are self-authored test applications, not evidence of independent team adoption.
+
+For repeatable **synthetic performance and regression evidence** (actual CLI wall time and known-defect detection), run:
+
+```sh
+uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 3 --output-dir benchmark-evidence
+```
+
+See the [benchmark methodology](docs/BENCHMARKING.md). Timings are observed for this local environment only; they are not developer time savings or live-provider performance.
+ See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
 
 ## Leadership demonstration
 
