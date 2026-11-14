@@ -268,8 +268,8 @@ def test_invalid_expected_json_schema_is_rejected_before_execution(tmp_path, sch
 
     path = tmp_path / "invalid-schema.jsonl"
     path.write_text(
-        json.dumps({"id": "good", "input": "hello"}) + "\\n"
-        + json.dumps({"id": "bad", "input": "world", "expected_json_schema": schema}) + "\\n",
+        json.dumps({"id": "good", "input": "hello"}) + "\n"
+        + json.dumps({"id": "bad", "input": "world", "expected_json_schema": schema}) + "\n",
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="invalid JSON Schema") as err:
