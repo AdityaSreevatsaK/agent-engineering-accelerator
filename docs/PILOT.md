@@ -8,6 +8,18 @@ Confirm that engineers who did not build AEA can use it to evaluate an existing 
 
 Run two small independent pilots: **one Strands workflow and one LangGraph workflow**, preferably from separate delivery teams. Keep the first evaluation entirely synthetic or use data explicitly approved for this test.
 
+## Automated rehearsal before independent adoption
+
+Run a repeatable local dry run against the shipped synthetic calculator agents for **both** frameworks:
+
+```sh
+uv run --locked python scripts/pilot_rehearsal.py --output-dir pilot-rehearsal-output --repeats 3
+```
+
+The script refuses to overwrite existing output, freezes a separate redacted baseline for each adapter, performs three unchanged comparisons, introduces a known defective agent, verifies regression exit code 1 and checks baseline integrity. Review `pilot-rehearsal-output/REHEARSAL.md` and `evidence.json`. The CI release job performs a shorter `--repeats 1` rehearsal.
+
+**This is not proof of adoption by independent delivery teams.** It verifies a repeatable technical workflow only. Use the blank [independent pilot evidence worksheet](PILOT_EVIDENCE_TEMPLATE.md) for the two external integrations and actual measured outcomes.
+
 ## Pilot set-up
 
 1. Select an existing agent entry point for each framework that can run locally with a deterministic or approved model double. Record the team's current manual regression process and its set-up time.
