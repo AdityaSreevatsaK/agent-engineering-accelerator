@@ -50,6 +50,10 @@ The Ubuntu Python 3.11 evidence showed **2,444 passing unit tests, 34 deselected
 7. A security review signs off on sample identifiers, retention and trace/report sharing.
 8. `master` promotion requires explicit release approval.
 
+## Current release recommendation
+
+The [14 November 2026 release-readiness assessment](RELEASE_READINESS.md) records the additional hardening PRs, their six-job CI evidence, reduced test deferrals and remaining approvals. Those verified changes support a controlled internal pilot using approved synthetic data, not production clearance or automatic promotion of `master`.
+
 ## Known limits
 
 The snapshot backups are append-only and need retention management. A cooperative lock does not coordinate arbitrary third-party writers. Existing comparator statistics are informative unless threshold options explicitly activate gates. The sample Orders and Expense data are illustrative, not client-domain acceptance tests.
