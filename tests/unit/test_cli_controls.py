@@ -281,3 +281,59 @@ def test_bad_config_is_rejected_before_check_baseline_validation(
     assert seen == []
     assert not (tmp_path / "runs").exists()
 
+
+
+@pytest.mark.parametrize("command", ["compare", "check"])
+@pytest.mark.parametrize(
+    ("flag", "value"),
+    [
+        ("--max-new-failures", "-1"),
+        ("--max-new-failures", "1.5"),
+        ("--max-pass-rate-drop", "-0.01"),
+        ("--max-pass-rate-drop", "1.01"),
+        ("--max-pass-rate-drop", "nan"),
+        ("--max-pass-rate-drop", "inf"),
+        ("--max-error-rate-increase", "-0.1"),
+        ("--max-error-rate-increase", "1.1"),
+        ("--max-error-rate-increase", "nan"),
+        ("--min-case-pass-rate", "0"),
+        ("--min-case-pass-rate", "-0.1"),
+        ("--min-case-pass-rate", "1.1"),
+        ("--min-case-pass-rate", "nan"),
+        ("--min-case-pass-rate", "inf"),
+    ],
+)
+def test_invalid_quality_gate_flags_fail_before_execution(command, flag, value, tmp_path, capsys):
+    args = (
+        ["compare", "baseline", "current"]
+        if command == "compare"
+        else command_args(command, tmp_path, "--agent", "test:factory")
+    )
+    with pytest.raises(SystemExit) as error:
+        cli.build_parser().parse_args([*args, flag, value])
+    assert error.value.code == 2
+    assert flag in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["compare", "check"])
+@pytest.mark.parametrize(
+    ("flag", "value", "expected"),
+    [
+        ("--max-new-failures", "0", 0),
+        ("--max-new-failures", "10", 10),
+        ("--max-pass-rate-drop", "0", 0.0),
+        ("--max-pass-rate-drop", "1", 1.0),
+        ("--max-error-rate-increase", "0", 0.0),
+        ("--max-error-rate-increase", "1", 1.0),
+        ("--min-case-pass-rate", "0.25", 0.25),
+        ("--min-case-pass-rate", "1", 1.0),
+    ],
+)
+def test_valid_quality_gate_boundaries_remain_supported(command, flag, value, expected, tmp_path):
+    args = (
+        ["compare", "baseline", "current"]
+        if command == "compare"
+        else command_args(command, tmp_path, "--agent", "test:factory")
+    )
+    parsed = cli.build_parser().parse_args([*args, flag, value])
+    assert getattr(parsed, flag.removeprefix("--").replace("-", "_")) == expected
