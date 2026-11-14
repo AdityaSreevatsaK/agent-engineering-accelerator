@@ -36,8 +36,9 @@ def load_factory(ref: str) -> Callable[[], Any]:
         # Distinguish a misspelt application module from a missing transitive
         # dependency inside an existing agent module.
         if exc.name is not None and (module_name == exc.name or module_name.startswith(exc.name + ".")):
-            raise ValueError(
-                f"cannot import module {module_name!r}; check the working directory and module path"
+            raise ModuleNotFoundError(
+                f"cannot import module {module_name!r}; check the working directory and module path",
+                name=exc.name,
             ) from None
         raise
     factory = getattr(module, attr, None)
