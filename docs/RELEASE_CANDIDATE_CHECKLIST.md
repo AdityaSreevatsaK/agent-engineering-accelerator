@@ -17,7 +17,7 @@
 | Synthetic redaction checks | `uv run --locked python scripts/check_privacy_e2e.py` | Both adapters checked; does not establish anonymisation of all metadata |
 | Reproducible synthetic project rehearsal | `uv run --locked python scripts/pilot_rehearsal.py --output-dir <new-directory> --repeats 1` | Redacted baseline, unchanged comparison, deliberate regression and baseline integrity |
 | Fresh isolated wheel install | `uv build --wheel` followed by `uv run --locked python scripts/check_distribution.py` | Installs a wheel in a disposable environment and checks import, metadata, templates, CLI commands, escaped HTML and read-only backup discovery |
-| Packaging and branch integrity | Current `dev` CI plus `master` still unchanged | Must be independently rechecked after the final merge |
+| Adversarial baseline/CLI safety | `uv run --locked python scripts/run_checks.py` | Concurrent publishers, corrupt logs, partial copy interruption and backup retention must preserve operator data; see [resilience matrix](RESILIENCE.md) |\n| Packaging and branch integrity | Current `dev` CI plus `master` still unchanged | Must be independently rechecked after the final merge |
 
 All automated case inputs in these gates are synthetic. Neither a passing gate nor a signed report indicates customer production security approval. No billable model-provider calls are permitted in CI.
 

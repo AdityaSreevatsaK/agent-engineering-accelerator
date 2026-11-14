@@ -219,6 +219,7 @@ Examples are **illustrative engineering contracts**, not evidence that those sce
 - `scripts/check_privacy_e2e.py`: synthetic sentinel against both adapters, with explicit-capture control.
 - `scripts/check_distribution.py`: isolated wheel installation and CLI-template/export checks.
 - `scripts/benchmark_agent_evaluations.py`: synthetic independent-app public-CLI wall-clock, clean rerun and planted regression measurement. Its JSON/Markdown are *technical observations*, never measured engineer productivity. The release CI uploads summary files only, not run logs or traces.
+- `tests/unit/test_resilience_adversarial.py` and `docs/RESILIENCE.md`: deterministic concurrent baseline update, data preservation, corrupt-log and partial-write tests, with clearly scoped failure models.
 - `scripts/leadership_demo.py`: generate a locally viewable, reproducible demonstration.
 - `scripts/check_repository_hygiene.py`: fail if retired process-only artefacts or wording return to tracked source.
 - `scripts/ci.sh`: local command helper.
