@@ -24,7 +24,7 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 ## Failure policy and evidence interpretation
 
 - **Do not merge if any of the six CI jobs fails, is cancelled, is skipped unexpectedly or has not completed.**
-- Do not claim that the unavailable original calculator reference files were recovered. The test runner generates separate disposable synthetic logs, including two intentionally introduced score failures; it refuses to overwrite existing files and checks their digests before cleanup.
+- Do not claim that the unavailable original calculator reference files were restored. The test runner generates separate disposable synthetic logs, including two intentionally introduced score failures; it refuses to overwrite existing files and checks their digests before cleanup.
 - `aea run` can return exit 0 for a completed evaluation with failing cases; `aea check` and `aea compare` enforce the configured regression thresholds. Keep tests for both behaviours.
 - Slow testing must cover **all** marked-slow unit cases, including token price CLI checks and expense, helpdesk, policy RAG and triage end-to-end checks, plus the LangGraph CLI conformance case. Check the pytest selected/deselected summary in the release job.
 - A green generated fixture can validate the current CLI contract, not independently certify the correctness of unknown prior run artefacts.
