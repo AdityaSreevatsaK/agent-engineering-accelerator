@@ -41,6 +41,7 @@ TEST_MODULES = (
     "test_judge_pairwise_prefix.py",
     "test_langgraph_adapter.py",
     "test_policy_rag.py",
+    "test_pilot_rehearsal.py",
     "test_readings.py",
     "test_readings_pairwise.py",
     "test_report.py",
