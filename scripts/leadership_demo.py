@@ -8,12 +8,16 @@ sharing.
 from __future__ import annotations
 
 import argparse
+import json
 from hashlib import sha256
 from pathlib import Path
 import subprocess
 import sys
 
-from verify_regression_gate import BAD, GOOD, command, require_success
+if __package__:
+    from scripts.verify_regression_gate import BAD, GOOD, command, require_success
+else:
+    from verify_regression_gate import BAD, GOOD, command, require_success
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -39,6 +43,9 @@ def run_demo(output: Path) -> None:
 
     matched = command(GOOD, baseline, output / "runs" / "passing", update=False)
     require_success("passing", matched, "passed=11/11", "OK: baseline")
+    passing_reports = list((output / "runs" / "passing").rglob("comparison.md"))
+    if len(passing_reports) != 1 or "**OK**" not in passing_reports[0].read_text(encoding="utf-8"):
+        raise AssertionError("Passing comparison report was not written or did not record OK")
 
     faulty = command(BAD, baseline, output / "runs" / "defective", update=False)
     matches = list((output / "runs" / "defective").rglob("comparison.md"))
@@ -85,6 +92,7 @@ This folder contains **locally generated synthetic data**, not customer data.
 
 - [Regression comparison](<{relative}>)
 - [HTML comparison report](<regression-report.html>)
+- [Machine-readable synthetic evidence](<evidence.json>)
 - Baseline directory: approved evaluation data, unchanged after both checks
 - Runs directory: passing and deliberately defective CLI evaluations
 
@@ -97,9 +105,26 @@ This folder contains **locally generated synthetic data**, not customer data.
 5. This verifies deterministic local behaviour only, **not** live model repeatability, client security approval or organisational adoption.
 
 **Privacy:** Prompt and tool payloads are redacted by default, but case identifiers,
-file paths and trace names may remain. Review all outputs before sharing.
+file paths and identifying tool/model names may remain. Review all outputs before sharing.
 """
     (output / "DEMO.md").write_text(content, encoding="utf-8")
+    evidence = {
+        "classification": "deterministic synthetic AEA demonstration, not independent adoption",
+        "scenario": "synthetic-orders-refund-policy",
+        "cases": 11,
+        "frozen_baseline_passed": 11,
+        "unchanged_run_passed": 11,
+        "unchanged_comparison_exit_code": matched.returncode,
+        "deliberate_regression_exit_code": faulty.returncode,
+        "planted_defect_detected": True,
+        "approved_baseline_bytes_unchanged": True,
+        "regression_report": relative,
+        "html_report": rendered.relative_to(output).as_posix(),
+        "human_effort_minutes": None,
+        "independent_teams_adopted": None,
+        "provider_cost_usd": None,
+    }
+    (output / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(f"PASS: synthetic AEA demonstration created at {output.resolve()}")
     print(f"PASS: regression detected, approved baseline unchanged, HTML report at {rendered}")
 
