@@ -1,7 +1,7 @@
 # AEA 2.2.0: technical release-candidate checklist
 
 **Prepared:** 14 November 2026  
-**Source:** `dev` after [PR #119](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/119) (merged SHA `86707008aa859bedcf2e94e22aca66c79bbe6b56`).  
+**Source:** `dev` after [PR #119](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/119) (merged SHA `86707008aa859bedcf2e94e22aca66c79bbe6b56`); the expanded technical checks are in [PR #120](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/120). Pin the final integrated `dev` SHA again after merging.  
 **Version declared:** `2.2.0` in `pyproject.toml`.  
 **Release state:** **Technical preparation only.** No promotion to `master`, release tag, package publication, confidential-data approval or independent team adoption is authorised by this checklist.
 
@@ -12,7 +12,7 @@
 | Four OS/Python combinations | Windows and Ubuntu, Python 3.11/3.12, `uv lock --check`, static checks, complete non-slow unit inventory and local smoke | Verified on [PR #119 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43590375757) |
 | Non-slow unit tests | `uv run --locked python scripts/run_checks.py` | **2,646 passed** in Ubuntu Python 3.11 PR #119 check; test selection and count depend on the precise commit |
 | Non-slow LangGraph conformance | `uv run --locked python -m pytest -q -m "not slow" tests/conformance` | **13 passed**, with the one marked-slow case checked separately |
-| CLI subprocess integration and slow conformance | `uv run --locked python scripts/run_checks.py --slow` | PR #119 check passed **54** cases including CLI and the marked-slow LangGraph test; subsequent coverage expands this command to **all** marked-slow unit cases and must be verified on a new run |
+| CLI subprocess integration and slow conformance | `uv run --locked python scripts/run_checks.py --slow` | [PR #120 CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43591507776) passed **74 marked-slow cases** across all unit modules and conformance (the 2,659 non-slow cases were selected in the other lanes) |
 | Two standalone agent integrations | `uv run --locked python scripts/validate_independent_integrations.py --repeats 1` | Strands equipment and LangGraph supplier apps each have 12 synthetic reference cases, passing good/bad regression tests |
 | Synthetic redaction checks | `uv run --locked python scripts/check_privacy_e2e.py` | Both adapters checked; does not establish anonymisation of all metadata |
 | Reproducible synthetic project rehearsal | `uv run --locked python scripts/pilot_rehearsal.py --output-dir <new-directory> --repeats 1` | Redacted baseline, unchanged comparison, deliberate regression and baseline integrity |
@@ -35,7 +35,7 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 | --- | --- | --- |
 | Security and data governance | Customer data classification; default trace and log identifiers; output file access; approved redaction, capture and deletion | **Not approved** |
 | Operations | Backup retention, encrypted storage, manual stale-lock handling and Windows NTFS ACLs | **Unapproved policy** |
-| Dependency/supply chain | Licence and vulnerability review using approved sources; verify wheel contents and locked dependencies | CI coverage only; formal review outstanding |
+| Dependency/supply chain | Licence and vulnerability review using approved sources; verify wheel contents and locked dependencies | Installed-wheel verification passed in PR #120 CI; formal review outstanding |
 | Framework compatibility | Explicitly approved real Strands and LangGraph integrations, including provider errors, rate limits and actual usage | Local deterministic doubles only |
 | Adoption | Independent engineering work by two delivery teams and documented measurable outcomes | **Not completed**; [Issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) |
 | Release ownership | Review release notes, approve `master` change, choose version/tag and distribution targets | **Approval not requested** |
