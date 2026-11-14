@@ -11,7 +11,7 @@ from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ("agent.py", "dataset.jsonl")
-COMMANDS = ("init", "run", "check", "compare", "report", "export", "backups")
+COMMANDS = ("init", "doctor", "run", "check", "compare", "report", "export", "backups")
 
 
 def run(*argv: str, cwd: Path, timeout: int = 240) -> str:
@@ -89,6 +89,26 @@ def main() -> None:
         for name in TEMPLATES:
             if (starter / name).read_bytes() != (ROOT / "src/agent_accelerator/template" / name).read_bytes():
                 raise AssertionError(f"Installed CLI generated incorrect {name}")
+
+        # Import-only preflight must work from an installed *base* wheel with no
+        # Strands or LangGraph extra and without generating evaluation artefacts.
+        application = temp / "doctor_agent.py"
+        application.write_text(
+            "def build_agent():\\n"
+            "    raise AssertionError('doctor must not call the factory')\\n",
+            encoding="utf-8",
+        )
+        cases = temp / "doctor_cases.jsonl"
+        cases.write_text(
+            '{"id":"synthetic-1","input":"synthetic input","expected_output":"synthetic output"}\\n',
+            encoding="utf-8",
+        )
+        preflight = run(
+            str(aea), "doctor", str(cases), "--agent", "doctor_agent:build_agent",
+            cwd=temp,
+        )
+        if "PASS: preflight complete" not in preflight or (temp / "runs").exists():
+            raise AssertionError("Installed doctor failed import-only validation or created a run")
 
         page = temp / "input.md"
         page.write_text("# Report\n\n<script>alert(1)</script>\n", encoding="utf-8")
