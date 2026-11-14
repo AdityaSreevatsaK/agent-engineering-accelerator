@@ -91,7 +91,19 @@ uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 3 --outp
 ```
 
 See the [benchmark methodology](docs/BENCHMARKING.md). Timings are observed for this local environment only; they are not developer time savings or live-provider performance. The [resilience verification matrix](docs/RESILIENCE.md) documents deterministic tests for simultaneous baseline writers, malformed logs and partial filesystem writes.
- See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
+See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
+
+## Leadership and value assessment
+
+Start with the [leadership showcase](docs/LEADERSHIP_SHOWCASE.md), [evidence-based value assessment](docs/VALUE_ASSESSMENT.md) and [dependency/security self-review](docs/DEPENDENCY_SECURITY_REVIEW.md). These distinguish synthetic engineering results from actual developer time saved, independent adoption and production security approval.
+
+The locked package source/hash inventory can be checked without external APIs:
+
+```sh
+uv run --locked python scripts/dependency_inventory.py
+```
+
+This does **not** scan published vulnerability advisories or verify licences. Follow the security review's approved live-scan procedure for those separate gates.
 
 ## Leadership demonstration
 
@@ -102,7 +114,7 @@ orders and a deliberately defective refund-policy agent:
 uv run --locked python scripts/leadership_demo.py --output-dir demo-output
 ```
 
-The command preserves the passing baseline and produces an HTML regression report.
+The command preserves the passing baseline and produces an HTML regression report, a Markdown briefing and a machine-readable synthetic evidence summary. Follow the five-minute presenter script in the demo guide.
 
 ## Synthetic pilot rehearsal
 
@@ -116,8 +128,8 @@ It generates redacted local evidence for both adapters. **It does not constitute
 
 ## Security and limitations
 
-Default redaction does **not** guarantee anonymity: case IDs, tool names, span names, timing, paths and derived metrics may remain. `--capture-content` deliberately retains inputs, outputs and tool payloads. Only run trusted agent factories and scorers, since they execute Python code in the current environment.
+Default redaction does **not** guarantee anonymity: case IDs, tool/model names, timing, paths and derived metrics may remain; arbitrary non-root span names are masked by default. `--capture-content` deliberately retains inputs, outputs and tool payloads. Only run trusted agent factories and scorers, since they execute Python code in the current environment.
 
 AEA is a testing toolkit, **not** an agent sandbox, hosting service or cross-provider abstraction. Live model repeatability, deployed LangGraph execution, end-to-end data-retention controls and production adoption are outside the current offline guarantees. Formal client data/security review is required before production use.
 
-See [release-candidate checklist](docs/RELEASE_CANDIDATE_CHECKLIST.md), [release readiness](docs/RELEASE_READINESS.md), [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [security review](docs/SECURITY_REVIEW.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
+See [leadership showcase](docs/LEADERSHIP_SHOWCASE.md), [value assessment](docs/VALUE_ASSESSMENT.md), [release-candidate checklist](docs/RELEASE_CANDIDATE_CHECKLIST.md), [release readiness](docs/RELEASE_READINESS.md), [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [security review](docs/SECURITY_REVIEW.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
