@@ -44,7 +44,7 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 
 1. Confirm the latest `dev` commit and all open PRs/branches. Pin a single immutable SHA for the candidate.
 2. Confirm **6/6 green on that same SHA**, including the complete slow-test gate and both synthetic integration examples. Record the actual CI link and individual test totals.
-3. Inspect `CHANGELOG.md`, `docs/RELEASE_READINESS.md`, `AGENTS.md` and the package metadata; do not describe earlier reconstructed artefacts as independently restored.
+3. Inspect `CHANGELOG.md`, `docs/RELEASE_READINESS.md`, `AGENTS.md` and the package metadata; do not describe earlier missing reference inputs as independently restored.
 4. Generate one wheel using the locked dependency environment; run the isolated wheel check and inspect the package for private content, cached runs and unexpected files.
 5. Prepare a release note and list outstanding approvals; save internal-only evidence outside this public repository.
 6. **Stop at a technically validated candidate on `dev`.** Promotion to `master`, creation of a tag, uploading packages and production claims all require explicit release-owner approval and the relevant security/pilot sign-offs.
