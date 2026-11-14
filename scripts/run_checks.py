@@ -77,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--slow", action="store_true",
-        help="run full subprocess CLI integration and conformance acceptance instead of the quick unit matrix",
+        help="run every marked-slow unit test and the slow conformance acceptance instead of the quick matrix",
     )
     args = parser.parse_args(argv)
     unit_dir = ROOT / "tests" / "unit"
@@ -108,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.slow:
                 command = [
                     sys.executable, "-m", "pytest", "-q", "-m", "slow",
-                    "tests/unit/test_cli.py", "tests/conformance",
+                    "tests/unit", "tests/conformance",
                 ]
             else:
                 command = [
