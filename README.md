@@ -86,6 +86,16 @@ uv run --locked python scripts/leadership_demo.py --output-dir demo-output
 
 The command preserves the passing baseline and produces an HTML regression report.
 
+## Synthetic pilot rehearsal
+
+The [pilot guide](docs/PILOT.md) includes a repeatable Strands and LangGraph baseline/regression rehearsal:
+
+```sh
+uv run --locked python scripts/pilot_rehearsal.py --output-dir pilot-rehearsal-output --repeats 3
+```
+
+It generates redacted local evidence for both adapters. **It does not constitute independent team adoption or security approval.** Record actual pilot findings using the [blank evidence worksheet](docs/PILOT_EVIDENCE_TEMPLATE.md).
+
 ## Security and limitations
 
 Default redaction does **not** guarantee anonymity: case IDs, tool names, span names, timing, paths and derived metrics may remain. `--capture-content` deliberately retains inputs, outputs and tool payloads. Only run trusted agent factories and scorers, since they execute Python code in the current environment.
