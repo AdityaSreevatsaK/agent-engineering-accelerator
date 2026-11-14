@@ -252,3 +252,40 @@ def test_expected_tool_args_requires_tool():
 def test_expected_tool_args_args_default_to_empty():
     # Witness: s16 dataset ExpectedToolArgs args required (default_factory dropped).
     assert ExpectedToolArgs(tool="lookup").args == {}
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        {"type": "not-a-json-type"},
+        {"type": "object", "properties": {"name": {"type": 123}}},
+        {"type": "array", "items": "not-a-schema"},
+    ],
+)
+def test_invalid_expected_json_schema_is_rejected_before_execution(tmp_path, schema):
+    """Bad expectation schemas must not waste agent/provider calls at scoring time."""
+    import json
+
+    path = tmp_path / "invalid-schema.jsonl"
+    path.write_text(
+        json.dumps({"id": "good", "input": "hello"}) + "\\n"
+        + json.dumps({"id": "bad", "input": "world", "expected_json_schema": schema}) + "\\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="invalid JSON Schema") as err:
+        load_dataset(path)
+    assert f"{path}:2" in str(err.value)
+
+
+def test_valid_expected_json_schema_with_explicit_draft_is_accepted():
+    case = Case(
+        id="draft7",
+        input="hello",
+        expected_json_schema={
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {"answer": {"type": "string"}},
+            "required": ["answer"],
+        },
+    )
+    assert case.expected_json_schema["type"] == "object"
