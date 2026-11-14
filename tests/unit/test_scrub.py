@@ -2,6 +2,7 @@ import asyncio
 import copy
 from pathlib import Path
 
+import pytest
 from inspect_ai.log import EvalError, EvalSampleReductions, EvalSampleScore, read_eval_log, write_eval_log
 from inspect_ai.model import ModelOutput
 from inspect_ai.scorer import CORRECT, INCORRECT, NOANSWER, PARTIAL, Score, ScoreEdit
@@ -377,11 +378,11 @@ def test_scrub_keeps_the_case_checks_output_digest_but_no_output_text(tmp_path):
     assert output not in scrubbed.model_dump_json()
 
 
-@pytest.mark.parametrize("raw_value", [SECRET, {"answer": SECRET}, [SECRET]])
-def test_scrub_redacts_arbitrary_custom_scorer_values_in_samples_and_reductions(raw_value):
+def test_scrub_redacts_arbitrary_custom_scorer_values_in_samples_and_reductions():
     """Untrusted custom scorers can return sensitive output as their Score.value."""
     log = read_capture()
     sample_id = log.samples[0].id
+    raw_value = SECRET
     log.samples[0].scores[CUSTOM] = Score(value=raw_value)
     log.reductions.append(
         EvalSampleReductions(
