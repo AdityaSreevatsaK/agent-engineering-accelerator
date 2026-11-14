@@ -168,7 +168,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.repeats < 1:
         parser.error("--repeats must be at least 1")
-    run_rehearsal(args.output_dir.resolve())
+    run_rehearsal(args.output_dir.absolute(), repeats=args.repeats)
     print("PASS: both adapter rehearsal workflows completed; see REHEARSAL.md")
 
 
