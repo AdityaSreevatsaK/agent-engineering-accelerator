@@ -135,7 +135,7 @@ Cross-cutting responsibilities:
 - The adapters translate framework messages, tool activity, usage and errors to a common Inspect-compatible representation.
 - `tool_metrics.py` captures safe, aggregatable tool metrics.
 - `tracing.py` must initialise instrumentation **before** framework imports.
-- `baseline.py` isolates high-risk baseline file operations.
+- `baseline.py` isolates high-risk baseline file operations. A failed move of the old baseline must not leave a misleading empty backup; an abrupt process exit after that move may leave the active directory absent, with the original version retained in `.aea-backup-*/previous` and the lock deliberately in place. See `tests/unit/test_baseline_crash_safety.py` and `docs/RESILIENCE.md` for the manual-recovery contract.
 - `readings.py` adds restrained plain-English interpretation to numerical reports.
 - `scripts/` and the CI workflow make the above behaviour testable without paid LLM calls.
 

@@ -174,3 +174,29 @@ def test_capture_content_is_rejected_without_writing(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="capture-content"):
         freeze_run_as_baseline(new, dest, runs, True, _validate_baseline_target)
     assert not dest.exists()
+
+
+def test_failed_prior_snapshot_move_preserves_original_and_cleans_empty_backup(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed rename must not manufacture a misleading empty backup."""
+    runs, new = make_run(tmp_path)
+    dest = tmp_path / "baseline"
+    make_previous(dest)
+    original = (dest / "old.json").read_bytes()
+    original_rename = Path.rename
+
+    def fail_old_move(self: Path, target: Path) -> Path:
+        if self == dest and Path(target).name == "previous":
+            raise OSError("synthetic failure moving previous baseline")
+        return original_rename(self, target)
+
+    monkeypatch.setattr(Path, "rename", fail_old_move)
+    with pytest.raises(OSError, match="synthetic failure moving"):
+        publish(new, dest, runs)
+
+    assert (dest / "old.json").read_bytes() == original
+    assert (dest / "report.md").read_text(encoding="utf-8") == "previous report"
+    assert not list(tmp_path.glob(".baseline.aea-backup-*"))
+    assert not list(tmp_path.glob(".baseline.aea-stage-*"))
+    assert not (tmp_path / ".baseline.aea-update.lock").exists()

@@ -118,7 +118,17 @@ def freeze_run_as_baseline(
                     tempfile.mkdtemp(prefix=f".{baseline.name}.aea-backup-", dir=baseline.parent)
                 )
                 previous = backup_root / "previous"
-                baseline.rename(previous)
+                try:
+                    baseline.rename(previous)
+                except BaseException:
+                    # The existing baseline is still in place if the move fails.
+                    # Remove only our own empty container; leave any unexpected
+                    # contents for the operator rather than deleting their data.
+                    try:
+                        backup_root.rmdir()
+                    except OSError:
+                        pass
+                    raise
             try:
                 if baseline.exists() or baseline.is_symlink():
                     raise FileExistsError(f"baseline path reappeared during update: {baseline}")
