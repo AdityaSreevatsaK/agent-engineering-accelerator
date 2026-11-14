@@ -124,7 +124,7 @@ file paths and identifying tool/model names may remain. Review all outputs befor
         "independent_teams_adopted": None,
         "provider_cost_usd": None,
     }
-    (output / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\\n", encoding="utf-8")
+    (output / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(f"PASS: synthetic AEA demonstration created at {output.resolve()}")
     print(f"PASS: regression detected, approved baseline unchanged, HTML report at {rendered}")
 
