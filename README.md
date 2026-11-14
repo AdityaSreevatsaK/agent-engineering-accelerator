@@ -66,6 +66,7 @@ All seven offline example scenarios have matching expected outputs under the det
 
 ```sh
 uv run --locked python scripts/run_checks.py
+uv run --locked python scripts/run_checks.py --slow  # full subprocess and other marked-slow acceptance
 uv run --locked python scripts/check_examples.py
 uv run --locked python scripts/verify_regression_gate.py
 uv run --locked python scripts/check_privacy_e2e.py
@@ -110,4 +111,4 @@ Default redaction does **not** guarantee anonymity: case IDs, tool names, span n
 
 AEA is a testing toolkit, **not** an agent sandbox, hosting service or cross-provider abstraction. Live model repeatability, deployed LangGraph execution, end-to-end data-retention controls and production adoption are outside the current offline guarantees. Formal client data/security review is required before production use.
 
-See [release readiness](docs/RELEASE_READINESS.md), [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [security review](docs/SECURITY_REVIEW.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
+See [release-candidate checklist](docs/RELEASE_CANDIDATE_CHECKLIST.md), [release readiness](docs/RELEASE_READINESS.md), [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [security review](docs/SECURITY_REVIEW.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
