@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 from inspect_ai.log import read_eval_log, write_eval_log
-from inspect_ai.scorer import INCORRECT
+from inspect_ai.scorer import CORRECT, INCORRECT
 
 ROOT = Path(__file__).resolve().parents[1]
 CALCULATOR = ROOT / "examples" / "calculator" / "dataset.jsonl"
@@ -56,7 +56,7 @@ def make_cli_references(success: Path, defective: Path, temporary_root: Path) ->
     original = read_eval_log(logs[0])
     if len(original.samples or []) != 10:
         raise AssertionError("Expected ten calculator cases in the baseline")
-    if {str(s.id) for s in original.samples or [] if not s.scores["case_checks"].value == "C"}:
+    if {str(s.id) for s in original.samples or [] if s.scores["case_checks"].value != CORRECT}:
         raise AssertionError("Some baseline cases did not return the passing category")
     for sample in original.samples or []:
         if sample.input != "[REDACTED]" or sample.target != "[REDACTED]":
