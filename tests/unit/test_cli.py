@@ -15,8 +15,10 @@ from agent_accelerator.cli import build_parser, main
 REPO = Path(__file__).parents[2]
 DATASET = REPO / "examples" / "calculator" / "dataset.jsonl"
 AGENT = "examples.calculator.agent:build_agent"
-FIXTURE = REPO / "tests" / "fixtures" / "calculator_capture_content.json"
-BROKEN_FIXTURE = REPO / "tests" / "fixtures" / "calculator_broken_redacted.json"
+# Fresh disposable synthetic calculator runs made by scripts/make_cli_test_logs.py.
+# These are deliberately NOT substitutes for the unavailable original archives.
+FIXTURE = REPO / "tests" / "fixtures" / "calculator_cli_success_synthetic.json"
+BROKEN_FIXTURE = REPO / "tests" / "fixtures" / "calculator_cli_failure_synthetic.json"
 TRACE_HEADER = "## Trace summary (informational)"
 INPUT_TEXT = "What is 2 plus 3?"
 # Replaced in the runs fixture by a dataset with one passing and two failing cases. The failing ids sort
@@ -416,7 +418,7 @@ def test_report_of_bare_log_without_traces_has_no_trace_summary(tmp_path, capsys
 
 # check
 
-BASELINE_LOG = REPO / "baselines" / "calculator.json"
+BASELINE_LOG = FIXTURE
 CASE_INPUTS = [json.loads(line)["input"] for line in DATASET.read_text(encoding="utf-8").splitlines() if line.strip()]
 FATAL = [str(DATASET), "--agent", "aea_cli_doubles:fatal_factory"]
 GOOD = [str(DATASET), "--agent", AGENT]
