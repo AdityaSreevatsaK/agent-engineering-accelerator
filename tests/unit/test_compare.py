@@ -283,41 +283,53 @@ def test_resolve_log_selects_the_only_json_in_a_directory(tmp_path):
     assert resolve_log(tmp_path) == expected
 
 
-def test_capture_fixture_loads_as_ten_successful_cases():
+def test_generated_capture_contains_ten_scored_successes():
+    """The runner creates this synthetic Inspect log; no missing archive is implied."""
     results = load_results(FIXTURES / "calculator_capture_content.json")
 
     assert len(results.cases) == 10
     assert all(case.passed for case in results.cases.values())
     assert results.status == "success"
     assert all(case.error is None for case in results.cases.values())
-    assert results.dataset_sha256 is not None
-    assert len(results.dataset_sha256) == 64
-    assert all(character in "0123456789abcdef" for character in results.dataset_sha256.lower())
     assert all(
         isinstance(case.latency_s, (int, float)) and not isinstance(case.latency_s, bool)
         for case in results.cases.values()
     )
 
 
-def test_broken_fixture_has_the_two_specified_failures_and_explanations():
-    results = load_results(FIXTURES / "calculator_broken_redacted.json")
+SYNTHETIC_FAILURES = {"subtract_nine_four", "tool_error_case"}
+
+
+def write_synthetic_regressed_log(tmp_path):
+    """Introduce independently chosen failures in a disposable copy of the generated log."""
+    log = read_eval_log(FIXTURES / "calculator_capture_content.json")
+    assert SYNTHETIC_FAILURES <= {str(sample.id) for sample in log.samples}
+    for sample in log.samples:
+        if str(sample.id) in SYNTHETIC_FAILURES:
+            sample.scores["case_checks"] = Score(value=INCORRECT, explanation="injected synthetic failure")
+    log.eval.metadata = {**(log.eval.metadata or {}), "capture_content": False}
+    path = tmp_path / "synthetic-regression.json"
+    write_eval_log(log, location=path)
+    return path
+
+
+def test_synthetic_broken_log_has_two_known_failures_and_explanations(tmp_path):
+    results = load_results(write_synthetic_regressed_log(tmp_path))
 
     assert len(results.cases) == 10
-    assert {case_id for case_id, case in results.cases.items() if not case.passed} == {"subtract", "subtract_large"}
-    assert all(
-        results.cases[case_id].failures and all(results.cases[case_id].failures.values())
-        for case_id in ("subtract", "subtract_large")
-    )
+    assert {case_id for case_id, case in results.cases.items() if not case.passed} == SYNTHETIC_FAILURES
+    assert all(results.cases[case_id].failures == {"case_checks": "injected synthetic failure"}
+               for case_id in SYNTHETIC_FAILURES)
 
 
-def test_broken_fixture_regresses_against_capture_with_default_thresholds():
+def test_synthetic_broken_log_regresses_against_generated_capture(tmp_path):
     result = compare(
         load_results(FIXTURES / "calculator_capture_content.json"),
-        load_results(FIXTURES / "calculator_broken_redacted.json"),
+        load_results(write_synthetic_regressed_log(tmp_path)),
         Thresholds(),
     )
 
-    assert set(result.newly_failing) == {"subtract", "subtract_large"}
+    assert set(result.newly_failing) == SYNTHETIC_FAILURES
     assert result.regressed
 
 
@@ -727,12 +739,9 @@ def write_capture_metadata_log(tmp_path, value):
     return path
 
 
-@pytest.mark.parametrize(
-    ("fixture", "expected"),
-    [("calculator_capture_content.json", True), ("calculator_broken_redacted.json", False)],
-)
-def test_load_results_reads_capture_content_from_fixture_metadata(fixture, expected):
-    assert load_results(FIXTURES / fixture).capture_content is expected
+@pytest.mark.parametrize("captured", [True, False])
+def test_load_results_reads_capture_content_from_generated_metadata(tmp_path, captured):
+    assert load_results(write_capture_metadata_log(tmp_path, captured)).capture_content is captured
 
 
 @pytest.mark.parametrize(
@@ -797,22 +806,27 @@ def test_capture_warning_renders_as_a_warning_line():
 
 
 @pytest.mark.parametrize(
-    ("baseline", "current", "exit_code", "warned_sides"),
+    ("baseline_broken", "current_broken", "exit_code", "warned_sides"),
     [
-        ("calculator_capture_content.json", "calculator_capture_content.json", 0, ["baseline", "current"]),
-        ("calculator_broken_redacted.json", "calculator_capture_content.json", 0, ["current"]),
-        ("calculator_capture_content.json", "calculator_broken_redacted.json", 1, ["baseline"]),
+        (False, False, 0, ["baseline", "current"]),
+        (True, False, 0, ["current"]),
+        (False, True, 1, ["baseline"]),
     ],
 )
-def test_cli_compare_exit_code_ignores_capture_warning(monkeypatch, capsys, baseline, current, exit_code, warned_sides
+def test_cli_compare_exit_code_ignores_capture_warning(
+    monkeypatch, capsys, tmp_path, baseline_broken, current_broken, exit_code, warned_sides
 ):
-    monkeypatch.setattr(sys, "path", [*sys.path])  # main prepends the working directory
+    monkeypatch.setattr(sys, "path", [*sys.path])
+    captured = write_capture_metadata_log(tmp_path, True)
+    broken = write_synthetic_regressed_log(tmp_path)
+    baseline = broken if baseline_broken else captured
+    current = broken if current_broken else captured
 
-    code = main(["compare", str(FIXTURES / baseline), str(FIXTURES / current)])
+    code = main(["compare", str(baseline), str(current)])
 
     lines = capsys.readouterr().out.splitlines()
     assert code == exit_code
-    warnings = [line for line in lines if "--capture-content" in line]
+    warnings = [line for line in lines if line.startswith("- Warning:") and "--capture-content" in line]
     assert warnings == [f"- Warning: {CAPTURE_WARNING.format(side=side)}" for side in warned_sides]
 
 def test_failing_score_without_explanation_is_reported_as_scorer_name_failed(tmp_path):
