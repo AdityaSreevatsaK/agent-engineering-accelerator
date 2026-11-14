@@ -1102,3 +1102,31 @@ def test_cli_compare_max_p_value_turns_the_significance_warning_into_a_regressio
     assert len(regressions) == (1 if flags else 0)
     assert all(line.startswith("- Regression: pass rate fell") and line.endswith(entry) for line in regressions)
 
+
+
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"max_new_failures": -1},
+        {"max_new_failures": 0.25},
+        {"max_pass_rate_drop": -0.1},
+        {"max_pass_rate_drop": 1.1},
+        {"max_pass_rate_drop": float("nan")},
+        {"max_pass_rate_drop": float("inf")},
+        {"max_error_rate_increase": -0.1},
+        {"max_error_rate_increase": 1.1},
+        {"max_error_rate_increase": float("nan")},
+        {"max_p_value": 0.0},
+        {"max_p_value": 1.0},
+        {"max_p_value": float("nan")},
+    ],
+)
+def test_thresholds_reject_invalid_direct_api_settings(settings):
+    with pytest.raises(ValueError):
+        Thresholds(**settings)
+
+
+@pytest.mark.parametrize("rate", [-0.01, 1.01, float("nan"), float("inf")])
+def test_load_results_rejects_invalid_pass_rate_before_reading_log(rate, tmp_path):
+    with pytest.raises(ValueError, match="min_case_pass_rate"):
+        load_results(tmp_path / "missing.json", min_case_pass_rate=rate)
