@@ -291,6 +291,21 @@ def _report(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _backups(args: argparse.Namespace) -> int:
+    """List retained previous AEA baselines without modifying or reading their contents."""
+    from agent_accelerator.baseline import retained_backup_paths
+
+    backups = retained_backup_paths(args.baseline)
+    if not backups:
+        print(f"No retained AEA baseline backups found for {args.baseline.as_posix()}")
+    else:
+        print(f"Retained AEA baseline backups for {args.baseline.as_posix()}:")
+        for previous in backups:
+            print(f"  {previous.as_posix()}")
+    print("Read-only inventory. Nothing was removed; review retention and access before cleanup.")
+    return EXIT_OK
+
+
 def _export(args: argparse.Namespace) -> int:
     from agent_accelerator.export import BrowserError, export_report
 
@@ -452,6 +467,10 @@ def build_parser() -> argparse.ArgumentParser:
     rep.add_argument("run", type=Path, help="run directory or log file")
     _add_price_args(rep)
     rep.set_defaults(func=_report)
+
+    backups = sub.add_parser("backups", help="list retained previous baselines without deleting them")
+    backups.add_argument("baseline", type=Path, help="active baseline directory whose prior copies to inspect")
+    backups.set_defaults(func=_backups)
 
     chk = sub.add_parser("check", help="run a dataset and compare it against a baseline run directory")
     _add_run_args(chk)
