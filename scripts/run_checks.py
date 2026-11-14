@@ -87,18 +87,15 @@ PARTIAL_MODULE_CASES = {
     ),
 }
 
-# These particular assertions require a second, immutable full-run sample log.
-# Avoid synthesising test evidence to satisfy fixed snapshot expectations.
+# Remaining deferred groups require original, immutable reference runs or fixed
+# provenance data unavailable in the repository. Independent synthetic tests run.
+# Avoid fabricating historical evidence merely to satisfy snapshot assertions.
 DEFERRED_CASES = (
     "tests/unit/test_compare.py::test_capture_fixture_loads_as_ten_successful_cases",
     "tests/unit/test_compare.py::test_broken_fixture_has_the_two_specified_failures_and_explanations",
     "tests/unit/test_compare.py::test_broken_fixture_regresses_against_capture_with_default_thresholds",
-    "tests/unit/test_compare.py::test_load_results_marks_sample_without_scores_as_failed",
-    "tests/unit/test_compare.py::test_load_results_uses_sample_error_message_when_agent_error_is_absent",
-    "tests/unit/test_compare.py::test_load_results_judge_is_empty_for_an_unjudged_run",
     "tests/unit/test_compare.py::test_load_results_reads_capture_content_from_fixture_metadata",
     "tests/unit/test_compare.py::test_cli_compare_exit_code_ignores_capture_warning",
-    "tests/unit/test_compare.py::test_logs_from_before_tool_call_counts_load_with_none",
     "tests/unit/test_compare_statistics.py::test_demo_statistics_match_hand_derived_values",
     "tests/unit/test_compare_statistics.py::test_statistics_block_is_the_last_section_before_the_glossary_and_appears_once",
 )
