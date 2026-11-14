@@ -108,6 +108,8 @@ jobs:
         run: uv run --locked python scripts/verify_regression_gate.py
       - name: Privacy redaction CLI contract
         run: uv run --locked python scripts/check_privacy_e2e.py
+      - name: Complete CLI subprocess and marked-slow conformance tests
+        run: uv run --locked python scripts/run_checks.py --slow
       - name: Execute leadership demonstration end to end
         run: uv run --locked python scripts/leadership_demo.py --output-dir "${{ runner.temp }}/aea-leadership-demo"
       - name: Rehearse local Strands and LangGraph baseline regression
