@@ -32,6 +32,14 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 - Slow testing must cover **all** marked-slow unit cases, including token price CLI checks and expense, helpdesk, policy RAG and triage end-to-end checks, plus the LangGraph CLI conformance case. Check the pytest selected/deselected summary in the release job.
 - A green generated fixture can validate the current CLI contract, not independently certify the correctness of unknown prior run artefacts.
 
+## New onboarding/operational readiness acceptance (pending PR CI)
+
+- Run `aea doctor` on both synthetic integrations from their application directories before first evaluation.
+- Confirm the installed **base wheel** supports `aea doctor` without installing a framework extra; verify it does not create evaluation runs and that missing modules return exit 2.
+- Verify LangGraph mapper advisory text, config/CLI precedence and invalid JSONL diagnostics.
+- Review the [onboarding](ONBOARDING.md), [operational recovery](OPERATIONAL_READINESS.md) and [adoption evidence](ADOPTION_EVIDENCE.md) guidance. These documents do not represent external approval.
+- After final PR merge, update the evidence reference using the actual integrated `dev` SHA and 6/6 CI result. Do not treat pending CI as passed.
+
 ## Outstanding sign-offs for a real release
 
 | Owner / gate | Requirement | Current disposition |
