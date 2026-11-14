@@ -5,7 +5,9 @@ import json
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from jsonschema.exceptions import SchemaError
+from jsonschema.validators import validator_for
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 DATASET_FORMAT_VERSION = 1
 
@@ -51,6 +53,17 @@ class Case(BaseModel):
     expect_interrupt: bool | None = None
     config: dict[str, Any] | None = None  # LangGraph only: merged into the run's "configurable"
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("expected_json_schema")
+    @classmethod
+    def validate_expected_json_schema(cls, schema: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Reject unusable JSON Schemas before an agent or a paid provider runs."""
+        if schema is not None:
+            try:
+                validator_for(schema).check_schema(schema)
+            except SchemaError as exc:
+                raise ValueError(f"invalid JSON Schema: {exc.message}") from exc
+        return schema
 
 
 def load_dataset(path: Path) -> list[Case]:
