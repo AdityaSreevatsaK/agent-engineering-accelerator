@@ -13,3 +13,5 @@ AEA is a Python CLI and library that evaluates independently supplied agents.
 Factories and custom scorers run trusted Python code. The package does not isolate them in a sandbox. Framework/provider configuration belongs to the supplied agent, not AEA.
 
 Default evaluation artefacts provide debugging metrics rather than full anonymisation. Review all outputs before sharing them outside your team.
+
+For an executive architecture diagram, responsibility boundaries and live demonstration narrative, see the [leadership showcase](LEADERSHIP_SHOWCASE.md). For measured versus hypothetical business outcomes, see the [value assessment](VALUE_ASSESSMENT.md).
