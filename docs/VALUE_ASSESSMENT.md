@@ -14,7 +14,7 @@
 | What is the runtime cost of an unchanged check? | Run [43609227896](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43609227896) measured two repeat checks per application; medians **2.342 s** and **2.613 s**, on one CI runner | Descriptive, small-sample |
 | How much engineering time is saved? | **No measured control group or independent engineer yet** | Unknown |
 | Is it used by multiple delivery teams? | No independent adoption record. [Pilot approval gate](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) is still open | Not demonstrated |
-| Can it process confidential production data? | Default scrub/privacy tests pass, but security, retention and access controls remain unapproved | Not approved |
+| Can it process confidential production data? | Default scrub/privacy tests pass; a dated [public advisory scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) returned zero known findings among 116 exported packages. Security, licence, retention and access controls remain unapproved | Not approved |
 
 ## Technical evidence and provenance
 
