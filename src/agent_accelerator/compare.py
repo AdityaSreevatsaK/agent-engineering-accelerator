@@ -88,6 +88,19 @@ class Thresholds:
     max_error_rate_increase: float = 0.0
     max_p_value: float | None = None  # opt-in: a case or pooled one-sided Fisher p at or below this regresses
 
+    def __post_init__(self) -> None:
+        if type(self.max_new_failures) is not int or self.max_new_failures < 0:
+            raise ValueError("max_new_failures must be a non-negative integer")
+        for name in ("max_pass_rate_drop", "max_error_rate_increase"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
+                raise ValueError(f"{name} must be a finite fraction between 0 and 1")
+        alpha = self.max_p_value
+        if alpha is not None and (
+            isinstance(alpha, bool) or not isinstance(alpha, (int, float)) or not 0 < alpha < 1
+        ):
+            raise ValueError("max_p_value must be strictly between 0 and 1")
+
 
 @dataclass(frozen=True)
 class RateInterval:
@@ -156,6 +169,8 @@ def resolve_log(path: Path) -> Path:
 
 def load_results(path: Path, min_case_pass_rate: float = 1.0) -> RunResults:
     """A case that ran over several epochs passes when its share of passing epochs reaches min_case_pass_rate."""
+    if not 0 <= min_case_pass_rate <= 1:
+        raise ValueError("min_case_pass_rate must be a finite fraction between 0 and 1")
     log_path = resolve_log(path)
     log = read_eval_log(log_path)
     epochs: dict[str, list[EvalSample]] = {}
