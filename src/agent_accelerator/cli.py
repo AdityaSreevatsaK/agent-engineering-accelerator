@@ -71,6 +71,39 @@ def _module_path(target: Path) -> str | None:
     return ".".join((*parts, "agent"))
 
 
+def _doctor(args: argparse.Namespace) -> int:
+    """Check local inputs and importability without executing agent factories or creating run artefacts.
+
+    Importing a user module executes its top-level Python statements, so only
+    run this with trusted application code. No agent factory or scorer is called.
+    """
+    from agent_accelerator.adapters import load_factory
+    from agent_accelerator.dataset import load_dataset
+
+    cases = load_dataset(args.dataset)
+    references = [("agent", args.agent)]
+    references += [(name.replace("_", "-"), getattr(args, name)) for name in ("input_map", "output_map")]
+    references += [("scorer", ref) for ref in args.scorer]
+    for label, reference in references:
+        if reference is not None:
+            load_factory(reference)
+            print(f"OK {label}: {reference}")
+    print(f"OK dataset: {len(cases)} valid case(s); adapter: {args.adapter}")
+    if args.adapter == "langgraph":
+        if args.input_map is None:
+            print(
+                "note: graphs without a 'messages' state channel need --input-map module:function",
+                file=sys.stderr,
+            )
+        if args.output_map is None:
+            print(
+                "note: graphs without an AI message or structured_response need --output-map module:function",
+                file=sys.stderr,
+            )
+    print("PASS: preflight complete; no agent factory, evaluation, or model was executed by AEA")
+    return EXIT_OK
+
+
 def _run(args: argparse.Namespace) -> int:
     return _execute_run(args)[0]
 
@@ -451,6 +484,16 @@ def build_parser() -> argparse.ArgumentParser:
     init.add_argument("dir", type=Path, help="folder to create (parents allowed)")
     init.add_argument("--force", action="store_true", help="overwrite agent.py and dataset.jsonl in a non-empty folder")
     init.set_defaults(func=_init)
+
+    doctor = sub.add_parser("doctor", help="check dataset, config and factory imports without evaluating agents")
+    doctor.add_argument("dataset", type=Path, help="JSONL dataset to validate without evaluating")
+    doctor.add_argument("--config", type=Path, metavar="FILE", help="TOML adapter/agent/mapping settings")
+    doctor.add_argument("--agent", help="agent factory as module:function (or supply via --config)")
+    doctor.add_argument("--adapter", choices=ADAPTERS, help="default: strands")
+    doctor.add_argument("--input-map", metavar="MODULE:FUNCTION", help="LangGraph input mapper to import-check")
+    doctor.add_argument("--output-map", metavar="MODULE:FUNCTION", help="LangGraph output mapper to import-check")
+    doctor.add_argument("--scorer", action="append", default=[], help="custom scorer to import-check (repeatable)")
+    doctor.set_defaults(func=_doctor)
 
     run = sub.add_parser("run", help="run an agent against a dataset")
     _add_run_args(run)
