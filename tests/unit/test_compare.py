@@ -913,9 +913,17 @@ def test_case_tool_use_aggregates_every_epoch_not_only_the_first(tmp_path):
     )
 
 
-def test_logs_from_before_tool_call_counts_load_with_none():
-    # Witness: s16 mean counts None as zero gives 0.0 for every fixture case.
-    cases = load_results(FIXTURES / "calculator_capture_content.json").cases
+def test_logs_from_before_tool_call_counts_load_with_none(tmp_path):
+    """Create an independently checkable legacy log, rather than require an unavailable old snapshot."""
+    log = read_eval_log(FIXTURES / "calculator_capture_content.json")
+    for sample in log.samples:
+        metadata = sample.scores["case_checks"].metadata
+        assert isinstance(metadata, dict) and "tool_call_count" in metadata
+        metadata.pop("tool_call_count")
+    path = tmp_path / "legacy-no-tool-counts.json"
+    write_eval_log(log, location=path)
+
+    cases = load_results(path).cases
 
     assert len(cases) == 10
     assert {case.tool_calls for case in cases.values()} == {None}

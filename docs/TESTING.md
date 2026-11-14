@@ -11,7 +11,7 @@ uv run --locked python scripts/run_checks.py
 uv run --locked python scripts/check_examples.py
 ```
 
-The offline test runner executes all standalone test modules and a selected set of CLI parser/configuration tests from the fixed-reference CLI integration module. Tests requiring unavailable archived comparison logs remain deferred and are not claimed as passing. A new test file must be classified before CI can pass. The calculator, triage, expense, policy RAG and helpdesk examples provide deterministic smoke coverage.
+The offline test runner executes all standalone test modules and a selected set of CLI parser/configuration tests from the fixed-reference CLI integration module. Seven case groups requiring unavailable archived comparison logs remain deferred and are not claimed as passing. Four synthetic comparison tests previously excluded are now independently exercised. A new test file must be classified before CI can pass. The calculator, triage, expense, policy RAG and helpdesk examples provide deterministic smoke coverage.
 
 When adding a new agent adapter or scorer, add focused unit tests, use synthetic evaluation data, and verify that default logs and traces do not leak prompts or tool arguments.
 
