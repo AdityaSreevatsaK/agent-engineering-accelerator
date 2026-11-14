@@ -1,0 +1,5 @@
+# Custom-state LangGraph needs explicit input and output mapping functions.
+adapter = "langgraph"
+agent = "agent:build_agent"
+input_map = "agent:to_request"
+output_map = "agent:read_decision"
