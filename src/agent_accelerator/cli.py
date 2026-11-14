@@ -253,11 +253,33 @@ def _validate_baseline_target(baseline: Path, runs_dir: Path, capture_content: b
             f"({', '.join(unexpected)}); refusing to replace it"
         )
     try:
-        read_eval_log(log_path)
+        log = read_eval_log(log_path)
     except Exception:
         raise ValueError(
             f"--baseline {baseline.as_posix()} has no valid Inspect eval log; refusing to replace it"
         ) from None
+    # A valid Inspect JSON log is not necessarily a privacy-safe AEA baseline.
+    # Refuse obvious raw payloads rather than preserving them in hidden backups.
+    # Score provenance and user-controlled identifiers still require review.
+    from agent_accelerator.run import REDACTED
+
+    metadata = log.eval.metadata or {}
+    if metadata.get("capture_content") is True or (log.metadata or {}).get("capture_content") is True:
+        raise ValueError(f"--baseline {baseline.as_posix()} records captured content; refusing to replace it")
+    for sample in log.samples or []:
+        if (
+            sample.input != REDACTED
+            or sample.target != REDACTED
+            or sample.messages
+            or sample.events
+            or sample.attachments
+            or sample.store
+            or sample.output.completion
+            or sample.output.choices
+        ):
+            raise ValueError(
+                f"--baseline {baseline.as_posix()} contains unredacted sample content; refusing to replace it"
+            )
 
 
 def _report(args: argparse.Namespace) -> int:
