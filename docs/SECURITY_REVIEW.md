@@ -13,7 +13,7 @@
 | Secrets and cloud-provider calls | Offline examples use local deterministic doubles, and CI clears common provider credentials | Confirm no unexpected account access or billable calls during planned pilots |
 | HTML reports | Output escapes raw HTML; fresh-wheel export is tested | Review output access and distribution pathways |
 | Baseline replacement and retention | Cooperative update lock, revalidation, staged deployment, backups, rollback tests and refusal of obvious unredacted sample payloads before replacement | Review the new POSIX owner-only snapshot modes and non-destructive `aea backups` inventory; approve Windows ACLs, encryption, retention and removal |
-| Dependencies | `uv.lock` committed, locked installation checked on Windows/Linux | Review dependency vulnerabilities and licences with organisation-approved scanning |
+| Dependencies | `uv.lock` committed, locked installation checked on Windows/Linux | Run a dated vulnerability/advisory and licence review using the [dependency self-assessment](DEPENDENCY_SECURITY_REVIEW.md), followed by authorised sign-off |
 | Operational failures | Tests cover controlled regressions, error statuses and conformance | Validate network failures and rate limits against approved providers |
 
 ## Runnable privacy contract
