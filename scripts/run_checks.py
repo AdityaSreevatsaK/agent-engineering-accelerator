@@ -89,7 +89,7 @@ PARTIAL_MODULE_CASES = {
 
 # Remaining deferred groups require original, immutable reference runs or fixed
 # provenance data unavailable in the repository. Independent synthetic tests run.
-# Avoid fabricating historical evidence merely to satisfy snapshot assertions.
+# Avoid fabricating source evidence merely to satisfy snapshot assertions.
 DEFERRED_CASES = (
     "tests/unit/test_compare.py::test_capture_fixture_loads_as_ten_successful_cases",
     "tests/unit/test_compare.py::test_broken_fixture_has_the_two_specified_failures_and_explanations",
