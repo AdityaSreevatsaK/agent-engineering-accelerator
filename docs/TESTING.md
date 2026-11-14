@@ -8,6 +8,7 @@ uv sync --all-extras --group dev --locked
 uv run --locked ruff check src examples
 uv run --locked pyright
 uv run --locked python scripts/run_checks.py
+uv run --locked python scripts/run_checks.py --slow
 uv run --locked python scripts/check_examples.py
 uv run --locked python scripts/validate_independent_integrations.py --repeats 1
 ```
