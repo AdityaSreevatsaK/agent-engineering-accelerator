@@ -1,0 +1,12 @@
+{"id":"vendor-301","input":"Review supplier VN-301 for onboarding","expected_output":"VN-301: onboarding approved."}
+{"id":"vendor-302","input":"Review supplier VN-302 for onboarding","expected_output":"VN-302: onboarding denied (tax registration invalid)."}
+{"id":"vendor-303","input":"Review supplier VN-303 for onboarding","expected_output":"VN-303: onboarding denied (sanctions hold)."}
+{"id":"vendor-304","input":"Review supplier VN-304 for onboarding","expected_output":"VN-304: onboarding denied (tax registration invalid)."}
+{"id":"vendor-305","input":"Review supplier VN-305 for onboarding","expected_output":"VN-305: onboarding approved."}
+{"id":"vendor-306","input":"Review supplier VN-306 for onboarding","expected_output":"VN-306: onboarding denied (sanctions hold)."}
+{"id":"vendor-307","input":"Review supplier VN-307 for onboarding","expected_output":"VN-307: onboarding denied (tax registration invalid)."}
+{"id":"vendor-308","input":"Review supplier VN-308 for onboarding","expected_output":"VN-308: onboarding approved."}
+{"id":"vendor-309","input":"Review supplier VN-309 for onboarding","expected_output":"VN-309: onboarding approved."}
+{"id":"vendor-310","input":"Review supplier VN-310 for onboarding","expected_output":"VN-310: onboarding denied (sanctions hold)."}
+{"id":"vendor-311","input":"Review supplier VN-311 for onboarding","expected_output":"VN-311: onboarding approved."}
+{"id":"vendor-not-found","input":"Review supplier VN-999 for onboarding","expected_output":"VN-999: vendor not found."}
