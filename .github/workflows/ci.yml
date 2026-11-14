@@ -127,6 +127,17 @@ jobs:
             ${{ runner.temp }}/aea-benchmark/BENCHMARK.md
           retention-days: 14
           if-no-files-found: error
+      - name: Validate committed dependency sources and hashes
+        run: uv run --locked python scripts/dependency_inventory.py --output-dir "${{ runner.temp }}/aea-dependency-inventory"
+      - name: Retain security inventory summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-lock-inventory
+          path: |
+            ${{ runner.temp }}/aea-dependency-inventory/inventory.json
+            ${{ runner.temp }}/aea-dependency-inventory/INVENTORY.md
+          retention-days: 14
+          if-no-files-found: error
       - name: Build a distributable wheel
         run: uv build --wheel
       - name: Verify the installed package in a fresh environment
