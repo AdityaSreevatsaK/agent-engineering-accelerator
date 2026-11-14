@@ -52,6 +52,7 @@ TEST_MODULES = (
     "test_pilot_rehearsal.py",
     "test_readings.py",
     "test_readings_pairwise.py",
+    "test_resilience_adversarial.py",
     "test_report.py",
     "test_report_pairwise.py",
     "test_run_metrics.py",

@@ -48,4 +48,4 @@ The current engineering benchmark is considered technically complete only when *
 
 When presenting results to leadership, distinguish **observed local execution costs** from **unmeasured human productivity**. Never invent time saved, model-token costs, client adoption or production security clearance. The default AEA redaction retains some case/tool identifiers and file paths, so review generated files before sharing.
 
-Run the separate [resilience tests](TESTING.md) for safety under corrupted inputs, concurrent writes and failure injection. These are correctness gates, not throughput benchmarks.
+Run the separate [adversarial resilience checks](RESILIENCE.md) for safety under corrupted inputs, concurrent writes and partial failures. These are correctness gates, not throughput benchmarks. These are correctness gates, not throughput benchmarks.

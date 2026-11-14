@@ -17,7 +17,7 @@ The default offline test runner selects **every unit-test module**, including th
 
 When adding a new agent adapter or scorer, add focused unit tests, use synthetic evaluation data, and verify that default logs and traces do not leak prompts or tool arguments.
 
-CI runs on Windows and Linux using Python 3.11 and 3.12. Keep live cloud-provider calls out of automated checks.
+CI runs on Windows and Linux using Python 3.11 and 3.12. Keep live cloud-provider calls out of automated checks. The [resilience matrix](RESILIENCE.md) covers simultaneous writers, corrupt input, interrupted staged copies and non-destructive backup retention.
 
 See [engineering assessment](ENGINEERING_AUDIT.md) for current coverage gaps and release criteria.
 
