@@ -90,7 +90,7 @@ For repeatable **synthetic performance and regression evidence** (actual CLI wal
 uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 3 --output-dir benchmark-evidence
 ```
 
-See the [benchmark methodology](docs/BENCHMARKING.md). Timings are observed for this local environment only; they are not developer time savings or live-provider performance. The [resilience verification matrix](docs/RESILIENCE.md) documents deterministic tests for simultaneous baseline writers, malformed logs and partial filesystem writes.
+See the [benchmark methodology](docs/BENCHMARKING.md). Timings are observed for this local environment only; they are not developer time savings or live-provider performance. The [resilience verification matrix](docs/RESILIENCE.md) documents simultaneous baseline writers, malformed logs, partial writes and abrupt-process-stop recovery. A process crash during baseline replacement may leave the active path missing while the prior version remains in a read-only discoverable backup; operators must review the retained lock before manual recovery.
 See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
 
 ## Leadership and value assessment
