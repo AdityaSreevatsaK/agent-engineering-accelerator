@@ -21,7 +21,7 @@ TEST_MODULES = (
     "test_adapters.py",
     "test_baseline_inventory.py",
     "test_baseline_replacement_safety.py",
-    "test_baseline_transaction.py",
+    "test_baseline_transaction.py",\n    "test_benchmarking.py",
     "test_build_task.py",
     "test_calculator_dataset.py",
     "test_calculator_rules.py",
