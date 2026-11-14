@@ -27,6 +27,15 @@ uv export --frozen --all-extras --no-dev --no-emit-project --format requirements
 
 The export is a temporary requirements view, not an additional dependency source of truth. Review whether conditional markers and optional extras are relevant to the deployment.
 
+For a reproducible scan with the exported dependency set, AEA provides the following wrapper. Its results are uploaded by CI as **review-only public advisory evidence**, and it never auto-upgrades dependencies.
+
+```sh
+uv run --locked python scripts/dependency_inventory.py --output-dir new-inventory-folder
+uv run --locked python scripts/audit_public_advisories.py --output-dir new-advisory-folder
+```
+
+The advisory scanner treats network errors or missing results as errors, and serialises known findings into a JSON and Markdown report. A successful workflow **does not imply zero known vulnerabilities**: findings are recorded for triage without automatic remediation, and the separate security reviewer must approve any resolution. The scan is for one exported runtime requirements selection with all extras, not a full multi-platform, licence or malicious-package review.
+
 For a current vulnerability database assessment in an approved network environment, use a separately pinned auditor such as `pip-audit` against the exported, fully pinned dependencies:
 
 ```sh
