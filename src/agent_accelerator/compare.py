@@ -194,6 +194,10 @@ def _sample_failures(sample: EvalSample, error: str | None) -> dict[str, str]:
     failures = {name: s.explanation or f"{name} failed" for name, s in scores.items() if s.value != CORRECT}
     if not scores:
         failures["unscored"] = error or "no scores recorded"
+    elif error and not failures:
+        # An execution error is a failed epoch even if previously recorded scorer
+        # results say CORRECT. Otherwise truncated/errored runs can pass a gate.
+        failures["execution_error"] = "sample recorded an execution error"
     return failures
 
 

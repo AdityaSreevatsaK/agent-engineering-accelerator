@@ -1130,3 +1130,38 @@ def test_thresholds_reject_invalid_direct_api_settings(settings):
 def test_load_results_rejects_invalid_pass_rate_before_reading_log(rate, tmp_path):
     with pytest.raises(ValueError, match="min_case_pass_rate"):
         load_results(tmp_path / "missing.json", min_case_pass_rate=rate)
+
+
+def test_sample_execution_error_cannot_pass_with_correct_scores(tmp_path):
+    log = read_eval_log(FIXTURES / "calculator_capture_content.json")
+    sample = log.samples[0]
+    sample.error = {
+        "message": "runtime failed after scoring",
+        "traceback": "",
+        "traceback_ansi": "",
+    }
+    path = tmp_path / "errored-after-scoring.json"
+    write_eval_log(log, location=path)
+
+    case = load_results(path).cases[str(sample.id)]
+    assert case.passed is False
+    assert case.passes == 0
+    assert case.error == "runtime failed after scoring"
+    assert case.failures == {"execution_error": "sample recorded an execution error"}
+    assert str(sample.id) in compare(
+        load_results(FIXTURES / "calculator_capture_content.json"), load_results(path), Thresholds()
+    ).newly_failing
+
+
+def test_agent_error_cannot_pass_with_correct_scores(tmp_path):
+    log = read_eval_log(FIXTURES / "calculator_capture_content.json")
+    sample = log.samples[0]
+    sample.metadata["agent_error"] = "RuntimeError: interrupted after scoring"
+    path = tmp_path / "agent-error-after-scoring.json"
+    write_eval_log(log, location=path)
+
+    case = load_results(path).cases[str(sample.id)]
+    assert case.passed is False
+    assert case.passes == 0
+    assert case.error == "RuntimeError: interrupted after scoring"
+    assert case.failures == {"execution_error": "sample recorded an execution error"}

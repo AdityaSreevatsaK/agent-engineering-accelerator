@@ -479,7 +479,7 @@ Argument data are processed into safe hashes at score time rather than preserved
 
 ### 9.4 Multiple epochs
 
-`--epochs N` executes each case multiple times. A case passes when its pass share meets `--min-case-pass-rate`, whose default is 1.0. A case passing some but not all epochs is classified as flaky.
+`--epochs N` executes each case multiple times. A case passes when its pass share meets `--min-case-pass-rate`, whose default is 1.0. An epoch with a recorded execution error counts as failed even when another scorer previously returned `CORRECT`. A case passing some but not all epochs is classified as flaky.
 
 Metrics distinguish case counts from epoch counts. Do not sum per-epoch passes and present that as the number of passing unique cases.
 
