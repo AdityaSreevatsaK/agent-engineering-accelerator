@@ -2,7 +2,7 @@
 
 ## Agent factories
 
-Provide `module:function` through `--agent`, or in a TOML configuration. The function must construct an independently usable Strands agent or local LangGraph graph for each evaluation.
+Provide `module:function` through `--agent`, or in a TOML configuration. The function must construct an independently usable Strands agent or local LangGraph graph for each evaluation. References use a Python-importable dotted module and a single callable attribute, for example `agent:build_agent` when running from the application directory. Invalid reference syntax is rejected before a run directory is created. A missing application module is reported with a working-directory hint; missing dependencies imported by the application are reported separately.
 
 ## Datasets
 
