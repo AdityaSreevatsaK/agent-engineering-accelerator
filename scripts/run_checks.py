@@ -61,6 +61,7 @@ TEST_MODULES = (
     "test_langgraph_adapter.py",
     "test_leadership_demo_contract.py",
     "test_policy_rag.py",
+    "test_python_floor_security.py",
     "test_pilot_rehearsal.py",
     "test_readings.py",
     "test_readings_pairwise.py",
