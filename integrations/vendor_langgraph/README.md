@@ -2,6 +2,8 @@
 
 This is a self-contained synthetic supplier-compliance workflow using a compiled LangGraph with custom `TypedDict` state, policy screening and conditional routing. It evaluates 12 cases without a model-provider account.
 
+For **every explicit step**, custom-state mapper notes, intentional exit-code handling and report paths, follow [the complete LangGraph walkthrough](../../docs/STEP_BY_STEP.md#c-full-langgraph-supplier-onboarding-flow).
+
 ## Get started
 
 From the AEA repository root, run `uv sync --all-extras --group dev --locked` and activate the environment: `.venv\\Scripts\\Activate.ps1` in Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. Then change into `integrations/vendor_langgraph`.
