@@ -12,6 +12,17 @@ Two applications exercise only AEA's installed **public CLI** from their own wor
 
 Each has its own 12-case `dataset.jsonl` and **ready-to-run `aea.toml`**, avoiding the need to repeat long adapter and mapping options.
 
+## One-command individual flows
+
+From the AEA checkout after installation, use either command with an **unused** folder name:
+
+```sh
+uv run --locked python scripts/validate_independent_integrations.py --only equipment-strands --repeats 1 --output-dir strands-001
+uv run --locked python scripts/validate_independent_integrations.py --only vendor-langgraph --repeats 1 --output-dir langgraph-001
+```
+
+Each command automatically freezes a baseline, verifies 12 cases, detects a known defect and checks that the baseline is intact. See the [simple PowerShell guide](../docs/STEP_BY_STEP.md) to run or read the outputs.
+
 ## Automated acceptance
 
 After `uv sync --all-extras --group dev --locked` from the AEA repository root:

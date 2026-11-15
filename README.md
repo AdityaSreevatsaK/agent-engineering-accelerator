@@ -1,188 +1,40 @@
 # Agent Engineering Accelerator (AEA)
 
-Local-first evaluation, regression testing and observability for **existing AI agents**.
+**Test existing AI agents, catch regressions and generate readable reports.**
 
-AEA runs JSONL evaluation datasets against Python agent factories and produces Inspect AI logs, Markdown reports and OpenTelemetry trace summaries. It supports AWS Strands and LangGraph. Local deterministic examples require no model-provider account.
+AEA supports **AWS Strands** and **LangGraph**. The examples run locally, with no cloud account, API keys, Docker or WSL.
 
-## Start here: exact end-to-end steps
+## Get started
 
-**[Complete step-by-step guide for every AEA flow](docs/STEP_BY_STEP.md)**
+**[Open the simple, step-by-step guide](docs/STEP_BY_STEP.md)**
 
-Use that guide first. It provides **copy-and-run Windows PowerShell and Linux/macOS commands**, expected pass/fail results, exact output locations and troubleshooting for:
+Start with the **Before you start** section, open Windows PowerShell, and copy the commands for the flow you want.
 
-1. Setup from a fresh `dev` checkout.
-2. Standalone AWS Strands and LangGraph examples (preflight, freeze, clean check, deliberate regression).
-3. A **credential-free generated starter**, working without editing code.
-4. Leadership demonstration, offline quality/CI checks, two-framework rehearsals and runtime/control comparisons.
-5. First-install onboarding measurements, report exports, backup inspection and the procedure for connecting an actual existing agent.
+The guide covers setup, Strands, LangGraph, creating an agent, demonstrations, testing, benchmarks, reports and troubleshooting. All example flows have expected results and output locations.
 
-**You need no model-provider account or manual source-code changes for the bundled synthetic workflows.** A genuine third-party agent integration and independent release/security approvals still require the relevant people and application code.
+## What AEA does
 
-For the shortest complete automated demonstration after [installing AEA](docs/STEP_BY_STEP.md#0-checkout-install-and-check-the-environment):
-
-```sh
-uv run --locked python scripts/leadership_demo.py --output-dir demo-evidence-001
-```
-
-Open `demo-evidence-001/DEMO.md` and `demo-evidence-001/regression-report.html`. An unused output directory is required; reruns use a fresh name.
-
-## Capabilities
-
-| Capability | Description |
+| Feature | Purpose |
 | --- | --- |
-| Evaluation | Validate expected answers, JSON schemas, tool calls, ordering, arguments and interrupts |
-| Framework adapters | AWS Strands and local LangGraph graphs, including custom state input/output mappings |
-| Regression checks | Compare runs with frozen baselines, quality thresholds and statistical tests |
-| LLM judging | Optional reference-based, rubric-based and pairwise judging; offline judge double for testing |
-| Observability | Token usage, tool metrics, run latency and OpenTelemetry trace summaries |
-| Reports | Markdown and self-contained HTML; PDF requires Edge, Chrome or Chromium |
-| Privacy | Prompts and output payloads are redacted by default; explicit opt-in capture is available |
+| Agent tests | Check answers, JSON structure and tool use |
+| Regression checks | Compare new behaviour against a saved baseline |
+| Framework support | Evaluate Strands and LangGraph agents |
+| Quality reports | Generate Markdown, HTML and trace summaries |
+| Optional advanced checks | LLM judging, quality thresholds and statistics |
 
-## Requirements
+## More information
 
-Python **3.11 or 3.12**, Git and [uv](https://docs.astral.sh/uv/). Windows, macOS and Linux can use native Python environments.
+- [Architecture](docs/ARCHITECTURE.md) and [technical usage](docs/USAGE.md)
+- [Testing and CI](docs/TESTING.md)
+- [Leadership demonstration](docs/DEMO.md) and [value assessment](docs/VALUE_ASSESSMENT.md)
+- [Security and operational recovery](docs/OPERATIONAL_READINESS.md)
+- [Independent pilot and measured adoption](docs/PILOT.md)
+- [Guide for coding agents and maintainers](AGENTS.md)
 
-From the project root:
+## Current status
 
-```sh
-python -m pip install uv
-uv lock --check
-uv sync --python 3.11 --all-extras --group dev --locked
-uv run --locked aea --help
-uv run --locked python scripts/verify_starter_walkthrough.py
-```
+**v2.2.0 is a tested development candidate on `dev`, not an approved production release.**
 
-Dependencies are pinned in the committed `uv.lock`, generated with uv 0.10.0. CI checks it without resolving a different version. To update intentionally, run `uv lock --upgrade`, review the lockfile changes, then commit them together with any dependency updates.
+The shipped examples are synthetic, not evidence of adoption by other teams. Real agent integration requires the application's code and test cases. Security approval is required before testing confidential data. Default redaction still leaves some identifiers and paths in reports.
 
-## Quick start
-
-Run the offline Strands calculator example:
-
-```sh
-uv run --locked aea run examples/calculator/dataset.jsonl --adapter strands --agent examples.calculator.agent:build_agent --runs-dir runs --max-samples 1
-```
-
-Run a LangGraph example using TOML configuration:
-
-```sh
-uv run --locked aea run examples/triage/dataset.jsonl --config examples/triage/aea.toml --runs-dir runs --max-samples 1
-```
-
-Freeze a local, redacted baseline, then check for regressions:
-
-```sh
-uv run --locked aea check examples/calculator/dataset.jsonl --adapter strands --agent examples.calculator.agent:build_agent --baseline local-baseline --runs-dir runs --update-baseline
-uv run --locked aea check examples/calculator/dataset.jsonl --adapter strands --agent examples.calculator.agent:build_agent --baseline local-baseline --runs-dir runs
-```
-
-Use a dedicated baseline directory. An update keeps the previous version in a uniquely named hidden backup folder beside the baseline. A lock prevents simultaneous AEA writers. Run `aea backups local-baseline` to inspect retained previous versions without deleting them. Newly frozen folders have private permissions on POSIX; Windows NTFS ACLs must be reviewed for the deployment. Restore a prior version manually if needed; do not remove a lock unless you have confirmed no update is running.
-
-A run normally creates a JSON evaluation log, `traces.jsonl` and `report.md`. CLI exit codes: `0` success, `1` detected regression, `2` command or run error.
-
-## Validate onboarding before running an agent
-
-Use the `doctor` preflight to validate your JSONL dataset, TOML settings and importable `module:function` references before starting an evaluation:
-
-```sh
-uv run --locked aea doctor integrations/equipment_strands/dataset.jsonl --adapter strands --agent integrations.equipment_strands.agent:build_agent
-```
-
-Run it from the repository root as shown, or enter `integrations/equipment_strands` and use `aea doctor dataset.jsonl --config aea.toml`. It does not invoke factories, evaluate cases or create run outputs. **Module imports execute trusted application Python**, and may create normal Python caches or have module-defined side effects. This is not a sandbox or a guarantee that provider credentials and custom LangGraph mappings are valid. See [the native Windows/Linux onboarding guide](docs/ONBOARDING.md), [operational controls](docs/OPERATIONAL_READINESS.md) and [adoption evidence protocol](docs/ADOPTION_EVIDENCE.md).
-
-## Example agents
-
-`examples/` includes calculator (Strands and LangGraph), orders (Strands), expense, triage, policy RAG and helpdesk (LangGraph). They use local deterministic model doubles; cloud calls are not required for CI.
-
-All seven offline example scenarios have matching expected outputs under the deterministic model doubles. This does not guarantee behaviour or repeatability with live model providers.
-
-## Quality checks
-
-```sh
-uv run --locked python scripts/run_checks.py
-uv run --locked python scripts/run_checks.py --slow  # full subprocess and other marked-slow acceptance
-uv run --locked python scripts/check_examples.py
-uv run --locked python scripts/verify_regression_gate.py
-uv run --locked python scripts/check_privacy_e2e.py
-uv build --wheel
-uv run --locked python scripts/check_distribution.py
-```
-
-CI runs supported operating-system and Python combinations without provider credentials or billable model calls.
-
-For a more realistic integration check, see [two standalone application projects](integrations/README.md). They exercise only the published CLI, with independent working directories, synthetic policy data and intentional regressions:
-
-```sh
-uv run --locked python scripts/validate_independent_integrations.py --repeats 2
-```
-
-These are self-authored test applications, not evidence of independent team adoption.
-
-For repeatable **synthetic performance and regression evidence** (actual CLI wall time and known-defect detection), run:
-
-```sh
-uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 3 --output-dir benchmark-evidence
-```
-
-See the [benchmark methodology](docs/BENCHMARKING.md). Timings are observed for this local environment only; they are not developer time savings or live-provider performance. The [resilience verification matrix](docs/RESILIENCE.md) documents simultaneous baseline writers, malformed logs, partial writes and abrupt-process-stop recovery. A process crash during baseline replacement may leave the active path missing while the prior version remains in a read-only discoverable backup; operators must review the retained lock before manual recovery.
-See the [developer experience audit](docs/INTEGRATION_DEVELOPER_EXPERIENCE.md) for observed outcomes, configuration examples and remaining onboarding risks.
-
-## Leadership and value assessment
-
-Start with the [leadership showcase](docs/LEADERSHIP_SHOWCASE.md), [evidence-based value assessment](docs/VALUE_ASSESSMENT.md) and [dependency/security self-review](docs/DEPENDENCY_SECURITY_REVIEW.md). These distinguish synthetic engineering results from actual developer time saved, independent adoption and production security approval.
-
-The locked package source/hash inventory can be checked without external APIs:
-
-```sh
-uv run --locked python scripts/dependency_inventory.py
-```
-
-This command does **not** scan published vulnerability advisories or verify licences. The separate observational [PR #124 public-advisory scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) returned zero known findings for 116 exported packages; [security review](docs/DEPENDENCY_SECURITY_REVIEW.md) explains the unscanned variants and pending approvals.
-
-## Scripted first-install onboarding evidence
-
-The dedicated CI onboarding job starts with an unpopulated project environment, times the dependency sync and executes both synthetic agent walkthroughs, including `aea doctor`, the first real baseline report, a passing comparison and the expected failing-agent result. The job records native-framework control times for context.
-
-```sh
-python -m scripts.onboarding_rehearsal --output-dir new-onboarding-evidence
-```
-
-Use a **new** output directory. CI retains only `ONBOARDING_REHEARSAL.md` and `evidence.json`, not raw evaluation logs. These are **machine timings**, not engineer onboarding or development-effort measurements. See [onboarding guide](docs/ONBOARDING.md) and [human effort timecard](docs/HUMAN_EFFORT_STUDY.md); independent participation and security approval are still pending.
-
-## Conventional QA control and synthetic pilot rehearsal
-
-AEA also provides a **self-authored conventional testing control** that directly exercises the native Strands and LangGraph applications using the same synthetic reference cases:
-
-```sh
-uv run --locked python -m scripts.controlled_pilot_study --repeats 3 --output-dir new-pilot-evidence
-```
-
-Both approaches must detect exactly the same deliberately introduced failing cases; the benchmark also records bounded process wall time and protects AEA baseline bytes. This **does not** measure engineer onboarding, authoring time or productivity, and it is **not** independent team adoption. See [methodology and limitations](docs/BENCHMARKING.md), [pilot protocol](docs/PILOT.md) and [adoption evidence requirements](docs/ADOPTION_EVIDENCE.md). Review generated raw logs before sharing; CI retains only synthetic summary files.
-
-## Leadership demonstration
-
-Generate a self-contained [local demonstration](docs/DEMO.md) using synthetic
-orders and a deliberately defective refund-policy agent:
-
-```sh
-uv run --locked python scripts/leadership_demo.py --output-dir demo-output
-```
-
-The command preserves the passing baseline and produces an HTML regression report, a Markdown briefing and a machine-readable synthetic evidence summary. Follow the five-minute presenter script in the demo guide.
-
-## Synthetic pilot rehearsal
-
-The [pilot guide](docs/PILOT.md) includes a repeatable Strands and LangGraph baseline/regression rehearsal:
-
-```sh
-uv run --locked python scripts/pilot_rehearsal.py --output-dir pilot-rehearsal-output --repeats 3
-```
-
-It generates redacted local evidence for both adapters. **It does not constitute independent team adoption or security approval.** Record actual pilot findings using the [blank evidence worksheet](docs/PILOT_EVIDENCE_TEMPLATE.md).
-
-## Security and limitations
-
-Default redaction does **not** guarantee anonymity: case IDs, tool/model names, timing, paths and derived metrics may remain; arbitrary non-root span names are masked by default. `--capture-content` deliberately retains inputs, outputs and tool payloads. Only run trusted agent factories and scorers, since they execute Python code in the current environment.
-
-AEA is a testing toolkit, **not** an agent sandbox, hosting service or cross-provider abstraction. Live model repeatability, deployed LangGraph execution, end-to-end data-retention controls and production adoption are outside the current offline guarantees. Formal client data/security review is required before production use.
-
-See [leadership showcase](docs/LEADERSHIP_SHOWCASE.md), [value assessment](docs/VALUE_ASSESSMENT.md), [release-candidate checklist](docs/RELEASE_CANDIDATE_CHECKLIST.md), [release readiness](docs/RELEASE_READINESS.md), [usage](docs/USAGE.md), [architecture](docs/ARCHITECTURE.md), [security guidance](docs/SECURITY.md), [security review](docs/SECURITY_REVIEW.md), [tests](docs/TESTING.md), [engineering assessment](docs/ENGINEERING_AUDIT.md) and [internal adoption pilot](docs/PILOT.md).
+`master` is unchanged until explicitly approved for release.

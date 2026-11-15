@@ -4,7 +4,17 @@ This is a self-contained synthetic equipment-support application. Its `agent.py`
 
 For **every explicit step**, Windows PowerShell commands, exit-code handling and expected report paths, follow [the complete Strands walkthrough](../../docs/STEP_BY_STEP.md#b-full-aws-strands-equipment-warranty-flow).
 
-## Get started
+## One-command walkthrough (recommended)
+
+From the AEA repository root, after installation:
+
+```sh
+uv run --locked python scripts/validate_independent_integrations.py --only equipment-strands --repeats 1 --output-dir strands-001
+```
+
+Read `strands-001/evidence.json`. It covers baseline, normal check, deliberately broken check and baseline safety without editing code. See the [simple step-by-step guide](../../docs/STEP_BY_STEP.md).
+
+## Manual individual CLI commands (optional)
 
 From the AEA repository root, run `uv sync --all-extras --group dev --locked` and activate the resulting virtual environment: `.venv\\Scripts\\Activate.ps1` in Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. Then change into `integrations/equipment_strands`.
 

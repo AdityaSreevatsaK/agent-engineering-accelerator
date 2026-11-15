@@ -1,6 +1,6 @@
 # AEA usage
 
-**Start here for complete copy-and-run procedures:** [step-by-step workflows](STEP_BY_STEP.md). The guide includes Windows PowerShell, Linux/macOS, per-framework end-to-end flows, a generated credential-free starter, expected CLI exit codes and output locations.
+**Start here for complete copy-and-run procedures:** [step-by-step workflows](STEP_BY_STEP.md). The quickstart focuses on Windows PowerShell, one-command framework examples, an offline starter and output locations. For Linux/macOS initial setup see [onboarding](ONBOARDING.md).
 
 
 ## Agent factories

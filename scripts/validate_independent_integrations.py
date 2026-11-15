@@ -76,9 +76,11 @@ def validate_dataset(path: Path) -> int:
     return len(rows)
 
 
-def run_validation(output: Path, repeats: int = 1) -> dict[str, object]:
+def run_validation(output: Path, repeats: int = 1, only: str | None = None) -> dict[str, object]:
     if repeats < 1:
         raise ValueError("repeats must be positive")
+    if only is not None and only not in {name for name, _, _ in SCENARIOS}:
+        raise ValueError(f"Unknown standalone application: {only}")
     if output.exists() or output.is_symlink():
         raise FileExistsError(f"Refusing to replace existing integration evidence: {output}")
     output.mkdir(parents=True, exist_ok=False)
@@ -88,6 +90,8 @@ def run_validation(output: Path, repeats: int = 1) -> dict[str, object]:
         "applications": {},
     }
     for name, adapter, app_dir in SCENARIOS:
+        if only is not None and name != only:
+            continue
         count = validate_dataset(app_dir / "dataset.jsonl")
         scenario_dir = output / name
         baseline = scenario_dir / "baseline"
@@ -129,7 +133,10 @@ def run_validation(output: Path, repeats: int = 1) -> dict[str, object]:
         )
 
     (output / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
-    print("PASS two distinct application integrations via public AEA CLI", flush=True)
+    if only is None:
+        print("PASS two distinct application integrations via public AEA CLI", flush=True)
+    else:
+        print(f"PASS {only} standalone application via public AEA CLI", flush=True)
     return evidence
 
 
@@ -139,14 +146,18 @@ def main() -> None:
         "--output-dir", type=Path, help="Unused directory for evidence (default: disposable temporary directory)"
     )
     parser.add_argument("--repeats", type=int, default=1)
+    parser.add_argument(
+        "--only", choices=[name for name, _, _ in SCENARIOS],
+        help="run just one complete application flow (default: both)",
+    )
     args = parser.parse_args()
     if args.repeats < 1:
         parser.error("--repeats must be >= 1")
     if args.output_dir:
-        run_validation(args.output_dir.absolute(), args.repeats)
+        run_validation(args.output_dir.absolute(), args.repeats, args.only)
     else:
         with TemporaryDirectory(prefix="aea-independent-integrations-") as directory:
-            run_validation(Path(directory) / "evidence", args.repeats)
+            run_validation(Path(directory) / "evidence", args.repeats, args.only)
 
 
 if __name__ == "__main__":

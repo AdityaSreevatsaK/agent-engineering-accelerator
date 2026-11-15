@@ -2,7 +2,7 @@
 
 **Status:** Self-service, local, synthetic-data onboarding. This guide is not proof that independent delivery engineers have adopted AEA.
 
-**For a complete unambiguous Windows/Linux walkthrough covering every supported flow**, start with [the end-to-end steps](STEP_BY_STEP.md). The commands here focus only on initial onboarding.
+**For short Windows PowerShell copy-and-paste instructions covering every bundled flow**, start with [the simple step-by-step guide](STEP_BY_STEP.md). This page also supplies portable setup notes for Linux/macOS.
 
 ## A 15-minute guided path (target, not measured)
 

@@ -116,6 +116,10 @@ jobs:
         run: uv run --locked python scripts/pilot_rehearsal.py --output-dir "${{ runner.temp }}/aea-pilot-rehearsal" --repeats 1
       - name: Validate separate application integrations from their own directories
         run: uv run --locked python scripts/validate_independent_integrations.py --repeats 1
+      - name: Prove one-command Strands quickstart
+        run: uv run --locked python scripts/validate_independent_integrations.py --only equipment-strands --repeats 1 --output-dir "${{ runner.temp }}/aea-strands-quickstart"
+      - name: Prove one-command LangGraph quickstart
+        run: uv run --locked python scripts/validate_independent_integrations.py --only vendor-langgraph --repeats 1 --output-dir "${{ runner.temp }}/aea-langgraph-quickstart"
       - name: Benchmark public CLI runtime on standalone synthetic applications
         run: uv run --locked python -m scripts.benchmark_agent_evaluations --repeats 2 --output-dir "${{ runner.temp }}/aea-benchmark"
       - name: Retain synthetic-only benchmarking summaries
