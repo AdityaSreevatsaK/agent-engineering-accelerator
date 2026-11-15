@@ -38,6 +38,8 @@
 
 **Controlled synthetic QA parity study:** `scripts/conventional_agent_checks.py` deliberately does *not* import AEA, and invokes standalone Strands and LangGraph applications directly to check the same answers and Strands tool calls. `scripts/controlled_pilot_study.py` runs both public AEA and the native conventional control on identical synthetic datasets, records process timings and verifies regression-case parity. See `tests/unit/test_controlled_pilot.py`. Neither script supports conclusions about human productivity, maintenance effort, independent adoption or live-provider reliability. Do not treat the self-authored control as a real delivery-team baseline. Retain only `STUDY.md` and `evidence.json` in CI, not raw logs.
 
+**Scripted first-install evidence:** `scripts/onboarding_rehearsal.py` times package installation (when enabled), the first valid AEA report and native-framework checks on existing synthetic examples. The dedicated GitHub Actions job has no prior project virtual environment and retains only synthetic `ONBOARDING_REHEARSAL.md` and `evidence.json`. Machine subprocess durations are NOT human developer productivity or independent adoption. `docs/HUMAN_EFFORT_STUDY.md` defines the still-unfilled human timecard. A future agent must not populate human observations from CI timestamps or infer a staff-time savings percentage.
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.

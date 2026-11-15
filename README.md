@@ -115,6 +115,16 @@ uv run --locked python scripts/dependency_inventory.py
 
 This command does **not** scan published vulnerability advisories or verify licences. The separate observational [PR #124 public-advisory scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) returned zero known findings for 116 exported packages; [security review](docs/DEPENDENCY_SECURITY_REVIEW.md) explains the unscanned variants and pending approvals.
 
+## Scripted first-install onboarding evidence
+
+The dedicated CI onboarding job starts with an unpopulated project environment, times the dependency sync and executes both synthetic agent walkthroughs, including `aea doctor`, the first real baseline report, a passing comparison and the expected failing-agent result. The job records native-framework control times for context.
+
+```sh
+python -m scripts.onboarding_rehearsal --output-dir new-onboarding-evidence
+```
+
+Use a **new** output directory. CI retains only `ONBOARDING_REHEARSAL.md` and `evidence.json`, not raw evaluation logs. These are **machine timings**, not engineer onboarding or development-effort measurements. See [onboarding guide](docs/ONBOARDING.md) and [human effort timecard](docs/HUMAN_EFFORT_STUDY.md); independent participation and security approval are still pending.
+
 ## Conventional QA control and synthetic pilot rehearsal
 
 AEA also provides a **self-authored conventional testing control** that directly exercises the native Strands and LangGraph applications using the same synthetic reference cases:

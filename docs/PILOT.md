@@ -26,6 +26,12 @@ Execute `uv run --locked python -m scripts.controlled_pilot_study --repeats 3 --
 
 This study is **not** one of the required two independent delivery-team pilots. The actual pilot must use each team's existing evaluation method, record time spent writing/maintaining test infrastructure, and obtain security/data-governance approval.
 
+## Additional scripted first-install timing rehearsal
+
+Run `python -m scripts.onboarding_rehearsal --output-dir new-onboarding-evidence` from a repository root with uv on PATH and Python 3.11. The job measures the dependency sync and first actual 12-case report per framework, including a deterministic known defect. It is also checked on a separate fresh GitHub Actions runner. CI retains only summary JSON/Markdown.
+
+Neither this script nor the direct-control comparison observes real engineer authoring, troubleshooting or support minutes. Use the [human effort measurement protocol](HUMAN_EFFORT_STUDY.md) and record real observations only when independent participants are available.
+
 ## Pilot set-up
 
 1. Select an existing agent entry point for each framework that can run locally with a deterministic or approved model double. Record the team's current manual regression process and its set-up time.
