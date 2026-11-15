@@ -40,6 +40,8 @@
 
 **Scripted first-install evidence:** `scripts/onboarding_rehearsal.py` times package installation (when enabled), the first valid AEA report and native-framework checks on existing synthetic examples. The dedicated GitHub Actions job has no prior project virtual environment and retains only synthetic `ONBOARDING_REHEARSAL.md` and `evidence.json`. Machine subprocess durations are NOT human developer productivity or independent adoption. `docs/HUMAN_EFFORT_STUDY.md` defines the still-unfilled human timecard. A future agent must not populate human observations from CI timestamps or infer a staff-time savings percentage.
 
+**Complete workflow runbook:** `docs/STEP_BY_STEP.md` is the first-stop document for all Windows PowerShell and Linux/macOS end-to-end flows. It includes install, generated no-credential starter, standalone Strands and LangGraph runs, error handling, automated quality and evidence, real-app integration boundaries and approvals. `scripts/verify_starter_walkthrough.py` proves the generated offline template can pass doctor, 5/5 baseline, clean comparison, HTML export and backup inventory without modifying a file or contacting paid providers. Preserve this end-to-end contract and update the runbook whenever the CLI or workflows change. **Do not substitute partial fragments or an untested `aea init` online Bedrock factory as the default onboarding path.**
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.
