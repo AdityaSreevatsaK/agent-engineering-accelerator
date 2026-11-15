@@ -11,7 +11,10 @@ import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from scripts.validate_independent_integrations import SCENARIOS, CREDENTIALS, comparison_path
+if __package__:
+    from scripts.validate_independent_integrations import SCENARIOS, CREDENTIALS, comparison_path
+else:
+    from validate_independent_integrations import SCENARIOS, CREDENTIALS, comparison_path
 
 
 def command(app: Path, *args: str, expected: int, markers: tuple[str, ...]) -> None:
