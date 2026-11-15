@@ -163,12 +163,14 @@ def resolve_log(path: Path) -> Path:
     Do not use arbitrary historical backups or follow a reader pointer without
     the matching active AEA writer lock. Stale/malformed pointers fail closed.
     """
+    if path.is_symlink():
+        raise ValueError(f"log path is a symlink: {path}")
     if path.is_file():
         return path
-    if path.is_symlink():
-        raise ValueError(f"log directory is a symlink: {path}")
     logs = sorted(path.glob("*.json"))
     if len(logs) == 1:
+        if logs[0].is_symlink():
+            raise ValueError(f"evaluation log is a symlink: {logs[0]}")
         return logs[0]
     if not path.exists():
         from agent_accelerator.baseline import activation_backup_path
