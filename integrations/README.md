@@ -1,5 +1,8 @@
 # Standalone AEA integration examples
 
+**Start-to-finish commands, including expected intentional-regression exit codes:** [Full step-by-step AEA workflows](../docs/STEP_BY_STEP.md#b-full-aws-strands-equipment-warranty-flow). Follow the adjacent LangGraph flow for its custom-state mapper setup. Neither requires editing code or cloud credentials.
+
+
 Two applications exercise only AEA's installed **public CLI** from their own working directories. Neither imports AEA internals or the other application.
 
 | Application | Framework | Unique integration boundary | Deliberate defect |
