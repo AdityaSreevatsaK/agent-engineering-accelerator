@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Aditya Sreevatsa K", email = "aditya.sreevatsa+merck@msd.com" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11.5"
 dependencies = [
     "fsspec>=2026.6.0,<2027",
     "inspect-ai>=0.3.278,<0.4",

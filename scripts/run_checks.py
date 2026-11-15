@@ -19,6 +19,7 @@ CLI_FAILURE = ROOT / "tests" / "fixtures" / "calculator_cli_failure_synthetic.js
 
 TEST_MODULES = (
     "test_adapters.py",
+    "test_audit_all_locked_variants.py",
     "test_advisory_coverage.py",
     "test_public_advisory_audit.py",
     "test_baseline_activation_readers.py",
@@ -60,6 +61,7 @@ TEST_MODULES = (
     "test_langgraph_adapter.py",
     "test_leadership_demo_contract.py",
     "test_policy_rag.py",
+    "test_python_floor_security.py",
     "test_pilot_rehearsal.py",
     "test_readings.py",
     "test_readings_pairwise.py",

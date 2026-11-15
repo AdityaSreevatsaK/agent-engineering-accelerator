@@ -6,7 +6,7 @@
 
 ## A 15-minute guided path (target, not measured)
 
-The steps use native Windows PowerShell or a Unix shell, Python 3.11/3.12 and the pinned `uv.lock`. No model-provider credentials are required for the included deterministic applications.
+The steps use native Windows PowerShell or a Unix shell, Python 3.11.5+/3.12 and the pinned `uv.lock`. No model-provider credentials are required for the included deterministic applications.
 
 1. At the AEA repository root, run:
 
@@ -40,7 +40,7 @@ The steps use native Windows PowerShell or a Unix shell, Python 3.11/3.12 and th
 
 ## Repeatable automated onboarding measurements
 
-After a clean checkout with Python 3.11 and uv 0.10.0, the CI job `Fresh-environment scripted onboarding measurement` times a pinned `uv sync` into a previously absent project virtual environment, then runs `aea doctor`, the first 12-case AEA baseline report, a clean comparison, a deliberately faulty evaluation, and a native-framework control for each of two synthetic applications.
+After a clean checkout with Python 3.11.5+ and uv 0.10.0, the CI job `Fresh-environment scripted onboarding measurement` times a pinned `uv sync` into a previously absent project virtual environment, then runs `aea doctor`, the first 12-case AEA baseline report, a clean comparison, a deliberately faulty evaluation, and a native-framework control for each of two synthetic applications.
 
 From the repository root, it can be replayed using:
 

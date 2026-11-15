@@ -5,7 +5,7 @@
 You need:
 
 - **Windows PowerShell** (open it from the Start menu). Use PowerShell, not Command Prompt, for these commands.
-- **Python 3.11** and **Git** installed.
+- **Python 3.11.5 or newer** (Python 3.12 also works) and **Git** installed. Older Python 3.11 patch releases are not supported because their original dependency selection included a vulnerable library.
 - An **internet connection** for the first installation and permission to access the GitHub repository.
 
 **You do not need:** Docker, WSL, AWS/OpenAI accounts, API keys or a paid model for the examples.
@@ -22,6 +22,7 @@ If you repeat a flow, change its output folder name from `-001` to `-002`. The s
 
 ```powershell
 py -3.11 --version
+# Confirm the version is 3.11.5 or newer before continuing
 git --version
 git clone --branch dev https://github.com/AdityaSreevatsaK/agent-engineering-accelerator.git
 Set-Location agent-engineering-accelerator

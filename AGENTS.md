@@ -46,6 +46,10 @@
 
 **Issue #125 advisory coverage:** `scripts/audit_public_advisories.py` now records exact scanned package names, versions, interpreter and time, rejects missing/duplicate inventories, and invokes the auditor with the current interpreter. `scripts/assess_advisory_coverage.py` compares each scan with per-runner BOM evidence from `scripts/dependency_licence_sbom.py`. The four OS/Python CI jobs retain summaries for review. Treat unscanned locked variants as unknown, never as safe, and never claim security approval from public feed scans. Formal licences, NTFS ACLs and external security sign-off remain open in #125 and #111.
 
+**Complete locked-variant advisory scan:** `scripts/audit_all_locked_variants.py` must check every name/version from `uv.lock`, including dev dependencies and both `numpy`/`soupsieve` conditional versions; it splits duplicate names into independent fully pinned requirements batches and confirms full auditor output coverage. The release CI retains public-only evidence. `docs/SECURITY_APPROVAL_HANDOFF.md` identifies the exact earlier runtime scan gaps and version-tagged upstream licences for `agent-client-protocol` and `tiktoken`, but neither constitutes wheel/sdist licence verification or independent policy approval. Do not close #111 or #125 solely on self-authored tests.
+
+**High-priority dependency remediation:** The initial 127-version full-lock audit revealed CVE-2026-126190, CVE-2026-126191 and CVE-2026-126193 in `soupsieve==2.10`, selected only on Python 3.11.0-3.11.4. `pyproject.toml` now restricts Python to `>=3.11.5`, and `uv.lock` was re-resolved via uv 0.10.0 to exclude Soup Sieve 2.10 entirely, leaving 126 registry versions. The complete audit is a CI gate with `--fail-on-findings`, and `tests/unit/test_python_floor_security.py` guards the floor and lock. See `docs/SOUPSIEVE_SECURITY_REMEDIATION.md`. Do not infer production security approval.
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.
@@ -695,13 +699,13 @@ For any new report metric:
 
 ### 14.1 Requirements
 
-- Python 3.11 or 3.12 for the supported CI matrix.
+- Python 3.11.5+ or 3.12 for the supported CI matrix.
 - Git.
 - `uv` (CI uses version 0.10.0).
 - Optional browser for PDF export.
 - No Docker, WSL or paid model API required for the maintained offline examples.
 
-The project declares `requires-python >=3.11`, but the verified CI matrix is 3.11 and 3.12. Do not imply every newer Python runtime has been tested.
+The project declares `requires-python >=3.11.5` (to exclude a vulnerable Soup Sieve branch on older patch releases), but the verified CI matrix is 3.11 and 3.12. Do not imply every newer Python runtime has been tested.
 
 ### 14.2 Installation
 
