@@ -24,12 +24,34 @@ uv run --locked python scripts/run_checks.py
 
 The complete CI matrix runs on Windows/Linux with Python 3.11/3.12. Failures prevent a PR merge; release checks also run the slow CLI and provider-free integration suite. No cloud API keys or live model calls are needed.
 
+## Baseline readers during activation (Issue #123)
+
+The baseline publisher still uses directory renames, and **the active path may be
+absent briefly**. AEA now writes an exclusive, owner-checked private handover
+pointer **before** moving the old snapshot. While a real AEA writer lock is
+held, AEA's normal `load_results`, `aea compare` and `aea check` paths can
+read the exact retained previous version if the active path is between renames.
+Once the new version is active, readers see it normally.
+
+Deterministic tests in `test_baseline_activation_readers.py` pause at the
+previous-to-backup/next-to-active boundary and confirm **three independent
+loaders plus public CLI comparison** see valid old data on both tested OSes.
+They also exercise unsafe/missing/stale pointers, external recreation and
+publication rollback. Existing crash-stop tests continue to verify that
+unexpected process death leaves the **lock and prior snapshot retained**.
+
+This is a **cooperative AEA read-path improvement**, not an atomic filesystem
+directory swap. Programs directly opening `baseline/report.md` without AEA's
+loader, non-cooperating external writers, power failures, removed backups or
+unapproved shared filesystems are **not** guaranteed uninterrupted access.
+A stale pointer does not authorise baseline restoration or lock removal.
+
 ## What the evidence does and does not establish
 
 - **Can establish:** Deterministic handling of the enumerated injected failure points and preservation of approved data under these specific interleavings, on the tested runtimes.
 - **Cannot establish:** Data durability under actual power loss, all filesystem semantics, every possible concurrent writer, uncooperative external processes, Windows enterprise ACL policies, recovery of a lost operator-controlled lock, provider rate limiting, long-run memory stability or client security approval.
 
-The exclusive lock coordinates **AEA writers only**. It does not control other programs modifying the same directories. Existing baseline activation briefly renames directories; concurrently reading during that exact rename window may fail, so do not advertise zero-downtime snapshots. Previous backups are intentionally retained until an approved retention policy exists.
+The exclusive lock coordinates **AEA writers only**. It does not control other programs modifying the same directories. The active directory may still be absent during the rename window. Cooperating AEA log readers use the retained prior snapshot; direct filesystem readers are not guaranteed zero downtime. Previous backups are intentionally retained until an approved retention policy exists.
 
 ## Future reliability expansion
 
