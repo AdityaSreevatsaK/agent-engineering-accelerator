@@ -24,6 +24,20 @@
 4. Record snapshot owners, where encrypted evidence is kept, and how long retained backups may exist.
 5. Inspect backup versions read-only with `aea backups PATH_TO_BASELINE`. **No automatic removal or restoration is implemented.**
 
+## Read-only baseline handover during a live update
+
+AEA now creates a private `.<baseline>.aea-reader-backup` handover
+pointer immediately before moving an existing baseline into a retained backup.
+Its official log reader can use that exact prior snapshot while the active
+directory is being replaced and a writer lock is held. A successful or rolled
+back update removes the pointer. No previous baseline is deleted.
+
+A forcibly stopped process can leave **both** the pointer and update lock.
+Readers can access a retained old log through this pointer, but the active
+directory may still be missing and future writers remain blocked. Do not
+interpret successful reads as automatic recovery or permission to clear locks.
+External programs opening the active directory directly are not protected.
+
 ## AEA stopped unexpectedly: manual recovery
 
 The baseline update uses a cooperative lock, staging directory and retained prior snapshot. An abrupt interpreter stop **between backing up the old baseline and activating the new one** can leave the active baseline path absent, the old version under `.<baseline>.aea-backup-*/previous`, an orphaned stage, and a retained `.<baseline>.aea-update.lock`.
