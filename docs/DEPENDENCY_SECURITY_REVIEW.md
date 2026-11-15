@@ -52,6 +52,43 @@ uvx --from pip-audit==2.10.1 pip-audit --requirement aea-audit-requirements.txt 
 
 For a second independent source or where organisational tooling requires it, export the locked packages in the approved SBOM format and run the organisation's licence and supply-chain tooling. `uv.lock` alone cannot validate package licences, supply-chain provenance or malicious releases.
 
+## CI action provenance and licence metadata evidence
+
+Every third-party action invoked by `.github/workflows/ci.yml` is now pinned
+to a **full reviewed upstream release commit SHA**, verified against official
+GitHub tag refs on 15 November 2026:
+
+| Action | Version | Verified commit |
+| --- | --- | --- |
+| `actions/checkout` | v4.2.2 | `11bd71901bbe5b1630ceea73d27597364c9af683` |
+| `actions/setup-python` | v5.6.0 | `a26af69be951a213d495a4c3e4e4022e16d87065` |
+| `actions/upload-artifact` | v4.6.2 | `ea165f8d65b6e75b540449e92b4886f43607fa02` |
+| `astral-sh/setup-uv` | v6.8.0 | `d0cc045d04ccac9d8b7881df0226f9e82c39688e` |
+
+This removes mutable major-version tags in CI, not the need to review
+upstream code, action transitive dependencies, or future updates.
+
+The new `scripts/dependency_licence_sbom.py` generates a **review-only**
+CycloneDX 1.5 inventory containing every locked registry variant, with
+installed/not-installed provenance and licence expressions/classifiers from
+the current Python environment. CI saves separate manifests for Windows and
+Linux, Python 3.11 and 3.12. It does **not** claim that metadata classifiers
+establish licence permissions, nor that all locked variants are installed in
+each matrix cell. Missing licence metadata, platform selection and mismatched
+versions are explicit evidence fields.
+
+To run manually from the checkout:
+
+```sh
+uv run --locked python scripts/dependency_licence_sbom.py --output-dir new-review-only-sbom
+```
+
+Retain these only in approved locations. An authorised licence reviewer must
+approve policy, exceptions and transitive licence compatibility; an independent
+security owner must approve live data handling and Windows NTFS controls.
+The public advisory scanner remains observational and is still scoped to its
+exported dependency set, not a universal clearance.
+
 ## Security boundaries and remaining findings
 
 | Priority | Boundary or risk | Status / next action |
@@ -62,7 +99,7 @@ For a second independent source or where organisational tooling requires it, exp
 | P1 | Windows file ACLs and backup storage policy have not been approved | New POSIX snapshots use restricted modes; obtain NTFS ACL policy and retention owner |
 | P2 | Baseline activation can briefly remove the active path even when cooperating writers are locked | [Issue #123](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/123) covers concurrent readers and a compatibility-safe redesign |
 | P2 | Advisory vulnerability and transitive dependency licence review not yet formally signed off | Execute dated scans, triage fixes and document exceptions |
-| P2 | CI Actions use version tags for checkout, Python setup and uv setup | Consider pinning to reviewed immutable commit SHAs in a separate workflow-hardening change |
+| P2 | CI Actions pinned to verified commit SHAs | Implemented; update pins only after reviewing upstream changes |
 | P2 | Live providers, network timeouts, quota handling and real model-usage costs | Require approved provider tests; not exercised by no-cost CI |
 
 ## Required release approvals
