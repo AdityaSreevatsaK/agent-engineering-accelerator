@@ -160,7 +160,7 @@ class Comparison:
 def resolve_log(path: Path) -> Path:
     """Accept a log file or directory, including a locked in-flight baseline handover.
 
-    Do not use arbitrary historical backups or follow a reader pointer without
+    Do not use arbitrary earlier backups or follow a reader pointer without
     the matching active AEA writer lock. Stale/malformed pointers fail closed.
     """
     if path.is_symlink():
