@@ -46,6 +46,56 @@ def retained_backup_paths(baseline: Path) -> list[Path]:
     return sorted(found)
 
 
+def activation_backup_path(baseline: Path) -> Path | None:
+    """Resolve the retained prior snapshot *only* during an AEA baseline handover.
+
+    A reader never guesses which of several historical backups is the current
+    handover snapshot. A pending pointer is written before the old active
+    directory is moved. The owning writer removes it after publication/rollback.
+    A killed writer leaves the pointer and exclusive update lock for operator
+    investigation. This is a read-only fallback, never an automatic recovery.
+    """
+    if any(path.is_symlink() for path in (baseline, *baseline.parents)):
+        raise ValueError(f"baseline path traverses a symlink: {baseline}")
+    marker = baseline.with_name(f".{baseline.name}.aea-reader-backup")
+    lock = baseline.with_name(f".{baseline.name}.aea-update.lock")
+    if not lock.is_file():
+        return None
+    if marker.is_symlink():
+        raise ValueError(f"baseline reader pointer is a symlink: {marker}")
+    if not marker.is_file():
+        return None
+    backup_name = marker.read_text(encoding="utf-8").strip()
+    prefix = f".{baseline.name}.aea-backup-"
+    if not backup_name.startswith(prefix) or Path(backup_name).name != backup_name:
+        raise ValueError(f"invalid baseline handover pointer at {marker}")
+    root = baseline.parent / backup_name
+    previous = root / "previous"
+    if root.is_symlink() or previous.is_symlink():
+        raise ValueError(f"linked baseline backup is unsafe: {root}")
+    return previous if previous.is_dir() else None
+
+
+def _write_reader_pointer(baseline: Path, backup_root: Path) -> tuple[Path, tuple[int, int]]:
+    """Create a private, exclusive handover marker before moving the active directory."""
+    marker = baseline.with_name(f".{baseline.name}.aea-reader-backup")
+    fd = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        token = (os.fstat(fd).st_dev, os.fstat(fd).st_ino)
+        os.write(fd, backup_root.name.encode("utf-8"))
+    finally:
+        os.close(fd)
+    return marker, token
+
+
+def _unlink_owned_reader_pointer(marker: Path, token: tuple[int, int]) -> None:
+    """Never delete a marker replaced by a different process."""
+    current = marker.lstat()
+    if current.is_symlink() or (current.st_dev, current.st_ino) != token:
+        raise RuntimeError(f"baseline reader pointer changed; refusing to remove {marker}")
+    marker.unlink()
+
+
 def _private_staged_files(root: Path) -> None:
     """Restrict new baseline file permissions on POSIX; Windows needs reviewed ACLs."""
     if os.name == "nt":
@@ -113,28 +163,23 @@ def freeze_run_as_baseline(
             _private_staged_files(staged)
             previous: Path | None = None
             backup_root: Path | None = None
-            if baseline.exists():
-                backup_root = Path(
-                    tempfile.mkdtemp(prefix=f".{baseline.name}.aea-backup-", dir=baseline.parent)
-                )
-                previous = backup_root / "previous"
-                try:
-                    baseline.rename(previous)
-                except BaseException:
-                    # The existing baseline is still in place if the move fails.
-                    # Remove only our own empty container; leave any unexpected
-                    # contents for the operator rather than deleting their data.
-                    try:
-                        backup_root.rmdir()
-                    except OSError:
-                        pass
-                    raise
+            marker: Path | None = None
+            marker_token: tuple[int, int] | None = None
             try:
+                if baseline.exists():
+                    backup_root = Path(
+                        tempfile.mkdtemp(prefix=f".{baseline.name}.aea-backup-", dir=baseline.parent)
+                    )
+                    previous = backup_root / "previous"
+                    # The retained snapshot is discoverable by cooperating readers
+                    # even when the active path disappears between two renames.
+                    marker, marker_token = _write_reader_pointer(baseline, backup_root)
+                    baseline.rename(previous)
                 if baseline.exists() or baseline.is_symlink():
                     raise FileExistsError(f"baseline path reappeared during update: {baseline}")
                 staged.rename(baseline)
             except BaseException:
-                if previous is not None and not baseline.exists() and not baseline.is_symlink():
+                if previous is not None and previous.exists() and not baseline.exists() and not baseline.is_symlink():
                     try:
                         previous.rename(baseline)
                     except OSError as exc:
@@ -142,10 +187,12 @@ def freeze_run_as_baseline(
                             f"baseline activation failed; previous version is safe at {previous}"
                         ) from exc
                 if backup_root is not None and previous is not None and not previous.exists():
-                    # Only remove an empty backup container; never its contents.
                     try:
                         backup_root.rmdir()
                     except OSError:
                         pass
                 raise
+            finally:
+                if marker is not None and marker_token is not None:
+                    _unlink_owned_reader_pointer(marker, marker_token)
             return previous
