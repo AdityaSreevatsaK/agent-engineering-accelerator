@@ -6,15 +6,16 @@ Do not publish real project, user or customer data in issues or CI artefacts.
 
 ## 1. Package and public advisory review
 
-- `uv.lock`: 128 records, including the local project and **127 immutable registry name/version entries**.
+- **Initial** full-lock audit: 128 package records, including 127 registry versions, found three public Soup Sieve 2.10 advisories. The vulnerable alternative applied only to Python 3.11.0-3.11.4.
+- **Remediated candidate**: minimum Python **3.11.5**, regenerated uv lock with **127 records (126 registry versions)** and **Soup Sieve 4.1 only**. See [CVE remediation](SOUPSIEVE_SECURITY_REMEDIATION.md).
 - Four CI environments (Windows/Linux, Python 3.11/3.12) each run a pinned public advisory scan. The individual runtime selections were **116/127 on Linux** and **117/127 on Windows**, with **zero known advisory findings reported** on 15 November 2026. Runtime scans exclude development dependencies and unselected Python/OS alternatives.
-- New `scripts/audit_all_locked_variants.py` checks **all 127 locked package versions** without installing them. It separates packages with multiple locked versions into non-conflicting requirements batches, includes development-only and other-platform packages, and verifies every auditor-returned identity against the lock. CI retains `aea-complete-lock-advisories` (JSON and Markdown) for **14 days**.
+- New `scripts/audit_all_locked_variants.py` checks **all 126 currently locked registry versions** without installing them. It separates packages with multiple locked versions into non-conflicting requirements batches, includes development-only and other-platform packages, and verifies every auditor-returned identity against the lock. CI retains `aea-complete-lock-advisories` (JSON and Markdown) for **14 days**.
 - **Auditor limitation:** public advisory data cannot rule out unpublished vulnerabilities, compromised packages or malicious behaviour. Successful scanning is not certification.
 - **Reviewer action:** inspect actual dated CI artefacts and any reported advisories; document accepted findings and sources in an approved restricted system. Re-run scans before a release decision.
 
 ## 2. Why earlier runtime scans missed entries
 
-Names seen in the 15 November Linux Python 3.11 audit gap:
+**Historical evidence only:** names omitted by the runtime-only scan against the **previous 127-version lock** on 15 November (the known vulnerable Soup Sieve 2.10 entry was subsequently removed):
 
 | Package/version | Why runtime audit omitted it | Next evidence |
 | --- | --- | --- |
@@ -25,6 +26,10 @@ Names seen in the 15 November Linux Python 3.11 audit gap:
 | `httpx2-jsfetch==1.0` | Not selected/installed in either tested OS environment | Included in full lock-version audit; review its supported platform before deployment |
 
 On Windows, `pywin32` was scanned; `colorama` was installed but excluded by the runtime-only audit. This table classifies **selection evidence**, not approved deployment scope or safe package behaviour. Use the exact per-runner JSON evidence for every version and marker; don't infer suitability on untested platforms.
+
+The full-lock audit on the **current 126-version lock** must return a valid
+126/126 result with **zero public findings** under `--fail-on-findings`.
+Passing this gate does not certify security or package licences.
 
 ## 3. Two packages lacking machine-readable installed licence metadata
 
