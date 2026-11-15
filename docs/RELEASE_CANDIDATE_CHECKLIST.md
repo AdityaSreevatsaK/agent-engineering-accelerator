@@ -26,6 +26,21 @@ Windows NTFS/retention approval and authorised security/release sign-off.
 See [issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111).
 Keep `master` unchanged pending explicit release approval.
 
+## Full lock-version review gate
+
+The `scripts/audit_all_locked_variants.py` release job independently queries
+the public advisory feed for **all 127 locked PyPI version variants**, including
+dev packages and OS/Python alternatives. It fails closed if any package is
+missing from a returned audit group. The output is review-only:
+`aea-complete-lock-advisories` (14-day GitHub Actions artefact).
+Inspect the actual final CI result and findings before claiming this gate has
+passed; recorded security-owner approval is still required for release.
+
+The [security approval handover](SECURITY_APPROVAL_HANDOFF.md) records the
+known package coverage gaps in runtime-only scans and the two upstream
+licence-file exceptions for human review. It does not authorise confidential
+data handling or modify `master`.
+
 ## Technical gates and source evidence
 
 | Gate | Reproducible command or evidence | Status |
