@@ -46,6 +46,8 @@
 
 **Issue #125 advisory coverage:** `scripts/audit_public_advisories.py` now records exact scanned package names, versions, interpreter and time, rejects missing/duplicate inventories, and invokes the auditor with the current interpreter. `scripts/assess_advisory_coverage.py` compares each scan with per-runner BOM evidence from `scripts/dependency_licence_sbom.py`. The four OS/Python CI jobs retain summaries for review. Treat unscanned locked variants as unknown, never as safe, and never claim security approval from public feed scans. Formal licences, NTFS ACLs and external security sign-off remain open in #125 and #111.
 
+**Complete locked-variant advisory scan:** `scripts/audit_all_locked_variants.py` must check every name/version from `uv.lock`, including dev dependencies and both `numpy`/`soupsieve` conditional versions; it splits duplicate names into independent fully pinned requirements batches and confirms full auditor output coverage. The release CI retains public-only evidence. `docs/SECURITY_APPROVAL_HANDOFF.md` identifies the exact earlier runtime scan gaps and version-tagged upstream licences for `agent-client-protocol` and `tiktoken`, but neither constitutes wheel/sdist licence verification or independent policy approval. Do not close #111 or #125 solely on self-authored tests.
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.
