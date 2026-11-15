@@ -127,6 +127,17 @@ jobs:
             ${{ runner.temp }}/aea-benchmark/BENCHMARK.md
           retention-days: 14
           if-no-files-found: error
+      - name: Compare direct conventional QA against AEA on the same synthetic cases
+        run: uv run --locked python -m scripts.controlled_pilot_study --repeats 1 --output-dir "${{ runner.temp }}/aea-controlled-pilot"
+      - name: Retain synthetic conventional-control parity summaries only
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-controlled-pilot-summary
+          path: |
+            ${{ runner.temp }}/aea-controlled-pilot/evidence.json
+            ${{ runner.temp }}/aea-controlled-pilot/STUDY.md
+          retention-days: 14
+          if-no-files-found: error
       - name: Validate committed dependency sources and hashes
         run: uv run --locked python scripts/dependency_inventory.py --output-dir "${{ runner.temp }}/aea-dependency-inventory"
       - name: Retain security inventory summary
