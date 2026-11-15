@@ -164,3 +164,38 @@ jobs:
         run: uv build --wheel
       - name: Verify the installed package in a fresh environment
         run: uv run --locked python scripts/check_distribution.py
+
+  onboarding_rehearsal:
+    name: Fresh-environment scripted onboarding measurement
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+      AWS_EC2_METADATA_DISABLED: 'true'
+      AWS_ACCESS_KEY_ID: ''
+      AWS_SECRET_ACCESS_KEY: ''
+      AWS_SESSION_TOKEN: ''
+      OPENAI_API_KEY: ''
+      AZURE_OPENAI_API_KEY: ''
+      ANTHROPIC_API_KEY: ''
+      GOOGLE_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - name: Time dependency sync and complete synthetic onboarding
+        run: python -m scripts.onboarding_rehearsal --output-dir "${{ runner.temp }}/aea-onboarding-rehearsal"
+      - name: Retain synthetic onboarding timings only
+        uses: actions/upload-artifact@v4
+        with:
+          name: aea-scripted-onboarding-timings
+          path: |
+            ${{ runner.temp }}/aea-onboarding-rehearsal/evidence.json
+            ${{ runner.temp }}/aea-onboarding-rehearsal/ONBOARDING_REHEARSAL.md
+          retention-days: 14
+          if-no-files-found: error
