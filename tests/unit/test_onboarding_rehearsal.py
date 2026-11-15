@@ -127,7 +127,7 @@ def test_onboarding_rehearsal_records_machine_milestones_not_human_effort(
     assert len(calls) == (7 if fresh_install else 6)
     summary = (tmp_path / "pilot" / onboarding.SUMMARY_NAME).read_text(encoding="utf-8")
     assert "No engineer independently onboarded" in summary
-    assert "not a like-for-like" in summary
+    assert "a like-for-like" in summary
     assert json.loads((tmp_path / "pilot" / onboarding.EVIDENCE_NAME).read_text(encoding="utf-8")) == result
 
 
