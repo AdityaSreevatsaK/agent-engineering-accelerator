@@ -28,6 +28,7 @@ The guide covers setup, Strands, LangGraph, creating an agent, demonstrations, t
 - [Testing and CI](docs/TESTING.md)
 - [Leadership demonstration](docs/DEMO.md) and [value assessment](docs/VALUE_ASSESSMENT.md)
 - [Security and operational recovery](docs/OPERATIONAL_READINESS.md)
+- [Release decision and remaining approvals](docs/RELEASE_DECISION.md)
 - [Independent pilot and measured adoption](docs/PILOT.md)
 - [Guide for coding agents and maintainers](AGENTS.md)
 
