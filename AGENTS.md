@@ -44,6 +44,8 @@
 
 **Baseline handover and security evidence:** `src/agent_accelerator/baseline.py` publishes a protected, exclusive `.aea-reader-backup` handover pointer before renaming an old snapshot, so `load_results` and public compare/check can consult the precise prior backup while the active path is missing. Tests in `tests/unit/test_baseline_activation_readers.py` exercise the paused rename window, unsafe pointers, rollback and externally recreated directories. This does NOT guarantee direct filesystem reader continuity or automatic crash recovery. `scripts/dependency_licence_sbom.py` emits review-only multi-platform CycloneDX/metadata evidence; full GitHub Actions SHAs are pinned in CI. Neither substitutes for independent security, licence or data-handling approval. Keep issues #111 and #125 open until actual authorised sign-offs; do not overclaim residual guarantees.
 
+**Issue #125 advisory coverage:** `scripts/audit_public_advisories.py` now records exact scanned package names, versions, interpreter and time, rejects missing/duplicate inventories, and invokes the auditor with the current interpreter. `scripts/assess_advisory_coverage.py` compares each scan with per-runner BOM evidence from `scripts/dependency_licence_sbom.py`. The four OS/Python CI jobs retain summaries for review. Treat unscanned locked variants as unknown, never as safe, and never claim security approval from public feed scans. Formal licences, NTFS ACLs and external security sign-off remain open in #125 and #111.
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.
