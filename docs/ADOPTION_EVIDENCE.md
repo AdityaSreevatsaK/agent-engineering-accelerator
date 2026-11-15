@@ -19,6 +19,12 @@ The checked `scripts/controlled_pilot_study.py` runs a minimal **conventional na
 
 This demonstrates that the study can compare comparable defect signals. It **does not** measure human integration time or implementation effort and is **not independent adoption**. A control script created by AEA's author is only a preparatory reference; actual pilot engineers must compare against their own credible existing practice.
 
+## Quantified first-install scripted walkthrough
+
+The [scripted onboarding runner](../scripts/onboarding_rehearsal.py) records real **machine wall-clock** installation and onboarding milestones from a separate clean CI runner, with a dedicated 14-day summary artifact. It checks the first baseline report and intentional regression on both synthetic frameworks. These measurements are useful for detecting setup regressions, but they are not staff labour time or independent application integration.
+
+All human effort fields remain explicitly `null`. The exact [human effort task and timecard](HUMAN_EFFORT_STUDY.md) are prepared for future authorised pilot engineers. Do not compute developer productivity gains from automated durations.
+
 ## A fair and reproducible pilot
 
 Use [issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) as the external approval gate.
