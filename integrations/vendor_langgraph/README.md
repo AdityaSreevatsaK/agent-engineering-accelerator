@@ -4,7 +4,17 @@ This is a self-contained synthetic supplier-compliance workflow using a compiled
 
 For **every explicit step**, custom-state mapper notes, intentional exit-code handling and report paths, follow [the complete LangGraph walkthrough](../../docs/STEP_BY_STEP.md#c-full-langgraph-supplier-onboarding-flow).
 
-## Get started
+## One-command walkthrough (recommended)
+
+From the AEA repository root, after installation:
+
+```sh
+uv run --locked python scripts/validate_independent_integrations.py --only vendor-langgraph --repeats 1 --output-dir langgraph-001
+```
+
+Read `langgraph-001/evidence.json`. It covers custom mappings, baseline, normal check, deliberately broken check and baseline safety without editing code. See the [simple step-by-step guide](../../docs/STEP_BY_STEP.md).
+
+## Manual individual CLI commands (optional)
 
 From the AEA repository root, run `uv sync --all-extras --group dev --locked` and activate the environment: `.venv\\Scripts\\Activate.ps1` in Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. Then change into `integrations/vendor_langgraph`.
 
