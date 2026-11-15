@@ -158,21 +158,46 @@ class Comparison:
 
 
 def resolve_log(path: Path) -> Path:
-    """Accepts a log file or a run directory containing exactly one log."""
+    """Accept a log file or directory, including a locked in-flight baseline handover.
+
+    Do not use arbitrary historical backups or follow a reader pointer without
+    the matching active AEA writer lock. Stale/malformed pointers fail closed.
+    """
     if path.is_file():
         return path
+    if path.is_symlink():
+        raise ValueError(f"log directory is a symlink: {path}")
     logs = sorted(path.glob("*.json"))
-    if len(logs) != 1:
-        raise FileNotFoundError(f"expected one .json eval log in {path}, found {len(logs)}")
-    return logs[0]
+    if len(logs) == 1:
+        return logs[0]
+    if not path.exists():
+        from agent_accelerator.baseline import activation_backup_path
+
+        prior = activation_backup_path(path)
+        if prior is not None:
+            return resolve_log(prior)
+    raise FileNotFoundError(f"expected one .json eval log in {path}, found {len(logs)}")
 
 
 def load_results(path: Path, min_case_pass_rate: float = 1.0) -> RunResults:
-    """A case that ran over several epochs passes when its share of passing epochs reaches min_case_pass_rate."""
+    """Load one consistent old or new snapshot if a baseline is being activated."""
     if not 0 <= min_case_pass_rate <= 1:
         raise ValueError("min_case_pass_rate must be a finite fraction between 0 and 1")
     log_path = resolve_log(path)
-    log = read_eval_log(log_path)
+    try:
+        log = read_eval_log(log_path)
+    except FileNotFoundError:
+        # The old active directory may have been renamed *after* resolve_log
+        # but *before* Inspect opened its file. Use the exact retained prior
+        # snapshot when the active AEA writer advertises one.
+        from agent_accelerator.baseline import activation_backup_path
+
+        prior = activation_backup_path(path)
+        if prior is not None:
+            log_path = resolve_log(prior)
+        else:
+            log_path = resolve_log(path)
+        log = read_eval_log(log_path)
     epochs: dict[str, list[EvalSample]] = {}
     for sample in log.samples or []:
         epochs.setdefault(str(sample.id), []).append(sample)
