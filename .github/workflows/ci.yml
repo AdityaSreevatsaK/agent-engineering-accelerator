@@ -192,6 +192,17 @@ jobs:
             ${{ runner.temp }}/aea-public-advisories/ADVISORY_REVIEW.md
           retention-days: 14
           if-no-files-found: error
+      - name: Audit all locked package versions including dev-only and OS alternatives
+        run: uv run --locked python scripts/audit_all_locked_variants.py --output-dir "${{ runner.temp }}/aea-full-lock-advisories"
+      - name: Retain complete locked variant advisory evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aea-complete-lock-advisories
+          path: |
+            ${{ runner.temp }}/aea-full-lock-advisories/full-lock-advisories.json
+            ${{ runner.temp }}/aea-full-lock-advisories/FULL_LOCK_ADVISORY_REVIEW.md
+          retention-days: 14
+          if-no-files-found: error
       - name: Prove generated starter supports doctor baseline comparison and HTML offline
         run: uv run --locked python scripts/verify_starter_walkthrough.py
       - name: Validate published uv-run console CLI in both standalone app directories
