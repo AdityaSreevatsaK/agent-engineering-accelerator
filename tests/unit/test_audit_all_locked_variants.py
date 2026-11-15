@@ -126,3 +126,26 @@ def test_incomplete_public_scan_fails_without_creating_clean_evidence(tmp_path: 
 def test_bad_lock_source_hash_or_duplicate_fails_closed(broken: bytes):
     with pytest.raises(ValueError):
         audit.locked_groups(broken)
+
+
+def test_strict_release_cli_rejects_known_public_findings(tmp_path: Path, monkeypatch):
+    import sys
+    target = tmp_path / "review"
+    monkeypatch.setattr(audit, "scan_lock", lambda path: {"vulnerability_records": 3})
+    monkeypatch.setattr(
+        sys, "argv",
+        ["audit_all_locked_variants.py", "--output-dir", str(target), "--fail-on-findings"],
+    )
+    with pytest.raises(SystemExit) as exc:
+        audit.main()
+    assert exc.value.code == 1
+
+
+def test_observational_cli_does_not_block_manual_security_review(tmp_path: Path, monkeypatch):
+    import sys
+    target = tmp_path / "review"
+    monkeypatch.setattr(audit, "scan_lock", lambda path: {"vulnerability_records": 3})
+    monkeypatch.setattr(
+        sys, "argv", ["audit_all_locked_variants.py", "--output-dir", str(target)]
+    )
+    audit.main()
