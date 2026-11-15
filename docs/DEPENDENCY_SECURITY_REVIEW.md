@@ -89,6 +89,28 @@ security owner must approve live data handling and Windows NTFS controls.
 The public advisory scanner remains observational and is still scoped to its
 exported dependency set, not a universal clearance.
 
+## Cross-platform public advisory coverage (engineering evidence)
+
+CI now executes a separate public advisory scan in each supported runtime
+combination: Windows and Ubuntu with Python **3.11 and 3.12**. The scanner
+records each assessed **package name and exact locked version**, the current
+interpreter/platform and scan date. `scripts/assess_advisory_coverage.py`
+reconciles those identities against the complete lockfile and separately
+installed variants reported by the platform's CycloneDX evidence.
+
+Each job retains an `aea-platform-advisory-OS-pyVERSION` evidence artefact
+for 14 days, containing the dated advisory result and a short coverage report.
+The coverage reports explicitly list unscanned locked variants and any
+installed-but-unscanned versions. An empty or duplicated advisory inventory
+is treated as an invalid scan, **not a clean security result**. The pinned
+auditor runs using that CI job's Python interpreter.
+
+This work improves visibility, but is not proof of full advisories coverage,
+licence-policy approval, dependency safety on other Python versions or an
+authorised security review. Development-only dependencies, platform variants
+and public advisory feed limitations require separate evaluation.
+The original release acceptance scan remains for backwards compatibility.
+
 ## Security boundaries and remaining findings
 
 | Priority | Boundary or risk | Status / next action |

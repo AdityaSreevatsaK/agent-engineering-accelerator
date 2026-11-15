@@ -5,6 +5,27 @@
 **Version declared:** `2.2.0` in `pyproject.toml`.  
 **Release state:** **Technical preparation only.** No promotion to `master`, release tag, package publication, confidential-data approval or independent team adoption is authorised by this checklist.
 
+## Current verification boundary
+
+The latest integrated engineering hardening on `dev` before this change is
+[PR #132](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/132)
+at commit `0c61b56faea4ec4f9780e588a68fbfaf307f9b1a`. Its
+[post-merge CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43704323462)
+passed **7/7 jobs**, including Windows/Linux 3.11 and 3.12 and 75 slow
+tests. The fixed AEA reader handover described in issue #123 is technical
+evidence, not unrestricted filesystem atomicity or production certification.
+
+New work for [issue #125](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/125)
+adds **per-platform advisory coverage reconciliation** and further unit
+tests. Its results must be checked against the final merged `dev` commit;
+an unmerged PR or documentation statement is not a release gate.
+
+**Not yet satisfied:** independent Strands and LangGraph delivery-team
+adoption, human developer effort, licence-policy and sensitive-data review,
+Windows NTFS/retention approval and authorised security/release sign-off.
+See [issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111).
+Keep `master` unchanged pending explicit release approval.
+
 ## Technical gates and source evidence
 
 | Gate | Reproducible command or evidence | Status |
