@@ -49,6 +49,7 @@ python -m pip install uv
 uv lock --check
 uv sync --python 3.11 --all-extras --group dev --locked
 uv run --locked aea --help
+uv run --locked python scripts/verify_starter_walkthrough.py
 ```
 
 Dependencies are pinned in the committed `uv.lock`, generated with uv 0.10.0. CI checks it without resolving a different version. To update intentionally, run `uv lock --upgrade`, review the lockfile changes, then commit them together with any dependency updates.
