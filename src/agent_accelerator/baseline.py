@@ -49,7 +49,7 @@ def retained_backup_paths(baseline: Path) -> list[Path]:
 def activation_backup_path(baseline: Path) -> Path | None:
     """Resolve the retained prior snapshot *only* during an AEA baseline handover.
 
-    A reader never guesses which of several historical backups is the current
+    A reader never guesses which of several earlier backups is the current
     handover snapshot. A pending pointer is written before the old active
     directory is moved. The owning writer removes it after publication/rollback.
     A killed writer leaves the pointer and exclusive update lock for operator
