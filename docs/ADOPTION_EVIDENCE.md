@@ -13,6 +13,12 @@
 | Independent delivery teams | **Not achieved** | No claim of multi-team reuse |
 | Security/operations authorisation | **Not approved** | No claim of readiness for sensitive production inputs |
 
+## Preparatory synthetic control comparison
+
+The checked `scripts/controlled_pilot_study.py` runs a minimal **conventional native-framework QA control** beside AEA for two self-authored 12-case synthetic applications. It checks exact answer and tool-call contract parity, unchanged reruns, deliberately injected regression IDs and AEA baseline integrity. Run it using the command in [benchmark methodology](BENCHMARKING.md).
+
+This demonstrates that the study can compare comparable defect signals. It **does not** measure human integration time or implementation effort and is **not independent adoption**. A control script created by AEA's author is only a preparatory reference; actual pilot engineers must compare against their own credible existing practice.
+
 ## A fair and reproducible pilot
 
 Use [issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) as the external approval gate.

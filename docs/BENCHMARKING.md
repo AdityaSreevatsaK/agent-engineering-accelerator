@@ -49,3 +49,19 @@ The current engineering benchmark is considered technically complete only when *
 When presenting results to leadership, distinguish **observed local execution costs** from **unmeasured human productivity**. Never invent time saved, model-token costs, client adoption or production security clearance. The default AEA redaction retains some case/tool identifiers and file paths, so review generated files before sharing.
 
 Run the separate [adversarial resilience checks](RESILIENCE.md) for safety under corrupted inputs, concurrent writes and partial failures. These are correctness gates, not throughput benchmarks.
+
+## Self-authored conventional-control comparison (technical parity only)
+
+Run this additional benchmark from the project root after `uv sync --all-extras --group dev --locked`:
+
+```sh
+uv run --locked python -m scripts.controlled_pilot_study --repeats 3 --output-dir new-pilot-evidence
+```
+
+The directory **must not exist**. Its `STUDY.md` and `evidence.json` are summary-only synthetic results; the other files contain AEA run logs and must not be uploaded without review. The release CI gate runs one unchanged repeat for each workflow, plus deliberate defects, and retains only the two summary files for 14 days.
+
+This study uses the same 12 synthetic cases in each of two applications. The conventional control directly invokes the *real* Strands agent or LangGraph graph and checks exact expected answers; for Strands it also checks the exact ordered tool-call names and arguments from the native conversation. AEA executes the same factories and datasets through its public CLI with normal baseline/regression reporting. Each method must agree on **every** newly failing case ID under the planted defect. AEA baseline contents must remain byte-identical. Clean checks alternate which subprocess runs first.
+
+**What these timings mean:** Separate Python subprocess wall-clock observations, including interpreter startup, imports, framework execution and each method's own reporting. AEA performs additional scoring, tracing and baseline work that the minimal hand-authored control does not. The control is not an implementation of all AEA capabilities. Consequently, **do not present runtime ratios as productivity improvement or claim the two approaches provide identical operational functionality**. The script records no time spent authoring cases, creating the control harness, diagnosing results or onboarding users. The control is itself author-written, so none of this constitutes independent engineering adoption.
+
+To measure actual developer benefit, have an authorised non-author engineer separately perform a prescribed equivalent-control task and AEA task. Record time to first usable report, support time, case-authoring effort, interpretation and confirmed defect detection. Preserve the blank pilot worksheet for those future observations and maintain the security review gate.

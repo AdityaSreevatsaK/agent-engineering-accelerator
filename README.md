@@ -115,6 +115,16 @@ uv run --locked python scripts/dependency_inventory.py
 
 This command does **not** scan published vulnerability advisories or verify licences. The separate observational [PR #124 public-advisory scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) returned zero known findings for 116 exported packages; [security review](docs/DEPENDENCY_SECURITY_REVIEW.md) explains the unscanned variants and pending approvals.
 
+## Conventional QA control and synthetic pilot rehearsal
+
+AEA also provides a **self-authored conventional testing control** that directly exercises the native Strands and LangGraph applications using the same synthetic reference cases:
+
+```sh
+uv run --locked python -m scripts.controlled_pilot_study --repeats 3 --output-dir new-pilot-evidence
+```
+
+Both approaches must detect exactly the same deliberately introduced failing cases; the benchmark also records bounded process wall time and protects AEA baseline bytes. This **does not** measure engineer onboarding, authoring time or productivity, and it is **not** independent team adoption. See [methodology and limitations](docs/BENCHMARKING.md), [pilot protocol](docs/PILOT.md) and [adoption evidence requirements](docs/ADOPTION_EVIDENCE.md). Review generated raw logs before sharing; CI retains only synthetic summary files.
+
 ## Leadership demonstration
 
 Generate a self-contained [local demonstration](docs/DEMO.md) using synthetic

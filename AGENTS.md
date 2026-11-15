@@ -36,6 +36,8 @@
 
 **Current self-service onboarding entry:** `aea doctor DATASET --config aea.toml` validates dataset cases, selected TOML/flags and trusted importable factory/mapping references without executing factories, scorer functions or evaluation. Imports *do* execute arbitrary top-level Python, so this is not a sandbox, and it cannot inspect live providers or graph state. Read `docs/ONBOARDING.md`, `docs/OPERATIONAL_READINESS.md` and `docs/ADOPTION_EVIDENCE.md` before recommending production deployment. Keep `tests/unit/test_doctor.py` and the installed-wheel smoke check in sync with CLI behaviour. Do not state a human productivity gain until independent pilot measurements exist.
 
+**Controlled synthetic QA parity study:** `scripts/conventional_agent_checks.py` deliberately does *not* import AEA, and invokes standalone Strands and LangGraph applications directly to check the same answers and Strands tool calls. `scripts/controlled_pilot_study.py` runs both public AEA and the native conventional control on identical synthetic datasets, records process timings and verifies regression-case parity. See `tests/unit/test_controlled_pilot.py`. Neither script supports conclusions about human productivity, maintenance effort, independent adoption or live-provider reliability. Do not treat the self-authored control as a real delivery-team baseline. Retain only `STUDY.md` and `evidence.json` in CI, not raw logs.
+
 **Primary users:**
 
 1. Engineers maintaining existing agent workflows.
