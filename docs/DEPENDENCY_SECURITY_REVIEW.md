@@ -1,18 +1,18 @@
 # AEA 2.2.0: dependency and security self-assessment
 
-**Prepared:** 14 November 2026. **Classification:** Engineering self-review, **not** an independent security certification.  
-**Basis:** `pyproject.toml`, the versioned `uv.lock` at assessed `dev` commit `9eb93107fe481b6f7b60d00ad876d554c3f30794`, CI workflow, existing redaction and baseline safety tests.
+**Prepared:** 14 November 2026; **updated:** 15 November 2026 with full-lock CVE remediation. **Classification:** Engineering self-review, **not** an independent security certification.  
+**Basis:** `pyproject.toml`, the re-resolved `uv.lock` on PR #134, pinned CI, redaction, baseline and full-lock advisory tests. Historical baseline evidence is retained below, labelled as such.
 
 ## Dependency inventory
 
 | Fact | Verified source state |
 | --- | --- |
-| Locked packages | **128 entries**, including one editable AEA project and **127** PyPI-registry package entries |
-| Source origins | 127 registry entries from `https://pypi.org/simple`; one local editable project entry `.` |
-| Version pins | Lock entries include explicit versions and SHA-256 artifact hashes for the 127 registry entries |
+| Locked packages | **127 entries**, including one editable AEA project and **126** PyPI registry package versions after remediation |
+| Source origins | 126 registry entries from `https://pypi.org/simple`; one local editable project entry `.` |
+| Version pins | Current 126 registry entries have explicit versions and SHA-256 artefact hashes |
 | Framework integrations | Optional `strands-agents`, `langgraph`, `langchain-core`, LangChain tracing instrumentation and optional `langchain-aws` |
 | Core runtime | Inspect AI, OpenTelemetry SDK, Pydantic, JSON Schema, fsspec and a compatibility-pinned agent-client-protocol |
-| Supported Python | 3.11+ declared; CI explicitly checks 3.11 and 3.12 only |
+| Supported Python | **Python 3.11.5+** declared; CI explicitly checks latest 3.11 and 3.12 only |
 | Licence verification | The lock does not establish licence permissions or transitive licence compatibility; review needed |
 | Public advisory scan | [CI #43627751480](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480) scanned **116** exported Python package entries and reported **0 known advisories**. This is narrower than the 127 locked registry entries and is not full security clearance. |
 
@@ -20,7 +20,7 @@ Inventory counts describe **locked variants and optional dependency groups**, no
 
 ## Observed advisory result and remaining coverage
 
-In [the PR #124 CI scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480), the pinned public auditor reported **116 scanned entries, zero published advisory records returned and zero affected packages** for its exported all-extras runtime requirements view on Ubuntu Python 3.11. The scan produced the `aea-public-advisory-scan` artefact with the JSON and Markdown result. The lockfile separately contains **127** PyPI registry entries: platform markers, optional selection and export treatment mean these are not interchangeable package populations. Do not infer that the unscanned variants, future advisories, licences or malicious releases are cleared.
+In [the PR #124 CI scan](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43627751480), the pinned public auditor reported **116 scanned entries, zero published advisory records returned and zero affected packages** for its exported all-extras runtime requirements view on Ubuntu Python 3.11. The scan produced the `aea-public-advisory-scan` artefact with the JSON and Markdown result. The **older assessed lockfile** separately contained **127** PyPI registry entries: platform markers, optional selection and export treatment mean these are not interchangeable package populations. Do not infer that the unscanned variants, future advisories, licences or malicious releases are cleared.
 
 The scan's status is `no_known_findings_in_scanned_set`, **not** `security_approved`. A formal independent vulnerability, licence and policy review is still required.
 
@@ -126,8 +126,14 @@ uv run --locked python scripts/audit_all_locked_variants.py --output-dir new-ful
 
 The prior per-runner runtime views remain useful for platform deployment
 selection, but they cover only 116/127 (Linux) and 117/127 (Windows) locked
-versions. The complete audit closes the *inventory coverage* gap for public
-advisories, **not** the possibility of undisclosed vulnerabilities or malicious
+versions. The complete audit closes the *inventory coverage* gap for public advisories.
+**It uncovered CVE-2026-126190, CVE-2026-126191 and CVE-2026-126193** on
+the previously locked `soupsieve==2.10` for Python 3.11.0-3.11.4.
+The Python support floor is now `>=3.11.5`, and the lock was
+re-resolved to retain only `soupsieve==4.1`. The final audit must check
+**126/126 current registry versions** and the CI release gate now uses
+`--fail-on-findings`. See [CVE remediation](SOUPSIEVE_SECURITY_REMEDIATION.md).
+This still does **not** rule out undisclosed vulnerabilities or malicious
 packages.
 
 The two installed package metadata omissions are
