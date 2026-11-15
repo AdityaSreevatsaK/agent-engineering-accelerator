@@ -111,6 +111,33 @@ authorised security review. Development-only dependencies, platform variants
 and public advisory feed limitations require separate evaluation.
 The original release acceptance scan remains for backwards compatibility.
 
+## Entire lockfile advisory coverage and licence exceptions
+
+The `scripts/audit_all_locked_variants.py` command now audits **every locked
+PyPI package name/version**, including development dependencies and
+platform-/Python-alternative versions. Versions of one package are separated
+into different audit batches; the script then checks all returned package
+identities against the source lock before writing evidence. No dependency is
+installed or upgraded. The release CI job saves a dated 14-day summary.
+
+```sh
+uv run --locked python scripts/audit_all_locked_variants.py --output-dir new-full-lock-advisory-folder
+```
+
+The prior per-runner runtime views remain useful for platform deployment
+selection, but they cover only 116/127 (Linux) and 117/127 (Windows) locked
+versions. The complete audit closes the *inventory coverage* gap for public
+advisories, **not** the possibility of undisclosed vulnerabilities or malicious
+packages.
+
+The two installed package metadata omissions are
+`agent-client-protocol==0.12.1` and `tiktoken==0.14.0`. Their **exact upstream
+tagged licence files** are now cited in
+[the security approval handover](SECURITY_APPROVAL_HANDOFF.md). These are
+candidate licence identifications, not verified wheel/sdist terms or permission
+to use/distribute them. The handover also records platform exclusions, NTFS,
+data retention, CI action dependencies and the remaining approval fields.
+
 ## Security boundaries and remaining findings
 
 | Priority | Boundary or risk | Status / next action |
