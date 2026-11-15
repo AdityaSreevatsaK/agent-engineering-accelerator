@@ -2,6 +2,8 @@
 
 This is a self-contained synthetic equipment-support application. Its `agent.py` uses the real Strands execution and tool loop with a deterministic model double, plus `dataset.jsonl` (12 cases).
 
+For **every explicit step**, Windows PowerShell commands, exit-code handling and expected report paths, follow [the complete Strands walkthrough](../../docs/STEP_BY_STEP.md#b-full-aws-strands-equipment-warranty-flow).
+
 ## Get started
 
 From the AEA repository root, run `uv sync --all-extras --group dev --locked` and activate the resulting virtual environment: `.venv\\Scripts\\Activate.ps1` in Windows PowerShell or `source .venv/bin/activate` on macOS/Linux. Then change into `integrations/equipment_strands`.
