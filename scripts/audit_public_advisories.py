@@ -8,6 +8,8 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -16,12 +18,26 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def summarise(payload: dict, returncode: int) -> dict[str, object]:
     dependencies = payload.get("dependencies")
-    if not isinstance(dependencies, list):
-        raise ValueError("audit result has no dependency inventory")
+    if not isinstance(dependencies, list) or not dependencies:
+        raise ValueError("audit result has no nonempty dependency inventory")
     findings: list[dict[str, object]] = []
+    checked: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
     for package in dependencies:
-        if not isinstance(package, dict) or not isinstance(package.get("name"), str):
+        if (
+            not isinstance(package, dict)
+            or not isinstance(package.get("name"), str)
+            or not package["name"].strip()
+            or not isinstance(package.get("version"), str)
+            or not package["version"].strip()
+        ):
             raise ValueError("audit returned a malformed package entry")
+        name = package["name"].lower().replace("_", "-").replace(".", "-")
+        identity = (name, package["version"])
+        if identity in seen:
+            raise ValueError(f"audit returned duplicate package entry: {identity}")
+        seen.add(identity)
+        checked.append({"name": name, "version": package["version"]})
         vulnerabilities = package.get("vulns", [])
         if not isinstance(vulnerabilities, list):
             raise ValueError("audit returned a malformed vulnerability list")
@@ -39,6 +55,7 @@ def summarise(payload: dict, returncode: int) -> dict[str, object]:
     return {
         "status": "findings_require_review" if findings else "no_known_findings_in_scanned_set",
         "scanned_package_entries": len(dependencies),
+        "scanned_packages": sorted(checked, key=lambda item: (item["name"], item["version"])),
         "vulnerability_records": len(findings),
         "affected_packages": len({f["package"] for f in findings}),
         "findings": sorted(findings, key=lambda f: (str(f["package"]), str(f["advisory"]))),
@@ -68,7 +85,7 @@ def scan(output_dir: Path) -> dict[str, object]:
         if exported.returncode != 0 or not requirements.is_file():
             raise RuntimeError(f"could not export locked runtime requirements: {exported.stderr[-1200:]}")
         result = checked_run([
-            "uvx", "--from", "pip-audit==2.10.1", "pip-audit",
+            "uvx", "--python", sys.executable, "--from", "pip-audit==2.10.1", "pip-audit",
             "--requirement", str(requirements), "--no-deps", "--disable-pip",
             "--format", "json", "--output", str(result_file),
         ])
@@ -82,6 +99,13 @@ def scan(output_dir: Path) -> dict[str, object]:
         except (ValueError, UnicodeError) as exc:
             raise RuntimeError("advisory output was unreadable, not a clean scan") from exc
         report = summarise(payload, result.returncode)
+        report["environment"] = {
+            "runner_platform": sys.platform,
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+            "scanned_at_utc": datetime.now(timezone.utc).isoformat(),
+            "auditor": "pip-audit==2.10.1",
+            "selection": "uv lock exported all extras, excluding development dependencies",
+        }
 
     output_dir.mkdir(parents=True, exist_ok=False)
     (output_dir / "advisory-results.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -90,10 +114,13 @@ def scan(output_dir: Path) -> dict[str, object]:
         "",
         f"Status: **{report['status']}**",
         f"Scanned entries: **{report['scanned_package_entries']}**",
+        f"Runner: **{report['environment']['runner_platform']} / Python {report['environment']['python_version']}**",
+        f"Scan date (UTC): **{report['environment']['scanned_at_utc']}**",
         f"Advisory records: **{report['vulnerability_records']}**",
         f"Affected packages: **{report['affected_packages']}**",
         "",
         "Advisories depend on the public feed and scan date. No automatic fix is applied.",
+        "This is only the runtime package selection resolved on this specific runner.",
         "This is not a licence review, malicious-code check, all-platform scan or security sign-off.",
         "",
     ]
