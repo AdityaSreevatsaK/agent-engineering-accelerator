@@ -48,10 +48,15 @@ def _init(args: argparse.Namespace) -> int:
 
     module = _module_path(target)
     shown = target.as_posix()
-    print(f"Created {shown}/agent.py and {shown}/dataset.jsonl. Next:")
-    print(f"  1. Edit agent.py (tool, prompt, model) and dataset.jsonl (one case per behaviour) in {shown}/")
-    agent = f"{module}:build_agent" if module else "<module>.agent:build_agent"
-    print(f"  2. uv run aea run {shown}/dataset.jsonl --agent {agent} --epochs 3 --max-samples 4")
+    print(f"Created {shown}/agent.py and {shown}/dataset.jsonl. Offline first, no credentials needed:")
+    offline = f"{module}:build_offline_agent" if module else "<module>.agent:build_offline_agent"
+    print(f"  1. uv run --locked aea doctor {shown}/dataset.jsonl --adapter strands --agent {offline}")
+    print(
+        f"  2. uv run --locked aea run {shown}/dataset.jsonl "
+        f"--adapter strands --agent {offline} --epochs 1 --max-samples 1"
+    )
+    print(f"  3. Later customise {shown}/agent.py and dataset.jsonl for your own cases.")
+    print("     The build_agent factory uses AWS Bedrock and requires separately approved AWS access.")
     if module is None:
         print(
             f"note: {shown} is outside the current directory or not a valid Python module path; "

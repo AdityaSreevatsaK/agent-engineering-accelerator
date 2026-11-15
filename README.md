@@ -4,6 +4,28 @@ Local-first evaluation, regression testing and observability for **existing AI a
 
 AEA runs JSONL evaluation datasets against Python agent factories and produces Inspect AI logs, Markdown reports and OpenTelemetry trace summaries. It supports AWS Strands and LangGraph. Local deterministic examples require no model-provider account.
 
+## Start here: exact end-to-end steps
+
+**[Complete step-by-step guide for every AEA flow](docs/STEP_BY_STEP.md)**
+
+Use that guide first. It provides **copy-and-run Windows PowerShell and Linux/macOS commands**, expected pass/fail results, exact output locations and troubleshooting for:
+
+1. Setup from a fresh `dev` checkout.
+2. Standalone AWS Strands and LangGraph examples (preflight, freeze, clean check, deliberate regression).
+3. A **credential-free generated starter**, working without editing code.
+4. Leadership demonstration, offline quality/CI checks, two-framework rehearsals and runtime/control comparisons.
+5. First-install onboarding measurements, report exports, backup inspection and the procedure for connecting an actual existing agent.
+
+**You need no model-provider account or manual source-code changes for the bundled synthetic workflows.** A genuine third-party agent integration and independent release/security approvals still require the relevant people and application code.
+
+For the shortest complete automated demonstration after [installing AEA](docs/STEP_BY_STEP.md#0-checkout-install-and-check-the-environment):
+
+```sh
+uv run --locked python scripts/leadership_demo.py --output-dir demo-evidence-001
+```
+
+Open `demo-evidence-001/DEMO.md` and `demo-evidence-001/regression-report.html`. An unused output directory is required; reruns use a fresh name.
+
 ## Capabilities
 
 | Capability | Description |
@@ -27,6 +49,7 @@ python -m pip install uv
 uv lock --check
 uv sync --python 3.11 --all-extras --group dev --locked
 uv run --locked aea --help
+uv run --locked python scripts/verify_starter_walkthrough.py
 ```
 
 Dependencies are pinned in the committed `uv.lock`, generated with uv 0.10.0. CI checks it without resolving a different version. To update intentionally, run `uv lock --upgrade`, review the lockfile changes, then commit them together with any dependency updates.

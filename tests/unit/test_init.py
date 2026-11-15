@@ -5,7 +5,7 @@ import pytest
 from agent_accelerator.cli import main
 
 TEMPLATE_NAMES = ("agent.py", "dataset.jsonl")
-PLACEHOLDER = "--agent <module>.agent:build_agent"
+PLACEHOLDER = "--agent <module>.agent:build_offline_agent"
 
 
 def template_text(name):
@@ -18,8 +18,8 @@ def assert_matches_template(folder):
 
 
 def run_line(out):
-    [line] = [line for line in out.splitlines() if "uv run aea run" in line]
-    return line[line.index("uv run aea run") :].rstrip()
+    [line] = [line for line in out.splitlines() if "uv run --locked aea run" in line]
+    return line[line.index("uv run --locked aea run") :].rstrip()
 
 
 # fresh and empty folders
@@ -111,7 +111,7 @@ def test_init_prints_run_command_with_dotted_module_relative_to_cwd(tmp_path, mo
     main(["init", "agents/my_bot"])
 
     assert run_line(capsys.readouterr().out) == (
-        "uv run aea run agents/my_bot/dataset.jsonl --agent agents.my_bot.agent:build_agent --epochs 3 --max-samples 4"
+        "uv run --locked aea run agents/my_bot/dataset.jsonl --adapter strands --agent agents.my_bot.agent:build_offline_agent --epochs 1 --max-samples 1"
     )
 
 
@@ -122,8 +122,8 @@ def test_init_with_absolute_dir_inside_cwd_still_uses_dotted_relative_module(tmp
     main(["init", str(target)])
 
     line = run_line(capsys.readouterr().out)
-    assert f"uv run aea run {target.as_posix()}/dataset.jsonl " in line
-    assert "--agent agents.my_bot.agent:build_agent --epochs 3 --max-samples 4" in line
+    assert f"uv run --locked aea run {target.as_posix()}/dataset.jsonl " in line
+    assert "--adapter strands --agent agents.my_bot.agent:build_offline_agent --epochs 1 --max-samples 1" in line
 
 
 def test_init_dir_outside_cwd_creates_folder_prints_note_and_placeholder(tmp_path, monkeypatch, capsys):
@@ -151,7 +151,7 @@ def test_init_dir_with_non_module_segment_creates_folder_prints_note_and_placeho
     out = capsys.readouterr().out
     assert_matches_template(tmp_path / dir_arg)
     line = run_line(out)
-    assert line == f"uv run aea run {dir_arg}/dataset.jsonl {PLACEHOLDER} --epochs 3 --max-samples 4"
+    assert line == f"uv run --locked aea run {dir_arg}/dataset.jsonl --adapter strands {PLACEHOLDER} --epochs 1 --max-samples 1"
     assert "note:" in out
 
 

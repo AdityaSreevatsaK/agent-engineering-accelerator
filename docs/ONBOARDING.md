@@ -2,6 +2,8 @@
 
 **Status:** Self-service, local, synthetic-data onboarding. This guide is not proof that independent delivery engineers have adopted AEA.
 
+**For a complete unambiguous Windows/Linux walkthrough covering every supported flow**, start with [the end-to-end steps](STEP_BY_STEP.md). The commands here focus only on initial onboarding.
+
 ## A 15-minute guided path (target, not measured)
 
 The steps use native Windows PowerShell or a Unix shell, Python 3.11/3.12 and the pinned `uv.lock`. No model-provider credentials are required for the included deterministic applications.

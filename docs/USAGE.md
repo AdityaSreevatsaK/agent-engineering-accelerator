@@ -1,5 +1,8 @@
 # AEA usage
 
+**Start here for complete copy-and-run procedures:** [step-by-step workflows](STEP_BY_STEP.md). The guide includes Windows PowerShell, Linux/macOS, per-framework end-to-end flows, a generated credential-free starter, expected CLI exit codes and output locations.
+
+
 ## Agent factories
 
 Provide `module:function` through `--agent`, or in a TOML configuration. The function must construct an independently usable Strands agent or local LangGraph graph for each evaluation. References use a Python-importable dotted module and a single callable attribute, for example `agent:build_agent` when running from the application directory. Invalid reference syntax is rejected before a run directory is created. A missing application module is reported with a working-directory hint; missing dependencies imported by the application are reported separately.
