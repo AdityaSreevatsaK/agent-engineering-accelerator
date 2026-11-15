@@ -36,6 +36,20 @@ The steps use native Windows PowerShell or a Unix shell, Python 3.11/3.12 and th
 
 4. For the LangGraph custom-state mapping example, return to the repository root, enter `integrations/vendor_langgraph` and repeat step 2. Its `aea.toml` specifies both `input_map` and `output_map`, because its state does not expose the default messages channel.
 
+## Repeatable automated onboarding measurements
+
+After a clean checkout with Python 3.11 and uv 0.10.0, the CI job `Fresh-environment scripted onboarding measurement` times a pinned `uv sync` into a previously absent project virtual environment, then runs `aea doctor`, the first 12-case AEA baseline report, a clean comparison, a deliberately faulty evaluation, and a native-framework control for each of two synthetic applications.
+
+From the repository root, it can be replayed using:
+
+```sh
+python -m scripts.onboarding_rehearsal --output-dir new-onboarding-evidence
+```
+
+The destination must not exist. The script also supports `--skip-install` to measure only the application path using an existing, compatible Python environment. Only `ONBOARDING_REHEARSAL.md` and `evidence.json` are appropriate summary-only CI artefacts; **do not publish** the local raw run logs. Installation may benefit from cached packages, so the wall time is not a universal cold-download result.
+
+This is a **scripted machine** walkthrough, not an engineer reading documentation or creating an integration. It does not capture human case-authoring, debugging, assistance or report-interpretation effort. Those measurements require the [human effort study](HUMAN_EFFORT_STUDY.md).
+
 ## Diagnosing common failures
 
 | Symptom | Meaning and corrective action |
