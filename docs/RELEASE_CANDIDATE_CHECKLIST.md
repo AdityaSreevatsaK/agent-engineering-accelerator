@@ -1,30 +1,15 @@
 # AEA 2.2.0: technical release-candidate checklist
 
-**Prepared:** 14 November 2026  
-**Source:** `dev` after [PR #119](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/119) (merged SHA `86707008aa859bedcf2e94e22aca66c79bbe6b56`); the expanded technical checks are in [PR #120](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/120). Pin the final integrated `dev` SHA again after merging.  
+**Prepared:** 14 November 2026; **last evidence check:** 15 November 2026  
+**Source:** Integrated `dev` commit `6bcf6849f1ee2109f623a43d850e529c48bb21a7`, [CI run 43726515353](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43726515353). Full decision: [RELEASE_DECISION.md](RELEASE_DECISION.md).  
 **Version declared:** `2.2.0` in `pyproject.toml`.  
 **Release state:** **Technical preparation only.** No promotion to `master`, release tag, package publication, confidential-data approval or independent team adoption is authorised by this checklist.
 
 ## Current verification boundary
 
-The latest integrated engineering hardening on `dev` before this change is
-[PR #132](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/132)
-at commit `0c61b56faea4ec4f9780e588a68fbfaf307f9b1a`. Its
-[post-merge CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43704323462)
-passed **7/7 jobs**, including Windows/Linux 3.11 and 3.12 and 75 slow
-tests. The fixed AEA reader handover described in issue #123 is technical
-evidence, not unrestricted filesystem atomicity or production certification.
+[Final integrated `dev` CI](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43726515353) passed **7/7 jobs** at commit `6bcf6849f1ee2109f623a43d850e529c48bb21a7`, including Windows/Linux Python 3.11/3.12, 75 slow tests, complete offline examples, onboarding, full **126/126** dependency public advisory scan with **zero known findings**, and isolated wheel installation.
 
-New work for [issue #125](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/125)
-adds **per-platform advisory coverage reconciliation** and further unit
-tests. Its results must be checked against the final merged `dev` commit;
-an unmerged PR or documentation statement is not a release gate.
-
-**Not yet satisfied:** independent Strands and LangGraph delivery-team
-adoption, human developer effort, licence-policy and sensitive-data review,
-Windows NTFS/retention approval and authorised security/release sign-off.
-See [issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111).
-Keep `master` unchanged pending explicit release approval.
+The three earlier Soup Sieve advisories were remediated in [PR #134](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/pull/134). Independent Strands and LangGraph adoption, licence/security approvals, Windows retention/NTFS policy and release-owner sign-off remain **not completed**. Issue [#111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) was closed as deferred, not approved. See [the current release decision](RELEASE_DECISION.md). `master` must not change without explicit approval.
 
 ## Full lock-version review gate
 
@@ -66,7 +51,7 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 
 ## Failure policy and evidence interpretation
 
-- **Do not merge if any of the six CI jobs fails, is cancelled, is skipped unexpectedly or has not completed.**
+- **Do not merge if any of the seven CI jobs fails, is cancelled, is skipped unexpectedly or has not completed.**
 - Do not claim that the unavailable original calculator reference files were restored. The test runner generates separate disposable synthetic logs, including two intentionally introduced score failures; it refuses to overwrite existing files and checks their digests before cleanup.
 - `aea run` can return exit 0 for a completed evaluation with failing cases; `aea check` and `aea compare` enforce the configured regression thresholds. Keep tests for both behaviours.
 - Slow testing must cover **all** marked-slow unit cases, including token price CLI checks and expense, helpdesk, policy RAG and triage end-to-end checks, plus the LangGraph CLI conformance case. Check the pytest selected/deselected summary in the release job.
@@ -78,7 +63,7 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 - Confirm the installed **base wheel** supports `aea doctor` without installing a framework extra; verify it does not create evaluation runs and that missing modules return exit 2.
 - Verify LangGraph mapper advisory text, config/CLI precedence and invalid JSONL diagnostics.
 - Review the [onboarding](ONBOARDING.md), [operational recovery](OPERATIONAL_READINESS.md) and [adoption evidence](ADOPTION_EVIDENCE.md) guidance. These documents do not represent external approval.
-- After final PR merge, update the evidence reference using the actual integrated `dev` SHA and 6/6 CI result. Do not treat pending CI as passed.
+- After final PR merge, update the evidence reference using the actual integrated `dev` SHA and 7/7 CI result. Do not treat pending CI as passed.
 
 ## Outstanding sign-offs for a real release
 
@@ -94,7 +79,7 @@ All automated case inputs in these gates are synthetic. Neither a passing gate n
 ## Controlled candidate preparation
 
 1. Confirm the latest `dev` commit and all open PRs/branches. Pin a single immutable SHA for the candidate.
-2. Confirm **6/6 green on that same SHA**, including the complete slow-test gate and both synthetic integration examples. Record the actual CI link and individual test totals.
+2. Confirm **7/7 green on that same SHA**, including the complete slow-test gate and both synthetic integration examples. Record the actual CI link and individual test totals.
 3. Inspect `CHANGELOG.md`, `docs/RELEASE_READINESS.md`, `AGENTS.md` and the package metadata; do not describe earlier missing reference inputs as independently restored.
 4. Generate one wheel using the locked dependency environment; run the isolated wheel check and inspect the package for private content, cached runs and unexpected files.
 5. Prepare a release note and list outstanding approvals; save internal-only evidence outside this public repository.
