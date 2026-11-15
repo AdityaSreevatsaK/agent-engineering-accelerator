@@ -29,12 +29,16 @@ Keep `master` unchanged pending explicit release approval.
 ## Full lock-version review gate
 
 The `scripts/audit_all_locked_variants.py` release job independently queries
-the public advisory feed for **all 127 locked PyPI version variants**, including
+the public advisory feed for **all 126 current locked PyPI version variants**, including
 dev packages and OS/Python alternatives. It fails closed if any package is
 missing from a returned audit group. The output is review-only:
 `aea-complete-lock-advisories` (14-day GitHub Actions artefact).
-Inspect the actual final CI result and findings before claiming this gate has
-passed; recorded security-owner approval is still required for release.
+The first scan of the older 127-version lock identified **three** real public
+Soup Sieve advisories. The project now requires Python >=3.11.5, and the
+re-resolved lock contains Soup Sieve 4.1 only; the strict CI gate fails on
+any new public advisory. See [remediation details](SOUPSIEVE_SECURITY_REMEDIATION.md).
+Inspect the actual final CI result before claiming that the **new** 126/126
+lock has passed; recorded security-owner approval is still required for release.
 
 The [security approval handover](SECURITY_APPROVAL_HANDOFF.md) records the
 known package coverage gaps in runtime-only scans and the two upstream
