@@ -36,6 +36,7 @@ TEST_MODULES = (
     "test_compare.py",
     "test_compare_statistics.py",
     "test_config.py",
+    "test_controlled_pilot.py",
     "test_dataset.py",
     "test_dependency_inventory.py",
     "test_doctor.py",
