@@ -56,6 +56,10 @@ def build_report(
         name = dist.metadata.get("Name")
         if name:
             installed[normalise(name)] = dist
+    locked_versions: dict[str, set[str]] = {}
+    for package in packages:
+        if package is not root[0]:
+            locked_versions.setdefault(normalise(package["name"]), set()).add(package["version"])
     components = []
     records = []
     for package in sorted(packages, key=lambda p: (p["name"], p["version"])):
@@ -84,7 +88,9 @@ def build_report(
         records.append({
             "name": name, "version": version, "installed": selected,
             "licence_evidence": licences, "licence_source": source,
-            "installed_version_mismatch": dist.version if dist is not None and not selected else None,
+            "installed_version_mismatch": (
+                dist.version if dist is not None and dist.version not in locked_versions[normalise(name)] else None
+            ),
         })
     missing = [r["name"] for r in records if not r["installed"]]
     unknown = [r["name"] for r in records if r["installed"] and not r["licence_evidence"]]
