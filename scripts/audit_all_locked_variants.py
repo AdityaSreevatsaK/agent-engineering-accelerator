@@ -186,8 +186,14 @@ def scan_lock(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True, help="Unused output folder")
+    parser.add_argument(
+        "--fail-on-findings", action="store_true",
+        help="fail the release gate on any published advisory after writing review evidence",
+    )
     args = parser.parse_args()
-    scan_lock(args.output_dir.absolute())
+    report = scan_lock(args.output_dir.absolute())
+    if args.fail_on_findings and report["vulnerability_records"]:
+        parser.exit(1, f"FAIL: {report['vulnerability_records']} public advisory records require remediation\n")
 
 
 if __name__ == "__main__":
