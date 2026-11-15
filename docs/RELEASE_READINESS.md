@@ -1,9 +1,15 @@
 # AEA 2.2.0 release-readiness assessment
 
-**Assessment date:** 14 November 2026  
+**Assessment date:** 14 November 2026; **latest verification:** 15 November 2026  
 **Integration branch:** `dev`  
 **Default/release branch:** `master` (not promoted)  
 **Decision:** Suitable for further controlled internal evaluation with approved synthetic data. **Not approved for confidential production use or general release.**
+
+## Latest integrated release position
+
+The current `dev` candidate is commit `6bcf6849f1ee2109f623a43d850e529c48bb21a7`. Its [final integrated CI run](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/actions/runs/43726515353) passed **7/7 jobs**, including 75 slow tests, offline framework demonstrations, isolated package installation and an exhaustive **126/126** locked-version public advisory scan reporting **zero known findings**. Python **3.11.5+** is required after remediating three previously detected Soup Sieve advisories.
+
+**Release is still not authorised.** Independent team pilots, security/licence/data handling approval and explicit release-owner consent remain absent. The closed [release gate issue #111](https://github.com/AdityaSreevatsaK/agent-engineering-accelerator/issues/111) means **deferred**, not approved. The short [release decision](RELEASE_DECISION.md) is the current approval status; older test counts below remain supporting prior-run evidence.
 
 ## Evidence and scope
 
@@ -62,7 +68,7 @@ These are technical test results. They do not establish universal compatibility,
 
 ## Recommended gates before promotion
 
-1. Verify fresh integrated `dev` CI: all six jobs pass at the same revision.
+1. Verify fresh integrated `dev` CI: all seven jobs pass at the same revision.
 2. Keep the complete CLI and comparison/statistics tests enabled in the fast/slow CI lanes; confirm each marked-slow unit and conformance case ran, not merely that the jobs were green.
 3. Perform an approved security, dependency and licence review; decide where logs, trace files, backups and captured data may reside and how long they are retained.
 4. Use [PILOT.md](PILOT.md) and the [blank evidence worksheet](PILOT_EVIDENCE_TEMPLATE.md) to validate real Strands and LangGraph applications in separate independent delivery-team pilots. The shipped rehearsal does not satisfy this gate.
