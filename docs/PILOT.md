@@ -20,6 +20,12 @@ The script refuses to overwrite existing output, freezes a separate redacted bas
 
 **This is not proof of adoption by independent delivery teams.** It verifies a repeatable technical workflow only. Use the blank [independent pilot evidence worksheet](PILOT_EVIDENCE_TEMPLATE.md) for the two external integrations and actual measured outcomes.
 
+## Preparatory conventional-control study
+
+Execute `uv run --locked python -m scripts.controlled_pilot_study --repeats 3 --output-dir new-pilot-evidence` from the repository root. It runs an intentionally minimal direct Strands/LangGraph testing control alongside AEA, exercising identical synthetic golden cases and faulty application factories. It records CLI execution time, regression-case parity, and immutable AEA baselines; it records **no human time savings**. Review only `STUDY.md` and `evidence.json` for public synthetic summaries; raw logs need approval.
+
+This study is **not** one of the required two independent delivery-team pilots. The actual pilot must use each team's existing evaluation method, record time spent writing/maintaining test infrastructure, and obtain security/data-governance approval.
+
 ## Pilot set-up
 
 1. Select an existing agent entry point for each framework that can run locally with a deterministic or approved model double. Record the team's current manual regression process and its set-up time.
