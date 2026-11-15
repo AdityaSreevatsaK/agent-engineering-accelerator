@@ -57,6 +57,22 @@ jobs:
             ${{ runner.temp }}/aea-licence-evidence/LICENCE_REVIEW.md
           retention-days: 14
           if-no-files-found: error
+      - name: Audit the actual Python and OS runtime dependency selection
+        run: uv run --locked python scripts/audit_public_advisories.py --output-dir "${{ runner.temp }}/aea-platform-advisories"
+      - name: Reconcile advisory results with installed and locked variants
+        run: |
+          uv run --locked python scripts/assess_advisory_coverage.py --sbom-evidence "${{ runner.temp }}/aea-licence-evidence/licence-evidence.json" --advisory-evidence "${{ runner.temp }}/aea-platform-advisories/advisory-results.json" --output-dir "${{ runner.temp }}/aea-platform-coverage"
+      - name: Retain platform advisory scan and coverage summaries
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aea-platform-advisory-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/aea-platform-advisories/advisory-results.json
+            ${{ runner.temp }}/aea-platform-advisories/ADVISORY_REVIEW.md
+            ${{ runner.temp }}/aea-platform-coverage/coverage.json
+            ${{ runner.temp }}/aea-platform-coverage/COVERAGE_REVIEW.md
+          retention-days: 14
+          if-no-files-found: error
       - name: Source-tree hygiene
         run: uv run --locked python scripts/check_repository_hygiene.py
       - name: Offline unit tests
