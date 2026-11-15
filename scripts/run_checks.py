@@ -29,6 +29,7 @@ TEST_MODULES = (
     "test_calculator_dataset.py",
     "test_calculator_rules.py",
     "test_orders_contract.py",
+    "test_onboarding_rehearsal.py",
     "test_calculator_log_sample.py",
     "test_cli.py",
     "test_cli_controls.py",
