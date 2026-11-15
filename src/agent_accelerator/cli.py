@@ -228,7 +228,10 @@ def _check(args: argparse.Namespace) -> int:
     if args.update_baseline:
         _validate_baseline_target(baseline, args.runs_dir, args.capture_content)
     elif not baseline.exists():
-        raise FileNotFoundError(f"no baseline at {baseline.as_posix()}; run with --update-baseline first")
+        from agent_accelerator.baseline import activation_backup_path
+
+        if activation_backup_path(baseline) is None:
+            raise FileNotFoundError(f"no baseline at {baseline.as_posix()}; run with --update-baseline first")
 
     code, run_dir = _execute_run(args)
     if code != EXIT_OK:
