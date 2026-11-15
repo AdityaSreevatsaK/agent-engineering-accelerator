@@ -45,6 +45,7 @@ TEST_MODULES = (
     "test_factory_references.py",
     "test_expense.py",
     "test_helpdesk.py",
+    "test_integration_flow_selector.py",
     "test_init.py",
     "test_init_symlink_safety.py",
     "test_judge.py",
