@@ -1,7 +1,7 @@
 # AEA 2.2.0: dependency and security self-assessment
 
 **Prepared:** 14 November 2026; **updated:** 15 November 2026 with full-lock CVE remediation. **Classification:** Engineering self-review, **not** an independent security certification.  
-**Basis:** `pyproject.toml`, the re-resolved `uv.lock` on PR #134, pinned CI, redaction, baseline and full-lock advisory tests. Historical baseline evidence is retained below, labelled as such.
+**Basis:** `pyproject.toml`, the re-resolved `uv.lock` on PR #134, pinned CI, redaction, baseline and full-lock advisory tests. Earlier baseline evidence is retained below, labelled as such.
 
 ## Dependency inventory
 
