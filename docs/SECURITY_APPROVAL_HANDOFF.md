@@ -15,7 +15,7 @@ Do not publish real project, user or customer data in issues or CI artefacts.
 
 ## 2. Why earlier runtime scans missed entries
 
-**Historical evidence only:** names omitted by the runtime-only scan against the **previous 127-version lock** on 15 November (the known vulnerable Soup Sieve 2.10 entry was subsequently removed):
+**Earlier evidence only:** names omitted by the runtime-only scan against the **previous 127-version lock** on 15 November (the known vulnerable Soup Sieve 2.10 entry was subsequently removed):
 
 | Package/version | Why runtime audit omitted it | Next evidence |
 | --- | --- | --- |
