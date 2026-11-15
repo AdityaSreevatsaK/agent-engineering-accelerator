@@ -15,6 +15,32 @@ def test_empty_advisories_do_not_claim_security_approval():
     assert summary["security_approved"] is False
 
 
+def test_each_scanned_package_has_a_valid_version_and_is_identified():
+    report = audit.summarise({"dependencies": [
+        {"name": "Example_Package", "version": "1.0", "vulns": []},
+        {"name": "another.pkg", "version": "2.0", "vulns": []},
+    ]}, 0)
+    assert report["scanned_packages"] == [
+        {"name": "another-pkg", "version": "2.0"},
+        {"name": "example-package", "version": "1.0"},
+    ]
+    assert report["security_approved"] is False
+
+
+@pytest.mark.parametrize("payload", [
+    {"dependencies": []},
+    {"dependencies": [{"name": "x", "vulns": []}]},
+    {"dependencies": [{"name": "x", "version": "", "vulns": []}]},
+    {"dependencies": [
+        {"name": "same_package", "version": "1.0"},
+        {"name": "same-package", "version": "1.0"},
+    ]},
+])
+def test_incomplete_or_duplicated_scan_never_claims_clean_results(payload):
+    with pytest.raises(ValueError):
+        audit.summarise(payload, 0)
+
+
 def test_findings_are_preserved_and_sorted_for_review():
     payload = {"dependencies": [
         {"name": "synthetic-b", "version": "2.0", "vulns": [{"id": "TEST-2", "fix_versions": []}]},
