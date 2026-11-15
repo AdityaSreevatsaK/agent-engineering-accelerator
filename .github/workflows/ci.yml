@@ -45,6 +45,18 @@ jobs:
         run: |
           uv run --locked ruff check src examples
           uv run --locked pyright
+      - name: Produce platform-specific dependency and licence review BOM
+        run: uv run --locked python scripts/dependency_licence_sbom.py --output-dir "${{ runner.temp }}/aea-licence-evidence"
+      - name: Retain review-only dependency BOM and licence metadata
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aea-licences-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/aea-licence-evidence/SBOM.cdx.json
+            ${{ runner.temp }}/aea-licence-evidence/licence-evidence.json
+            ${{ runner.temp }}/aea-licence-evidence/LICENCE_REVIEW.md
+          retention-days: 14
+          if-no-files-found: error
       - name: Source-tree hygiene
         run: uv run --locked python scripts/check_repository_hygiene.py
       - name: Offline unit tests
