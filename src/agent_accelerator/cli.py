@@ -274,6 +274,14 @@ def _validate_baseline_target(baseline: Path, runs_dir: Path, capture_content: b
         return
     if not baseline.is_dir():
         raise ValueError(f"--baseline {baseline.as_posix()} exists and is not a run directory")
+    # Preserve the published invalid-baseline diagnostic for linked files
+    # before the generic log resolver can reject a linked JSON directly.
+    linked_files = sorted(entry.name for entry in baseline.iterdir() if entry.is_symlink())
+    if linked_files:
+        raise ValueError(
+            f"--baseline {baseline.as_posix()} has unrelated or linked files "
+            f"({', '.join(linked_files)}); refusing to replace it"
+        )
     try:
         log_path = resolve_log(baseline)
     except FileNotFoundError:
