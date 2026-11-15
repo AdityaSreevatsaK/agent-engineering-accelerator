@@ -84,6 +84,21 @@ def test_wrong_installed_version_is_recorded_not_silently_approved():
     assert report["installed_locked_entries"] == 0
 
 
+def test_alternative_version_for_platform_is_not_false_mismatch():
+    multi = LOCK + b'''[[package]]
+name = "sample-a"
+version = "1.1"
+source = { registry = "https://pypi.org/simple" }
+'''
+    report, _ = sbom.build_report(
+        multi, [Dist("sample-a", "1.0", "MIT")], stamp="2026-11-15T00:00:00+00:00"
+    )
+    assert report["locked_registry_entries"] == 3
+    assert report["installed_locked_entries"] == 1
+    assert report["version_mismatches"] == []
+    assert report["not_installed_here"] == ["sample-a", "sample-b"]
+
+
 def test_unknown_lock_source_rejected():
     bad = LOCK.replace(b"https://pypi.org/simple", b"https://unknown-registry.example")
     with pytest.raises(ValueError, match="unexpected registry origin"):
