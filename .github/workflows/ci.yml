@@ -193,8 +193,9 @@ jobs:
           retention-days: 14
           if-no-files-found: error
       - name: Audit all locked package versions including dev-only and OS alternatives
-        run: uv run --locked python scripts/audit_all_locked_variants.py --output-dir "${{ runner.temp }}/aea-full-lock-advisories"
+        run: uv run --locked python scripts/audit_all_locked_variants.py --output-dir "${{ runner.temp }}/aea-full-lock-advisories" --fail-on-findings
       - name: Retain complete locked variant advisory evidence
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: aea-complete-lock-advisories
