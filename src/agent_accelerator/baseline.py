@@ -91,7 +91,7 @@ def _write_reader_pointer(baseline: Path, backup_root: Path) -> tuple[Path, tupl
 def _unlink_owned_reader_pointer(marker: Path, token: tuple[int, int]) -> None:
     """Never delete a marker replaced by a different process."""
     current = marker.lstat()
-    if current.is_symlink() or (current.st_dev, current.st_ino) != token:
+    if marker.is_symlink() or (current.st_dev, current.st_ino) != token:
         raise RuntimeError(f"baseline reader pointer changed; refusing to remove {marker}")
     marker.unlink()
 
